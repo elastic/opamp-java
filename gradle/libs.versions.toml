@@ -1,0 +1,5 @@
+[libraries]
+protobuf = "com.google.protobuf:protobuf-java:4.27.2"
+
+[plugins]
+protobuf = { id = "com.google.protobuf", version = "0.9.4" }
