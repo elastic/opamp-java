@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client;
+package io.opentelemetry.opamp.client.request;
 
 import java.io.IOException;
 import opamp.proto.Opamp;
