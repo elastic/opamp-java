@@ -10,13 +10,13 @@ import io.opentelemetry.opamp.client.internal.visitors.FlagsVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.InstanceUidVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.SequenceNumberVisitor;
-import io.opentelemetry.opamp.client.request.Operation;
+import io.opentelemetry.opamp.client.request.OpampService;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface OpampClient {
 
-  static OpampClient create(Operation operation, String serviceName, String serviceVersion) {
+  static OpampClient create(OpampService service, String serviceName, String serviceVersion) {
     List<AgentToServerVisitor> constantVisitors = new ArrayList<>();
     constantVisitors.add(new AgentDescriptionVisitor(serviceName, serviceVersion));
     constantVisitors.add(new CapabilitiesVisitor());
@@ -26,7 +26,7 @@ public interface OpampClient {
     constantVisitors.add(new RemoteConfigStatusVisitor());
     constantVisitors.add(new SequenceNumberVisitor());
     constantVisitors.add(new AgentDisconnectVisitor());
-    return new OpampClientImpl(operation, constantVisitors);
+    return new OpampClientImpl(service, constantVisitors);
   }
 
   void start();

@@ -1,17 +1,17 @@
 package io.opentelemetry.opamp.client;
 
-import io.opentelemetry.opamp.client.request.Operation;
+import io.opentelemetry.opamp.client.request.OpampService;
 import io.opentelemetry.opamp.client.internal.visitors.AgentToServerVisitor;
 import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
-  private final Operation operation;
+  private final OpampService service;
   private final List<AgentToServerVisitor> visitors;
 
-  OpampClientImpl(Operation operation, List<AgentToServerVisitor> visitors) {
-    this.operation = operation;
+  OpampClientImpl(OpampService service, List<AgentToServerVisitor> visitors) {
+    this.service = service;
     this.visitors = visitors;
   }
 
@@ -33,7 +33,7 @@ public class OpampClientImpl implements OpampClient {
 
   private void sendMessage() {
     try {
-      Opamp.ServerToAgent serverToAgent = operation.sendMessage(buildMessage());
+      Opamp.ServerToAgent serverToAgent = service.sendMessage(buildMessage());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
