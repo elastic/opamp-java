@@ -12,7 +12,7 @@ public class OperationImpl implements Operation {
   private final OkHttpClient client;
   private final String url;
 
-  private OperationImpl(OkHttpClient client, String url) {
+  OperationImpl(OkHttpClient client, String url) {
     this.client = client;
     this.url = url;
   }

@@ -1,6 +1,7 @@
 package io.opentelemetry.opamp.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import io.opentelemetry.opamp.client.request.Operation;
 import io.opentelemetry.opamp.client.visitors.AgentDisconnectVisitor;
@@ -44,6 +45,7 @@ public class OpampClientImpl implements OpampClient {
 
   private void send(Opamp.AgentToServer message) {
     try {
+      printAsJson(message);
       Opamp.ServerToAgent serverToAgent = operation.sendMessage(message);
       printAsJson(serverToAgent);
     } catch (IOException e) {
@@ -51,9 +53,12 @@ public class OpampClientImpl implements OpampClient {
     }
   }
 
-  private void printAsJson(Opamp.ServerToAgent serverToAgent)
-      throws InvalidProtocolBufferException {
-    String json = JsonFormat.printer().print(serverToAgent);
-    System.out.println(json);
+  private void printAsJson(MessageOrBuilder messageOrBuilder) {
+    try {
+      String json = JsonFormat.printer().print(messageOrBuilder);
+      System.out.println(json);
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
