@@ -1,5 +1,6 @@
 package io.opentelemetry.opamp.client.visitors;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import com.google.protobuf.ByteString;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -15,7 +16,7 @@ public class InstanceUidVisitor implements AgentToServerVisitor {
 
   private byte[] getUuid() {
     if (uuid == null) {
-      UUID random = UUID.randomUUID();
+      UUID random = UuidCreator.getTimeOrderedEpoch();
       ByteBuffer buffer = ByteBuffer.allocate(16);
       buffer.putLong(random.getMostSignificantBits());
       buffer.putLong(random.getLeastSignificantBits());
