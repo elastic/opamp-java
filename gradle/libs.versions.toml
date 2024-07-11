@@ -1,5 +1,9 @@
+[versions]
+protobuf = "4.27.2"
+
 [libraries]
-protobuf = "com.google.protobuf:protobuf-java:4.27.2"
+protobuf = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobuf" }
 okhttp = "com.squareup.okhttp3:okhttp:4.12.0"
 
 [plugins]
