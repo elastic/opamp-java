@@ -9,15 +9,15 @@ import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
   private final Operation operation;
-  private final List<AgentToServerVisitor> visitors;
+  private final List<AgentToServerVisitor> constantVisitors;
   private final AgentDisconnectVisitor agentDisconnectVisitor;
 
   OpampClientImpl(
       Operation operation,
-      List<AgentToServerVisitor> visitors,
+      List<AgentToServerVisitor> constantVisitors,
       AgentDisconnectVisitor agentDisconnectVisitor) {
     this.operation = operation;
-    this.visitors = visitors;
+    this.constantVisitors = constantVisitors;
     this.agentDisconnectVisitor = agentDisconnectVisitor;
   }
 
@@ -36,7 +36,7 @@ public class OpampClientImpl implements OpampClient {
 
   private Opamp.AgentToServer.Builder getBuilder() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    visitors.forEach(visitor -> visitor.visit(builder));
+    constantVisitors.forEach(visitor -> visitor.visit(builder));
     return builder;
   }
 
