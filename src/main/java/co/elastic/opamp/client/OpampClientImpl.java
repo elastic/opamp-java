@@ -1,7 +1,7 @@
-package io.opentelemetry.opamp.client;
+package co.elastic.opamp.client;
 
-import io.opentelemetry.opamp.client.requests.OpampService;
-import io.opentelemetry.opamp.client.internal.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.requests.OpampService;
+import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;

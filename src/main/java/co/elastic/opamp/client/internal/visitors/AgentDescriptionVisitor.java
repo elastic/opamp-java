@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.internal.visitors;
+package co.elastic.opamp.client.internal.visitors;
 
 import java.util.ArrayList;
 import java.util.List;

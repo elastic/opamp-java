@@ -1,7 +1,7 @@
-package io.opentelemetry.opamp.client.internal.visitors;
+package co.elastic.opamp.client.internal.visitors;
 
 import com.google.protobuf.ByteString;
-import io.opentelemetry.opamp.client.configuration.Configuration;
+import co.elastic.opamp.client.configuration.Configuration;
 import opamp.proto.Opamp;
 
 public class EffectiveConfigVisitor implements AgentToServerVisitor {

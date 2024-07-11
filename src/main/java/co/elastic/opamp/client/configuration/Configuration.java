@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.configuration;
+package co.elastic.opamp.client.configuration;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

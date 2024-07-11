@@ -1,7 +1,7 @@
-package io.opentelemetry.opamp;
+package co.elastic.opamp;
 
-import io.opentelemetry.opamp.client.OpampClient;
-import io.opentelemetry.opamp.client.requests.OpampService;
+import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.requests.OpampService;
 
 public class Main {
   public static void main(String[] args) {

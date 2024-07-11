@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.internal.visitors;
+package co.elastic.opamp.client.internal.visitors;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.google.protobuf.ByteString;
