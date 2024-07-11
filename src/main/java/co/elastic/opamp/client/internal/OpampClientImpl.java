@@ -1,5 +1,6 @@
-package co.elastic.opamp.client;
+package co.elastic.opamp.client.internal;
 
+import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.requests.OpampService;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import java.io.IOException;

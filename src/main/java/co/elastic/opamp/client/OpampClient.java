@@ -1,5 +1,6 @@
 package co.elastic.opamp.client;
 
+import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
