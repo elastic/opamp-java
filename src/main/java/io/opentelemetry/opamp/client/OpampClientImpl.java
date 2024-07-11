@@ -1,6 +1,7 @@
 package io.opentelemetry.opamp.client;
 
 import io.opentelemetry.opamp.client.request.Operation;
+import io.opentelemetry.opamp.client.visitors.AgentDisconnectVisitor;
 import io.opentelemetry.opamp.client.visitors.AgentToServerVisitor;
 import java.io.IOException;
 import java.util.List;
@@ -9,17 +10,34 @@ import opamp.proto.Opamp;
 public class OpampClientImpl implements OpampClient {
   private final Operation operation;
   private final List<AgentToServerVisitor> visitors;
+  private final AgentDisconnectVisitor agentDisconnectVisitor;
 
-  public OpampClientImpl(Operation operation, List<AgentToServerVisitor> visitors) {
+  OpampClientImpl(
+      Operation operation,
+      List<AgentToServerVisitor> visitors,
+      AgentDisconnectVisitor agentDisconnectVisitor) {
     this.operation = operation;
     this.visitors = visitors;
+    this.agentDisconnectVisitor = agentDisconnectVisitor;
   }
 
   @Override
   public void reportStatus() {
+    Opamp.AgentToServer.Builder builder = getBuilder();
+    send(builder.build());
+  }
+
+  @Override
+  public void disconnect() {
+    Opamp.AgentToServer.Builder builder = getBuilder();
+    agentDisconnectVisitor.visit(builder);
+    send(builder.build());
+  }
+
+  private Opamp.AgentToServer.Builder getBuilder() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
     visitors.forEach(visitor -> visitor.visit(builder));
-    send(builder.build());
+    return builder;
   }
 
   private void send(Opamp.AgentToServer message) {
