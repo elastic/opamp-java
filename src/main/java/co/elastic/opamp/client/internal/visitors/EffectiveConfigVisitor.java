@@ -1,5 +1,6 @@
 package co.elastic.opamp.client.internal.visitors;
 
+import co.elastic.opamp.client.internal.ClientContext;
 import com.google.protobuf.ByteString;
 import co.elastic.opamp.client.configuration.Configuration;
 import opamp.proto.Opamp;
@@ -12,7 +13,7 @@ public class EffectiveConfigVisitor implements AgentToServerVisitor {
   }
 
   @Override
-  public void visit(Opamp.AgentToServer.Builder builder) {
+  public void visit(ClientContext clientContext, Opamp.AgentToServer.Builder builder) {
     Opamp.AgentConfigFile configFile = getAgentConfigFile();
     Opamp.AgentConfigMap configMap =
         Opamp.AgentConfigMap.newBuilder().putConfigMap("default", configFile).build();

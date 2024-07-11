@@ -1,5 +1,6 @@
 package co.elastic.opamp.client.internal.visitors;
 
+import co.elastic.opamp.client.internal.ClientContext;
 import java.util.ArrayList;
 import java.util.List;
 import opamp.proto.Anyvalue;
@@ -21,7 +22,7 @@ public class AgentDescriptionVisitor implements AgentToServerVisitor {
   }
 
   @Override
-  public void visit(Opamp.AgentToServer.Builder builder) {
+  public void visit(ClientContext clientContext, Opamp.AgentToServer.Builder builder) {
     Opamp.AgentDescription agentDescription =
         Opamp.AgentDescription.newBuilder()
             .addAllIdentifyingAttributes(identifyingAttributes)
