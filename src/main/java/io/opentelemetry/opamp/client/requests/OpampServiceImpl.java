@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.request;
+package io.opentelemetry.opamp.client.requests;
 
 import java.io.IOException;
 import okhttp3.MediaType;

@@ -10,7 +10,7 @@ import io.opentelemetry.opamp.client.internal.visitors.FlagsVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.InstanceUidVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import io.opentelemetry.opamp.client.internal.visitors.SequenceNumberVisitor;
-import io.opentelemetry.opamp.client.request.OpampService;
+import io.opentelemetry.opamp.client.requests.OpampService;
 import java.util.ArrayList;
 import java.util.List;
 

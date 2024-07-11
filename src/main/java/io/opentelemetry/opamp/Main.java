@@ -1,7 +1,7 @@
 package io.opentelemetry.opamp;
 
 import io.opentelemetry.opamp.client.OpampClient;
-import io.opentelemetry.opamp.client.request.OpampService;
+import io.opentelemetry.opamp.client.requests.OpampService;
 
 public class Main {
   public static void main(String[] args) {

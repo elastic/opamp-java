@@ -1,6 +1,6 @@
 package io.opentelemetry.opamp.client;
 
-import io.opentelemetry.opamp.client.request.OpampService;
+import io.opentelemetry.opamp.client.requests.OpampService;
 import io.opentelemetry.opamp.client.internal.visitors.AgentToServerVisitor;
 import java.io.IOException;
 import java.util.List;
