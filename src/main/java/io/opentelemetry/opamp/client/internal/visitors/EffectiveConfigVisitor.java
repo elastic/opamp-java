@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.visitors;
+package io.opentelemetry.opamp.client.internal.visitors;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.opamp.client.configuration.Configuration;

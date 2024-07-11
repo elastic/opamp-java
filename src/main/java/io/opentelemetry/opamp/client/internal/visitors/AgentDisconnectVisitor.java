@@ -1,4 +1,4 @@
-package io.opentelemetry.opamp.client.visitors;
+package io.opentelemetry.opamp.client.internal.visitors;
 
 import opamp.proto.Opamp;
 

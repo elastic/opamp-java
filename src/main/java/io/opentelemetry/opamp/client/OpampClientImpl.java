@@ -1,65 +1,40 @@
 package io.opentelemetry.opamp.client;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.MessageOrBuilder;
-import com.google.protobuf.util.JsonFormat;
 import io.opentelemetry.opamp.client.request.Operation;
-import io.opentelemetry.opamp.client.visitors.AgentDisconnectVisitor;
-import io.opentelemetry.opamp.client.visitors.AgentToServerVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.AgentToServerVisitor;
 import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
   private final Operation operation;
-  private final List<AgentToServerVisitor> constantVisitors;
-  private final AgentDisconnectVisitor agentDisconnectVisitor;
+  private final List<AgentToServerVisitor> visitors;
 
-  OpampClientImpl(
-      Operation operation,
-      List<AgentToServerVisitor> constantVisitors,
-      AgentDisconnectVisitor agentDisconnectVisitor) {
+  OpampClientImpl(Operation operation, List<AgentToServerVisitor> visitors) {
     this.operation = operation;
-    this.constantVisitors = constantVisitors;
-    this.agentDisconnectVisitor = agentDisconnectVisitor;
+    this.visitors = visitors;
   }
 
   @Override
   public void start() {
-    Opamp.AgentToServer.Builder builder = getBuilder();
-    send(builder.build());
+    sendMessage();
   }
 
   @Override
   public void stop() {
-    Opamp.AgentToServer.Builder builder = getBuilder();
-    agentDisconnectVisitor.visit(builder);
-    send(builder.build());
+    sendMessage();
   }
 
-  private Opamp.AgentToServer.Builder getBuilder() {
+  private Opamp.AgentToServer buildMessage() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    constantVisitors.forEach(visitor -> visitor.visit(builder));
-    return builder;
+    visitors.forEach(visitor -> visitor.visit(builder));
+    return builder.build();
   }
 
-  private void send(Opamp.AgentToServer message) {
+  private void sendMessage() {
     try {
-      System.out.println("THE REQUEST:"); // todo delete
-      printAsJson(message);
-      Opamp.ServerToAgent serverToAgent = operation.sendMessage(message);
-      System.out.println("THE RESPONSE:"); // todo delete
-      printAsJson(serverToAgent);
+      Opamp.ServerToAgent serverToAgent = operation.sendMessage(buildMessage());
     } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private void printAsJson(MessageOrBuilder messageOrBuilder) {
-    try {
-      String json = JsonFormat.printer().print(messageOrBuilder);
-      System.out.println(json);
-    } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }
   }

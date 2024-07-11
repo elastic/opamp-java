@@ -1,16 +1,16 @@
 package io.opentelemetry.opamp.client;
 
 import io.opentelemetry.opamp.client.configuration.Configuration;
+import io.opentelemetry.opamp.client.internal.visitors.AgentDescriptionVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.AgentDisconnectVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.AgentToServerVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.CapabilitiesVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.EffectiveConfigVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.FlagsVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.InstanceUidVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
+import io.opentelemetry.opamp.client.internal.visitors.SequenceNumberVisitor;
 import io.opentelemetry.opamp.client.request.Operation;
-import io.opentelemetry.opamp.client.visitors.AgentDescriptionVisitor;
-import io.opentelemetry.opamp.client.visitors.AgentDisconnectVisitor;
-import io.opentelemetry.opamp.client.visitors.AgentToServerVisitor;
-import io.opentelemetry.opamp.client.visitors.CapabilitiesVisitor;
-import io.opentelemetry.opamp.client.visitors.EffectiveConfigVisitor;
-import io.opentelemetry.opamp.client.visitors.FlagsVisitor;
-import io.opentelemetry.opamp.client.visitors.InstanceUidVisitor;
-import io.opentelemetry.opamp.client.visitors.RemoteConfigStatusVisitor;
-import io.opentelemetry.opamp.client.visitors.SequenceNumberVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +25,8 @@ public interface OpampClient {
     constantVisitors.add(new InstanceUidVisitor());
     constantVisitors.add(new RemoteConfigStatusVisitor());
     constantVisitors.add(new SequenceNumberVisitor());
-    return new OpampClientImpl(operation, constantVisitors, new AgentDisconnectVisitor());
+    constantVisitors.add(new AgentDisconnectVisitor());
+    return new OpampClientImpl(operation, constantVisitors);
   }
 
   void start();
