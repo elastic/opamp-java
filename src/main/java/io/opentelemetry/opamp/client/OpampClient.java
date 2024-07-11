@@ -28,7 +28,7 @@ public interface OpampClient {
     return new OpampClientImpl(operation, constantVisitors, new AgentDisconnectVisitor());
   }
 
-  void reportStatus();
+  void start();
 
-  void disconnect();
+  void stop();
 }

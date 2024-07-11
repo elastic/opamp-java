@@ -25,13 +25,13 @@ public class OpampClientImpl implements OpampClient {
   }
 
   @Override
-  public void reportStatus() {
+  public void start() {
     Opamp.AgentToServer.Builder builder = getBuilder();
     send(builder.build());
   }
 
   @Override
-  public void disconnect() {
+  public void stop() {
     Opamp.AgentToServer.Builder builder = getBuilder();
     agentDisconnectVisitor.visit(builder);
     send(builder.build());
@@ -45,8 +45,10 @@ public class OpampClientImpl implements OpampClient {
 
   private void send(Opamp.AgentToServer message) {
     try {
+      System.out.println("THE REQUEST:"); // todo delete
       printAsJson(message);
       Opamp.ServerToAgent serverToAgent = operation.sendMessage(message);
+      System.out.println("THE RESPONSE:"); // todo delete
       printAsJson(serverToAgent);
     } catch (IOException e) {
       throw new RuntimeException(e);

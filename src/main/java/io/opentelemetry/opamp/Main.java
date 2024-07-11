@@ -8,7 +8,7 @@ public class Main {
     Operation operation = Operation.create("http://localhost:4320/v1/opamp");
     OpampClient client = OpampClient.create(operation, "some.name", "0.0.1");
 
-    client.reportStatus();
-    client.disconnect();
+    client.start();
+    client.stop();
   }
 }
