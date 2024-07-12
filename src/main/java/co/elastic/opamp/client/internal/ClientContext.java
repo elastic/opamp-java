@@ -4,13 +4,13 @@ public final class ClientContext {
   public final boolean stop;
   public final boolean disableCompression;
 
-  public static Builder newBuilder() {
-    return new Builder();
+  public ClientContext(boolean stop, boolean disableCompression) {
+    this.stop = stop;
+    this.disableCompression = disableCompression;
   }
 
-  private ClientContext(Builder builder) {
-    this.stop = builder.stop;
-    this.disableCompression = builder.disableCompression;
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   public static class Builder {
@@ -29,8 +29,15 @@ public final class ClientContext {
       return this;
     }
 
-    public ClientContext build() {
-      return new ClientContext(this);
+    public ClientContext buildAndReset() {
+      ClientContext clientContext = new ClientContext(stop, disableCompression);
+      reset();
+      return clientContext;
+    }
+
+    private void reset() {
+      stop = false;
+      disableCompression = false;
     }
   }
 }

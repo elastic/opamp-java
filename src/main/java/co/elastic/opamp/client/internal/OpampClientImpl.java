@@ -5,21 +5,19 @@ import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.requests.OpampService;
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
   private final OpampService service;
-  private final Supplier<ClientContext.Builder> contextBuilderSupplier;
+  private final ClientContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
-  private ClientContext.Builder contextBuilder;
 
   OpampClientImpl(
       OpampService service,
-      Supplier<ClientContext.Builder> contextBuilderSupplier,
+      ClientContext.Builder contextBuilder,
       List<AgentToServerVisitor> visitors) {
     this.service = service;
-    this.contextBuilderSupplier = contextBuilderSupplier;
+    this.contextBuilder = contextBuilder;
     this.visitors = visitors;
   }
 
@@ -30,13 +28,13 @@ public class OpampClientImpl implements OpampClient {
 
   @Override
   public void stop() {
-    getContextBuilder().stop();
+    contextBuilder.stop();
     sendMessage();
   }
 
   private Opamp.AgentToServer buildMessage() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    visitors.forEach(visitor -> visitor.visit(buildContext(), builder));
+    visitors.forEach(visitor -> visitor.visit(contextBuilder.buildAndReset(), builder));
     return builder.build();
   }
 
@@ -46,19 +44,5 @@ public class OpampClientImpl implements OpampClient {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private ClientContext buildContext() {
-    ClientContext context = getContextBuilder().build();
-    contextBuilder = null;
-    return context;
-  }
-
-  private ClientContext.Builder getContextBuilder() {
-    if (contextBuilder == null) {
-      contextBuilder = contextBuilderSupplier.get();
-    }
-
-    return contextBuilder;
   }
 }
