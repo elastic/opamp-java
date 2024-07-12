@@ -1,32 +1,24 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
-import java.util.ArrayList;
-import java.util.List;
-import opamp.proto.Anyvalue;
+import co.elastic.opamp.client.state.AgentDescriptionState;
 import opamp.proto.Opamp;
 
-public class AgentDescriptionVisitor implements AgentToServerVisitor {
-  private final List<Anyvalue.KeyValue> identifyingAttributes = new ArrayList<>();
+public class AgentDescriptionVisitor extends CompressableAgentToServerVisitor {
+  private final AgentDescriptionState agentDescriptionState;
 
-  public AgentDescriptionVisitor(String serviceName, String serviceVersion) {
-    identifyingAttributes.add(createKeyValue("service.name", serviceName));
-    identifyingAttributes.add(createKeyValue("service.version", serviceVersion));
+  public static AgentDescriptionVisitor create(AgentDescriptionState agentDescriptionState) {
+    AgentDescriptionVisitor visitor = new AgentDescriptionVisitor(agentDescriptionState);
+    agentDescriptionState.addObserver(visitor);
+    return visitor;
   }
 
-  private Anyvalue.KeyValue createKeyValue(String key, String value) {
-    return Anyvalue.KeyValue.newBuilder()
-        .setKey(key)
-        .setValue(Anyvalue.AnyValue.newBuilder().setStringValue(value).build())
-        .build();
+  private AgentDescriptionVisitor(AgentDescriptionState agentDescriptionState) {
+    this.agentDescriptionState = agentDescriptionState;
   }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    Opamp.AgentDescription agentDescription =
-        Opamp.AgentDescription.newBuilder()
-            .addAllIdentifyingAttributes(identifyingAttributes)
-            .build();
-    builder.setAgentDescription(agentDescription);
+  public void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setAgentDescription(agentDescriptionState.get());
   }
 }
