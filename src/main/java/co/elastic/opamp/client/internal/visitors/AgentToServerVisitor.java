@@ -1,8 +1,8 @@
 package co.elastic.opamp.client.internal.visitors;
 
-import co.elastic.opamp.client.internal.ClientContext;
+import co.elastic.opamp.client.internal.RequestContext;
 import opamp.proto.Opamp;
 
 public interface AgentToServerVisitor {
-  void visit(ClientContext clientContext, Opamp.AgentToServer.Builder builder);
+  void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder);
 }

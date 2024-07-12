@@ -1,10 +1,10 @@
 package co.elastic.opamp.client.internal;
 
-public final class ClientContext {
+public final class RequestContext {
   public final boolean stop;
   public final boolean disableCompression;
 
-  public ClientContext(boolean stop, boolean disableCompression) {
+  public RequestContext(boolean stop, boolean disableCompression) {
     this.stop = stop;
     this.disableCompression = disableCompression;
   }
@@ -29,10 +29,10 @@ public final class ClientContext {
       return this;
     }
 
-    public ClientContext buildAndReset() {
-      ClientContext clientContext = new ClientContext(stop, disableCompression);
+    public RequestContext buildAndReset() {
+      RequestContext requestContext = new RequestContext(stop, disableCompression);
       reset();
-      return clientContext;
+      return requestContext;
     }
 
     private void reset() {

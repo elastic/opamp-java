@@ -9,12 +9,12 @@ import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
   private final OpampService service;
-  private final ClientContext.Builder contextBuilder;
+  private final RequestContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
 
   OpampClientImpl(
       OpampService service,
-      ClientContext.Builder contextBuilder,
+      RequestContext.Builder contextBuilder,
       List<AgentToServerVisitor> visitors) {
     this.service = service;
     this.contextBuilder = contextBuilder;
