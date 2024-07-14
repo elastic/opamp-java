@@ -10,7 +10,8 @@ import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
 import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import co.elastic.opamp.client.requests.HttpService;
+import co.elastic.opamp.client.request.HttpService;
+import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import co.elastic.opamp.client.state.EffectiveConfigState;
 import co.elastic.opamp.client.state.RemoteConfigStatusState;
@@ -41,4 +42,8 @@ public interface OpampClient {
   void start();
 
   void stop();
+
+  interface Callbacks {
+    void onMessage(OpampClient client, MessageData messageData);
+  }
 }

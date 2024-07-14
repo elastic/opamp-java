@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.requests;
+package co.elastic.opamp.client.request;
 
 import java.io.IOException;
 import okhttp3.OkHttpClient;

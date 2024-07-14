@@ -16,6 +16,8 @@ dependencies {
     implementation(libs.protobuf.util)
     implementation(libs.okhttp)
     implementation(libs.uuidCreator)
+    compileOnly(libs.autoValue.annotations)
+    annotationProcessor(libs.autoValue.processor)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(libs.mockito)

@@ -1,6 +1,6 @@
 package co.elastic.opamp;
 
-import co.elastic.opamp.client.requests.HttpService;
+import co.elastic.opamp.client.request.HttpService;
 
 public class Main {
   public static void main(String[] args) {

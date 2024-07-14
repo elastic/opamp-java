@@ -2,7 +2,8 @@ package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.requests.HttpService;
+import co.elastic.opamp.client.request.HttpService;
+import co.elastic.opamp.client.response.MessageData;
 import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;
@@ -11,14 +12,17 @@ public class OpampClientImpl implements OpampClient {
   private final HttpService service;
   private final RequestContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
+  private final Callbacks callback;
 
   OpampClientImpl(
       HttpService service,
       RequestContext.Builder contextBuilder,
-      List<AgentToServerVisitor> visitors) {
+      List<AgentToServerVisitor> visitors,
+      Callbacks callback) {
     this.service = service;
     this.contextBuilder = contextBuilder;
     this.visitors = visitors;
+    this.callback = callback;
   }
 
   @Override
@@ -32,6 +36,19 @@ public class OpampClientImpl implements OpampClient {
     sendMessage();
   }
 
+  private void handleResponse(Opamp.ServerToAgent serverToAgent) {
+    if (serverToAgent == null) {
+      return;
+    }
+    MessageData.Builder messageBuilder = MessageData.builder();
+
+    if (serverToAgent.hasRemoteConfig()) {
+      messageBuilder.setRemoteConfig(serverToAgent.getRemoteConfig());
+    }
+
+    callback.onMessage(this, messageBuilder.build());
+  }
+
   private Opamp.AgentToServer buildMessage() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
     visitors.forEach(visitor -> visitor.visit(contextBuilder.buildAndReset(), builder));
@@ -41,6 +58,7 @@ public class OpampClientImpl implements OpampClient {
   private void sendMessage() {
     try {
       Opamp.ServerToAgent serverToAgent = service.sendMessage(buildMessage());
+      handleResponse(serverToAgent);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
