@@ -9,28 +9,30 @@ import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
 import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import co.elastic.opamp.client.requests.OpampService;
+import co.elastic.opamp.client.requests.HttpService;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import co.elastic.opamp.client.state.EffectiveConfigState;
+import co.elastic.opamp.client.state.RemoteConfigStatusState;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface OpampClient {
 
   static OpampClient create(
-      OpampService service,
+      HttpService service,
       AgentDescriptionState agentDescriptionState,
-      EffectiveConfigState effectiveConfigState) {
-    List<AgentToServerVisitor> constantVisitors = new ArrayList<>();
-    constantVisitors.add(AgentDescriptionVisitor.create(agentDescriptionState));
-    constantVisitors.add(EffectiveConfigVisitor.create(effectiveConfigState));
-    constantVisitors.add(new CapabilitiesVisitor());
-    constantVisitors.add(new FlagsVisitor());
-    constantVisitors.add(new InstanceUidVisitor());
-    constantVisitors.add(new RemoteConfigStatusVisitor());
-    constantVisitors.add(new SequenceNumberVisitor());
-    constantVisitors.add(new AgentDisconnectVisitor());
-    //    return new OpampClientImpl(service, constantVisitors);
+      EffectiveConfigState effectiveConfigState,
+      RemoteConfigStatusState remoteConfigStatusState) {
+    List<AgentToServerVisitor> visitors = new ArrayList<>();
+    visitors.add(AgentDescriptionVisitor.create(agentDescriptionState));
+    visitors.add(EffectiveConfigVisitor.create(effectiveConfigState));
+    visitors.add(RemoteConfigStatusVisitor.create(remoteConfigStatusState));
+    visitors.add(new CapabilitiesVisitor());
+    visitors.add(new FlagsVisitor());
+    visitors.add(new InstanceUidVisitor());
+    visitors.add(new SequenceNumberVisitor());
+    visitors.add(new AgentDisconnectVisitor());
+    //    return new OpampClientImpl(service, visitors);
     throw new UnsupportedOperationException();
   }
 

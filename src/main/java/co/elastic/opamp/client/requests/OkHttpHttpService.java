@@ -8,11 +8,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import opamp.proto.Opamp;
 
-public class OpampServiceImpl implements OpampService {
+public class OkHttpHttpService implements HttpService {
   private final OkHttpClient client;
   private final String url;
 
-  OpampServiceImpl(OkHttpClient client, String url) {
+  OkHttpHttpService(OkHttpClient client, String url) {
     this.client = client;
     this.url = url;
   }

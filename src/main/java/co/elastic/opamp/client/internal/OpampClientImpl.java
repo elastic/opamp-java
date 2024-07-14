@@ -2,18 +2,18 @@ package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.requests.OpampService;
+import co.elastic.opamp.client.requests.HttpService;
 import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;
 
 public class OpampClientImpl implements OpampClient {
-  private final OpampService service;
+  private final HttpService service;
   private final RequestContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
 
   OpampClientImpl(
-      OpampService service,
+      HttpService service,
       RequestContext.Builder contextBuilder,
       List<AgentToServerVisitor> visitors) {
     this.service = service;

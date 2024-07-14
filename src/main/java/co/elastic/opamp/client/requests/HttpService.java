@@ -4,11 +4,11 @@ import java.io.IOException;
 import okhttp3.OkHttpClient;
 import opamp.proto.Opamp;
 
-public interface OpampService {
+public interface HttpService {
 
-  static OpampService create(String url) {
+  static HttpService create(String url) {
     OkHttpClient client = new OkHttpClient();
-    return new OpampServiceImpl(client, url);
+    return new OkHttpHttpService(client, url);
   }
 
   Opamp.ServerToAgent sendMessage(Opamp.AgentToServer message) throws IOException;
