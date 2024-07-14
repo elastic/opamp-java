@@ -1,15 +1,21 @@
 package co.elastic.opamp.client.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
+import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
+import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
+import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
+import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
+import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
+import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.request.HttpService;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import java.io.IOException;
@@ -24,19 +30,15 @@ import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
   private HttpService service;
-  private RequestContext.Builder contextBuilder;
 
   @BeforeEach
   void setUp() {
     service = mock();
-    contextBuilder = mock();
   }
 
   @Test
   void verifySendMessage() throws IOException {
     OpampClient.Callback callback = mock();
-    RequestContext requestContext = RequestContext.newBuilder().buildAndReset();
-    doReturn(requestContext).when(contextBuilder).buildAndReset();
     AgentToServerVisitor descriptionVisitor =
         AgentDescriptionVisitor.create(createAgentDescriptionWithServiceName("startTest"));
     AgentToServerVisitor mockVisitor = mock();
@@ -46,10 +48,10 @@ class OpampClientImplTest {
     ArgumentCaptor<Opamp.AgentToServer> agentToServerCaptor =
         ArgumentCaptor.forClass(Opamp.AgentToServer.class);
 
-    buildClient(callback, visitors).sendMessage();
+    buildCustomClient(callback, visitors).sendMessage();
 
     verify(service).sendMessage(agentToServerCaptor.capture());
-    verify(mockVisitor).visit(eq(requestContext), any());
+    verify(mockVisitor).visit(notNull(), notNull());
     assertEquals(
         "startTest",
         agentToServerCaptor
@@ -60,14 +62,31 @@ class OpampClientImplTest {
             .getStringValue());
   }
 
+  @Test
+  void verifyAvailableVisitors() {
+    OpampClientImpl client = (OpampClientImpl) OpampClient.builder().build(mock());
+
+    assertThat(client.getVisitorsForTest())
+        .extracting("class")
+        .containsExactlyInAnyOrder(
+            AgentDescriptionVisitor.class,
+            EffectiveConfigVisitor.class,
+            RemoteConfigStatusVisitor.class,
+            SequenceNumberVisitor.class,
+            CapabilitiesVisitor.class,
+            FlagsVisitor.class,
+            InstanceUidVisitor.class,
+            AgentDisconnectVisitor.class);
+  }
+
   private AgentDescriptionState createAgentDescriptionWithServiceName(String serviceName) {
     Map<String, String> identifyingValues = new HashMap<>();
     identifyingValues.put("service.name", serviceName);
     return AgentDescriptionState.create(identifyingValues);
   }
 
-  private OpampClientImpl buildClient(
+  private OpampClientImpl buildCustomClient(
       OpampClient.Callback callback, List<AgentToServerVisitor> visitors) {
-    return new OpampClientImpl(service, contextBuilder, callback, visitors);
+    return new OpampClientImpl(service, RequestContext.newBuilder(), callback, visitors);
   }
 }

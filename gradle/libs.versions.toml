@@ -12,6 +12,7 @@ autoValue-annotations = { module = "com.google.auto.value:auto-value-annotations
 
 # Tests
 mockito = "org.mockito:mockito-core:5.12.0"
+assertj = "org.assertj:assertj-core:3.11.1"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }

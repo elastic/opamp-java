@@ -63,4 +63,8 @@ public final class OpampClientImpl implements OpampClient {
       throw new RuntimeException(e);
     }
   }
+
+  List<AgentToServerVisitor> getVisitorsForTest() {
+    return visitors;
+  }
 }
