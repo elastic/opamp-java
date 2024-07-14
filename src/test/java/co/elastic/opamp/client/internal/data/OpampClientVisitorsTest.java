@@ -4,12 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
+import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
 import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
 import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
 import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,15 +34,20 @@ class OpampClientVisitorsTest {
 
   @Test
   void verifyVisitorList() {
-    assertThat(visitors.asList())
-        .containsExactlyInAnyOrder(
-            agentDescriptionVisitor,
-            effectiveConfigVisitor,
-            remoteConfigStatusVisitor,
-            sequenceNumberVisitor,
-            capabilitiesVisitor,
-            flagsVisitor,
-            instanceUidVisitor,
-            agentDisconnectVisitor);
+    assertThat(visitors.asList()).containsExactlyInAnyOrderElementsOf(getVisitorFromFields());
+  }
+
+  private List<AgentToServerVisitor> getVisitorFromFields() {
+    try {
+      List<AgentToServerVisitor> visitorFields = new ArrayList<>();
+      for (Field field : OpampClientVisitors.class.getFields()) {
+        if (AgentToServerVisitor.class.isAssignableFrom(field.getType())) {
+          visitorFields.add((AgentToServerVisitor) field.get(visitors));
+        }
+      }
+      return visitorFields;
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
