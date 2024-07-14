@@ -3,15 +3,18 @@ package co.elastic.opamp.client.state;
 import co.elastic.opamp.client.internal.state.StateHolder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 public class AgentDescriptionState extends StateHolder<Opamp.AgentDescription> {
 
-  public static AgentDescriptionState create() {
+  public static AgentDescriptionState create(Map<String, String> identifyingValues) {
     List<Anyvalue.KeyValue> identifyingAttributes = new ArrayList<>();
-    identifyingAttributes.add(createKeyValue("service.name", "undefined"));
-    identifyingAttributes.add(createKeyValue("service.version", "undefined"));
+    identifyingValues.forEach(
+        (key, value) -> {
+          identifyingAttributes.add(createKeyValue(key, value));
+        });
     return new AgentDescriptionState(
         Opamp.AgentDescription.newBuilder()
             .addAllIdentifyingAttributes(identifyingAttributes)

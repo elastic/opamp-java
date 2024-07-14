@@ -55,7 +55,7 @@ public class OpampClientImpl implements OpampClient {
     return builder.build();
   }
 
-  private void sendMessage() {
+  void sendMessage() {
     try {
       Opamp.ServerToAgent serverToAgent = service.sendMessage(buildMessage());
       handleResponse(serverToAgent);
