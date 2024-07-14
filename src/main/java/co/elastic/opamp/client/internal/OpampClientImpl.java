@@ -12,17 +12,17 @@ public class OpampClientImpl implements OpampClient {
   private final HttpService service;
   private final RequestContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
-  private final Callbacks callback;
+  private final Callback callback;
 
   OpampClientImpl(
       HttpService service,
       RequestContext.Builder contextBuilder,
-      List<AgentToServerVisitor> visitors,
-      Callbacks callback) {
+      Callback callback,
+      List<AgentToServerVisitor> visitors) {
     this.service = service;
     this.contextBuilder = contextBuilder;
-    this.visitors = visitors;
     this.callback = callback;
+    this.visitors = visitors;
   }
 
   @Override

@@ -43,7 +43,7 @@ public interface OpampClient {
 
   void stop();
 
-  interface Callbacks {
+  interface Callback {
     void onMessage(OpampClient client, MessageData messageData);
   }
 }
