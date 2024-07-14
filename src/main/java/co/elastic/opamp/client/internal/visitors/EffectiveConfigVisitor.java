@@ -1,32 +1,24 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
-import com.google.protobuf.ByteString;
-import co.elastic.opamp.client.configuration.Configuration;
+import co.elastic.opamp.client.state.EffectiveConfigState;
 import opamp.proto.Opamp;
 
-public class EffectiveConfigVisitor implements AgentToServerVisitor {
-  private final Configuration configuration;
+public class EffectiveConfigVisitor extends CompressableAgentToServerVisitor {
+  private final EffectiveConfigState effectiveConfig;
 
-  public EffectiveConfigVisitor(Configuration configuration) {
-    this.configuration = configuration;
+  public static EffectiveConfigVisitor create(EffectiveConfigState effectiveConfig) {
+    EffectiveConfigVisitor visitor = new EffectiveConfigVisitor(effectiveConfig);
+    effectiveConfig.addObserver(visitor);
+    return visitor;
+  }
+
+  private EffectiveConfigVisitor(EffectiveConfigState effectiveConfig) {
+    this.effectiveConfig = effectiveConfig;
   }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    Opamp.AgentConfigFile configFile = getAgentConfigFile();
-    Opamp.AgentConfigMap configMap =
-        Opamp.AgentConfigMap.newBuilder().putConfigMap("default", configFile).build();
-    Opamp.EffectiveConfig effectiveConfig =
-        Opamp.EffectiveConfig.newBuilder().setConfigMap(configMap).build();
-
-    builder.setEffectiveConfig(effectiveConfig);
-  }
-
-  private Opamp.AgentConfigFile getAgentConfigFile() {
-    return Opamp.AgentConfigFile.newBuilder()
-        .setBody(ByteString.copyFromUtf8(configuration.toJson()))
-        .setContentType("application/json")
-        .build();
+  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setEffectiveConfig(effectiveConfig.get());
   }
 }
