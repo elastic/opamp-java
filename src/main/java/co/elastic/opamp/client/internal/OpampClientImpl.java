@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.List;
 import opamp.proto.Opamp;
 
-public class OpampClientImpl implements OpampClient {
+public final class OpampClientImpl implements OpampClient {
   private final HttpService service;
   private final RequestContext.Builder contextBuilder;
   private final List<AgentToServerVisitor> visitors;
