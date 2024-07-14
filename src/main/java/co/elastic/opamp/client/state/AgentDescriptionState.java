@@ -12,9 +12,7 @@ public class AgentDescriptionState extends StateHolder<Opamp.AgentDescription> {
   public static AgentDescriptionState create(Map<String, String> identifyingValues) {
     List<Anyvalue.KeyValue> identifyingAttributes = new ArrayList<>();
     identifyingValues.forEach(
-        (key, value) -> {
-          identifyingAttributes.add(createKeyValue(key, value));
-        });
+        (key, value) -> identifyingAttributes.add(createKeyValue(key, value)));
     return new AgentDescriptionState(
         Opamp.AgentDescription.newBuilder()
             .addAllIdentifyingAttributes(identifyingAttributes)
