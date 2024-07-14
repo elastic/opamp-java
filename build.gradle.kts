@@ -20,7 +20,7 @@ dependencies {
     annotationProcessor(libs.autoValue.processor)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation(libs.mockito)
+    testImplementation(libs.bundles.mockito)
     testImplementation(libs.assertj)
 }
 

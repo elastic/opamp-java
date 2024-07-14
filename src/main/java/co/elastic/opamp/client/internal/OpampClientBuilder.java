@@ -1,10 +1,10 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.internal.data.OpampClientVisitors;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
-import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
 import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
 import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
@@ -15,9 +15,7 @@ import co.elastic.opamp.client.request.HttpService;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import co.elastic.opamp.client.state.EffectiveConfigState;
 import co.elastic.opamp.client.state.RemoteConfigStatusState;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
@@ -51,15 +49,16 @@ public final class OpampClientBuilder {
 
   public OpampClient build(OpampClient.Callback callback) {
     SequenceNumberState sequenceNumberState = SequenceNumberState.create();
-    List<AgentToServerVisitor> visitors = new ArrayList<>();
-    visitors.add(AgentDescriptionVisitor.create(agentDescriptionState));
-    visitors.add(EffectiveConfigVisitor.create(effectiveConfigState));
-    visitors.add(RemoteConfigStatusVisitor.create(remoteConfigStatusState));
-    visitors.add(SequenceNumberVisitor.create(sequenceNumberState));
-    visitors.add(new CapabilitiesVisitor());
-    visitors.add(new FlagsVisitor());
-    visitors.add(new InstanceUidVisitor());
-    visitors.add(new AgentDisconnectVisitor());
+    OpampClientVisitors visitors =
+        new OpampClientVisitors(
+            AgentDescriptionVisitor.create(agentDescriptionState),
+            EffectiveConfigVisitor.create(effectiveConfigState),
+            RemoteConfigStatusVisitor.create(remoteConfigStatusState),
+            SequenceNumberVisitor.create(sequenceNumberState),
+            new CapabilitiesVisitor(),
+            new FlagsVisitor(),
+            new InstanceUidVisitor(),
+            new AgentDisconnectVisitor());
     return new OpampClientImpl(httpService, RequestContext.newBuilder(), callback, visitors);
   }
 }

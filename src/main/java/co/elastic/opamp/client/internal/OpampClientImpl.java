@@ -1,24 +1,23 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.internal.data.OpampClientVisitors;
 import co.elastic.opamp.client.request.HttpService;
 import co.elastic.opamp.client.response.MessageData;
 import java.io.IOException;
-import java.util.List;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl implements OpampClient {
   private final HttpService service;
   private final RequestContext.Builder contextBuilder;
-  private final List<AgentToServerVisitor> visitors;
+  private final OpampClientVisitors visitors;
   private final Callback callback;
 
   OpampClientImpl(
       HttpService service,
       RequestContext.Builder contextBuilder,
       Callback callback,
-      List<AgentToServerVisitor> visitors) {
+      OpampClientVisitors visitors) {
     this.service = service;
     this.contextBuilder = contextBuilder;
     this.callback = callback;
@@ -51,7 +50,7 @@ public final class OpampClientImpl implements OpampClient {
 
   private Opamp.AgentToServer buildMessage() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    visitors.forEach(visitor -> visitor.visit(contextBuilder.buildAndReset(), builder));
+    visitors.asList().forEach(visitor -> visitor.visit(contextBuilder.buildAndReset(), builder));
     return builder.build();
   }
 
@@ -62,9 +61,5 @@ public final class OpampClientImpl implements OpampClient {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  List<AgentToServerVisitor> getVisitorsForTest() {
-    return visitors;
   }
 }
