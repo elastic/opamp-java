@@ -48,15 +48,16 @@ public final class OpampClientImpl implements OpampClient {
     callback.onMessage(this, messageBuilder.build());
   }
 
-  private Opamp.AgentToServer buildMessage() {
+  private Opamp.AgentToServer buildMessage(RequestContext requestContext) {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    visitors.asList().forEach(visitor -> visitor.visit(contextBuilder.buildAndReset(), builder));
+    visitors.asList().forEach(visitor -> visitor.visit(requestContext, builder));
     return builder.build();
   }
 
   void sendMessage() {
     try {
-      Opamp.ServerToAgent serverToAgent = service.sendMessage(buildMessage());
+      Opamp.ServerToAgent serverToAgent =
+          service.sendMessage(buildMessage(contextBuilder.buildAndReset()));
       handleResponse(serverToAgent);
     } catch (IOException e) {
       throw new RuntimeException(e);
