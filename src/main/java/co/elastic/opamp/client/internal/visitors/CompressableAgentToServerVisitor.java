@@ -20,7 +20,7 @@ public abstract class CompressableAgentToServerVisitor implements AgentToServerV
 
   @Override
   public final void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    if (requestContext.disableCompression || !alreadySent.getAndSet(true)) {
+    if (!alreadySent.getAndSet(true) || requestContext.disableCompression) {
       doVisit(requestContext, builder);
     }
   }

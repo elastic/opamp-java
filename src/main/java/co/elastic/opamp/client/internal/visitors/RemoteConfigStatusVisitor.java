@@ -1,17 +1,24 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
+import co.elastic.opamp.client.state.RemoteConfigStatusState;
 import opamp.proto.Opamp;
 
-public class RemoteConfigStatusVisitor implements AgentToServerVisitor {
+public class RemoteConfigStatusVisitor extends CompressableAgentToServerVisitor {
+  private final RemoteConfigStatusState remoteConfigStatusState;
+
+  public static RemoteConfigStatusVisitor create(RemoteConfigStatusState remoteConfigStatusState) {
+    RemoteConfigStatusVisitor visitor = new RemoteConfigStatusVisitor(remoteConfigStatusState);
+    remoteConfigStatusState.addObserver(visitor);
+    return visitor;
+  }
+
+  private RemoteConfigStatusVisitor(RemoteConfigStatusState remoteConfigStatusState) {
+    this.remoteConfigStatusState = remoteConfigStatusState;
+  }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    Opamp.RemoteConfigStatus status =
-        Opamp.RemoteConfigStatus.newBuilder()
-            .setStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET)
-            .build();
-
-    builder.setRemoteConfigStatus(status);
+  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setRemoteConfigStatus(remoteConfigStatusState.get());
   }
 }
