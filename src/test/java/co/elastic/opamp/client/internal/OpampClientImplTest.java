@@ -8,8 +8,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.Message;
-import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
+import co.elastic.opamp.client.internal.scheduler.Message;
+import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
@@ -22,18 +22,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
-  private MessageDispatcher dispatcher;
+  private MessageScheduler scheduler;
 
   @BeforeEach
   void setUp() {
-    dispatcher = mock();
+    scheduler = mock();
   }
 
   @Test
   void verifyStart() {
     buildClient(null).start();
 
-    verify(dispatcher).start();
+    verify(scheduler).scheduleNow();
   }
 
   @Test
@@ -92,6 +92,6 @@ class OpampClientImplTest {
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback, OpampClientVisitors visitors) {
-    return OpampClientImpl.create(dispatcher, RequestContext.newBuilder(), visitors, callback);
+    return OpampClientImpl.create(scheduler, RequestContext.newBuilder(), visitors, callback);
   }
 }

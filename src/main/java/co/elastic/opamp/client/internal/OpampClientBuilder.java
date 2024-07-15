@@ -1,7 +1,7 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
+import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
@@ -12,7 +12,7 @@ import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import co.elastic.opamp.client.request.HttpService;
+import co.elastic.opamp.client.request.Service;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import co.elastic.opamp.client.state.EffectiveConfigState;
 import co.elastic.opamp.client.state.RemoteConfigStatusState;
@@ -20,15 +20,15 @@ import java.util.Collections;
 import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
-  private HttpService httpService = HttpService.create("http://localhost:4320");
+  private Service service = Service.create("http://localhost:4320");
   private AgentDescriptionState agentDescriptionState =
       AgentDescriptionState.create(Collections.emptyMap());
   private EffectiveConfigState effectiveConfigState =
       EffectiveConfigState.create(Opamp.EffectiveConfig.getDefaultInstance());
   private RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
 
-  public OpampClientBuilder setHttpService(HttpService httpService) {
-    this.httpService = httpService;
+  public OpampClientBuilder setHttpService(Service service) {
+    this.service = service;
     return this;
   }
 
@@ -60,7 +60,8 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             new InstanceUidVisitor(),
             new AgentDisconnectVisitor());
-    MessageDispatcher dispatcher = new MessageDispatcher(httpService);
-    return OpampClientImpl.create(dispatcher, RequestContext.newBuilder(), visitors, callback);
+    MessageScheduler messageScheduler = MessageScheduler.create(this.service);
+    return OpampClientImpl.create(
+        messageScheduler, RequestContext.newBuilder(), visitors, callback);
   }
 }

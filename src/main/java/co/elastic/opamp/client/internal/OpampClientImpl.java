@@ -1,37 +1,39 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.Message;
-import co.elastic.opamp.client.internal.dispatcher.MessageBuilder;
-import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
-import co.elastic.opamp.client.internal.dispatcher.ResponseHandler;
+import co.elastic.opamp.client.internal.scheduler.Message;
+import co.elastic.opamp.client.internal.scheduler.MessageBuilder;
+import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
+import co.elastic.opamp.client.internal.scheduler.ResponseHandler;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.response.Response;
+import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl implements OpampClient, MessageBuilder, ResponseHandler {
-  private final MessageDispatcher dispatcher;
+  private final MessageScheduler scheduler;
   private final RequestContext.Builder contextBuilder;
   private final OpampClientVisitors visitors;
   private final Callback callback;
 
   public static OpampClientImpl create(
-      MessageDispatcher dispatcher,
+      MessageScheduler messageScheduler,
       RequestContext.Builder contextBuilder,
       OpampClientVisitors visitors,
       Callback callback) {
-    OpampClientImpl client = new OpampClientImpl(dispatcher, contextBuilder, visitors, callback);
-    dispatcher.setMessageBuilder(client);
-    dispatcher.setResponseHandler(client);
+    OpampClientImpl client =
+        new OpampClientImpl(messageScheduler, contextBuilder, visitors, callback);
+    messageScheduler.setMessageBuilder(client);
+    messageScheduler.setResponseHandler(client);
     return client;
   }
 
   private OpampClientImpl(
-      MessageDispatcher dispatcher,
+      MessageScheduler scheduler,
       RequestContext.Builder contextBuilder,
       OpampClientVisitors visitors,
       Callback callback) {
-    this.dispatcher = dispatcher;
+    this.scheduler = scheduler;
     this.contextBuilder = contextBuilder;
     this.visitors = visitors;
     this.callback = callback;
@@ -39,12 +41,13 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
 
   @Override
   public void start() {
-    dispatcher.start();
+    scheduler.scheduleNow();
   }
 
   @Override
   public void stop() {
     contextBuilder.stop();
+    scheduler.scheduleNow();
   }
 
   @Override
@@ -70,5 +73,9 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
     RequestContext requestContext = contextBuilder.buildAndReset();
     visitors.asList().forEach(visitor -> visitor.visit(requestContext, builder));
     return new Message(builder.build());
+  }
+
+  private void scheduleNext() {
+    scheduler.scheduleWithDelay(30, TimeUnit.SECONDS);
   }
 }
