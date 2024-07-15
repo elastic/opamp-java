@@ -1,6 +1,6 @@
 package co.elastic.opamp.client.internal.scheduler;
 
-import co.elastic.opamp.client.request.ErrorResponseException;
+import co.elastic.opamp.client.request.HttpErrorException;
 import co.elastic.opamp.client.request.RequestCallback;
 import co.elastic.opamp.client.request.Service;
 import java.util.concurrent.Executors;
@@ -76,7 +76,7 @@ class MessageSchedulerImpl implements MessageScheduler, Runnable, RequestCallbac
 
   @Override
   public void onFailure(int code, String message) {
-    responseHandler.handleError(new ErrorResponseException(code, message));
+    responseHandler.handleError(new HttpErrorException(code, message));
   }
 
   @Override
