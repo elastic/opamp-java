@@ -107,15 +107,18 @@ class OpampClientImplTest {
               @Override
               public void onMessage(OpampClient client, Response response) {
                 client.setRemoteConfigStatus(
-                    Opamp.RemoteConfigStatus.newBuilder()
-                        .setStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING)
-                        .build());
+                    getRemoteConfigStatus(
+                        Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
               }
             });
 
     client.handleResponse(response);
 
     verify(scheduler).scheduleNow();
+  }
+
+  private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
+    return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
   }
 
   private Opamp.AgentConfigMap getAgentConfigMap(String configFileName, String content) {
