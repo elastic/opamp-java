@@ -4,17 +4,17 @@ import com.google.auto.value.AutoValue;
 import opamp.proto.Opamp;
 
 @AutoValue
-public abstract class MessageData {
+public abstract class Response {
   public abstract Opamp.AgentRemoteConfig getRemoteConfig();
 
   public static Builder builder() {
-    return new AutoValue_MessageData.Builder();
+    return new AutoValue_Response.Builder();
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setRemoteConfig(Opamp.AgentRemoteConfig remoteConfig);
 
-    public abstract MessageData build();
+    public abstract Response build();
   }
 }

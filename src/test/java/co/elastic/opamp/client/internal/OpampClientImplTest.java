@@ -7,10 +7,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
-import co.elastic.opamp.client.request.HttpService;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,15 +22,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
-  private HttpService service;
+  private MessageDispatcher dispatcher;
 
   @BeforeEach
   void setUp() {
-    service = mock();
+    dispatcher = mock();
   }
 
   @Test
-  void verifySendMessage() throws IOException {
+  void verifyMessageBuilding() {
     OpampClient.Callback callback = mock();
     AgentToServerVisitor descriptionVisitor =
         AgentDescriptionVisitor.create(createAgentDescriptionWithServiceName("startTest"));
@@ -40,7 +40,7 @@ class OpampClientImplTest {
 
     buildCustomClient(callback, createVisitorsWith(descriptionVisitor, mockVisitor)).sendMessage();
 
-    verify(service).sendMessage(agentToServerCaptor.capture());
+    verify(dispatcher).sendMessage(agentToServerCaptor.capture());
     verify(mockVisitor).visit(notNull(), notNull());
     assertEquals(
         "startTest",
@@ -66,6 +66,6 @@ class OpampClientImplTest {
 
   private OpampClientImpl buildCustomClient(
       OpampClient.Callback callback, OpampClientVisitors visitors) {
-    return new OpampClientImpl(service, RequestContext.newBuilder(), visitors, callback);
+    return OpampClientImpl.create(dispatcher, RequestContext.newBuilder(), visitors, callback);
   }
 }

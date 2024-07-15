@@ -1,7 +1,7 @@
 package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.internal.OpampClientBuilder;
-import co.elastic.opamp.client.response.MessageData;
+import co.elastic.opamp.client.response.Response;
 
 public interface OpampClient {
 
@@ -14,6 +14,6 @@ public interface OpampClient {
   void stop();
 
   interface Callback {
-    void onMessage(OpampClient client, MessageData messageData);
+    void onMessage(OpampClient client, Response response);
   }
 }
