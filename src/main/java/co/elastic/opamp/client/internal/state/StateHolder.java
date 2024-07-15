@@ -10,7 +10,7 @@ public class StateHolder<T> extends Observable implements Supplier<T> {
   }
 
   public synchronized void set(T value) {
-    if (state != value) {
+    if (!state.equals(value)) {
       state = value;
       notifyObservers();
     }

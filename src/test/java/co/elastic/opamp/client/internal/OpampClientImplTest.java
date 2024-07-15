@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -112,9 +113,36 @@ class OpampClientImplTest {
               }
             });
 
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
     client.handleResponse(response);
 
     verify(scheduler).scheduleNow();
+  }
+
+  @Test
+  void onResponse_withRemoteConfigStatus_withoutChange_doNotNotifyServerImmediately() {
+    Opamp.ServerToAgent response =
+        Opamp.ServerToAgent.newBuilder()
+            .setRemoteConfig(
+                Opamp.AgentRemoteConfig.newBuilder().setConfig(getAgentConfigMap("fileName", "{}")))
+            .build();
+    OpampClientImpl client =
+        buildClient(
+            new OpampClient.Callback() {
+              @Override
+              public void onMessage(OpampClient client, Response response) {
+                client.setRemoteConfigStatus(
+                    getRemoteConfigStatus(
+                        Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+              }
+            });
+
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+    client.handleResponse(response);
+
+    verify(scheduler, never()).scheduleNow();
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
