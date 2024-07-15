@@ -12,7 +12,7 @@ import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -35,20 +35,19 @@ class OpampClientVisitorsTest {
 
   @Test
   void verifyVisitorList() {
-    assertThat(visitors.asList()).containsExactlyInAnyOrderElementsOf(getVisitorFromFields());
+    assertThat(visitors.asList())
+        .extracting("class")
+        .containsExactlyInAnyOrderElementsOf(getVisitorsFromParams());
   }
 
-  private List<AgentToServerVisitor> getVisitorFromFields() {
-    try {
-      List<AgentToServerVisitor> visitorFields = new ArrayList<>();
-      for (Field field : OpampClientVisitors.class.getFields()) {
-        if (AgentToServerVisitor.class.isAssignableFrom(field.getType())) {
-          visitorFields.add((AgentToServerVisitor) field.get(visitors));
-        }
+  @SuppressWarnings("unchecked")
+  private List<Class<? extends AgentToServerVisitor>> getVisitorsFromParams() {
+    List<Class<? extends AgentToServerVisitor>> visitorTypes = new ArrayList<>();
+    for (Parameter parameter : OpampClientVisitors.class.getConstructors()[0].getParameters()) {
+      if (AgentToServerVisitor.class.isAssignableFrom(parameter.getType())) {
+        visitorTypes.add((Class<? extends AgentToServerVisitor>) parameter.getType());
       }
-      return visitorFields;
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
     }
+    return visitorTypes;
   }
 }
