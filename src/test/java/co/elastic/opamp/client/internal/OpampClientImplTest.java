@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.dispatcher.Message;
-import co.elastic.opamp.client.internal.dispatcher.MessageScheduler;
+import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
@@ -32,18 +32,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
-  private MessageScheduler scheduler;
+  private MessageDispatcher dispatcher;
 
   @BeforeEach
   void setUp() {
-    scheduler = mock();
+    dispatcher = mock();
   }
 
   @Test
   void verifyStart() {
     buildClient(null).start();
 
-    verify(scheduler).scheduleNow();
+    verify(dispatcher).dispatchNow();
   }
 
   @Test
@@ -82,7 +82,7 @@ class OpampClientImplTest {
 
     client.buildMessage();
 
-    verify(scheduler).scheduleNow();
+    verify(dispatcher).dispatchNow();
     verify(visitor).visit(captor.capture(), notNull());
     RequestContext context = captor.getValue();
     assertThat(context.stop).isTrue();
@@ -92,7 +92,7 @@ class OpampClientImplTest {
   void onResponse_scheduleNextPoll() {
     buildClient(null).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
-    verify(scheduler).scheduleWithDelay(anyLong(), any());
+    verify(dispatcher).dispatchWithDelay(anyLong(), any());
   }
 
   @Test
@@ -126,8 +126,8 @@ class OpampClientImplTest {
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
     client.handleSuccess(response);
 
-    verify(scheduler).scheduleNow();
-    verify(scheduler, never()).scheduleWithDelay(anyLong(), any());
+    verify(dispatcher).dispatchNow();
+    verify(dispatcher, never()).dispatchWithDelay(anyLong(), any());
   }
 
   @Test
@@ -152,8 +152,8 @@ class OpampClientImplTest {
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.handleSuccess(response);
 
-    verify(scheduler, never()).scheduleNow();
-    verify(scheduler).scheduleWithDelay(anyLong(), any());
+    verify(dispatcher, never()).dispatchNow();
+    verify(dispatcher).dispatchWithDelay(anyLong(), any());
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
@@ -204,7 +204,7 @@ class OpampClientImplTest {
   private OpampClientImpl buildClient(
       OpampClient.Callback callback, OpampClientVisitors visitors, OpampClientState state) {
     return OpampClientImpl.create(
-        scheduler, RequestContext.newBuilder(), visitors, state, callback);
+        dispatcher, RequestContext.newBuilder(), visitors, state, callback);
   }
 
   private static class TestCallback implements OpampClient.Callback {

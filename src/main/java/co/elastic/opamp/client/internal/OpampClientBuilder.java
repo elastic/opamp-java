@@ -1,7 +1,7 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.MessageScheduler;
+import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
@@ -50,8 +50,8 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             new InstanceUidVisitor(),
             new AgentDisconnectVisitor());
-    MessageScheduler messageScheduler = MessageScheduler.create(service);
+    MessageDispatcher dispatcher = MessageDispatcher.create(service);
     return OpampClientImpl.create(
-        messageScheduler, RequestContext.newBuilder(), visitors, state, callback);
+        dispatcher, RequestContext.newBuilder(), visitors, state, callback);
   }
 }

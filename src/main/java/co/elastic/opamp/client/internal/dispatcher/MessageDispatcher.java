@@ -3,14 +3,14 @@ package co.elastic.opamp.client.internal.dispatcher;
 import co.elastic.opamp.client.request.Service;
 import java.util.concurrent.TimeUnit;
 
-public interface MessageScheduler {
-  static MessageScheduler create(Service service) {
-    return MessageSchedulerImpl.create(service);
+public interface MessageDispatcher {
+  static MessageDispatcher create(Service service) {
+    return MessageDispatcherImpl.create(service);
   }
 
-  void scheduleWithDelay(long delay, TimeUnit unit);
+  void dispatchWithDelay(long delay, TimeUnit unit);
 
-  void scheduleNow();
+  void dispatchNow();
 
   void setMessageBuilder(MessageBuilder messageBuilder);
 

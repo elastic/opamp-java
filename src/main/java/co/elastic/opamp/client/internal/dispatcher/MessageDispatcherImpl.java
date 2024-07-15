@@ -10,33 +10,33 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
-class MessageSchedulerImpl implements MessageScheduler, Runnable, RequestCallback {
+class MessageDispatcherImpl implements MessageDispatcher, Runnable, RequestCallback {
   private final Service service;
   private final ScheduledExecutorService executor;
   private MessageBuilder messageBuilder;
   private ResponseHandler responseHandler;
   private Future<?> currentSchedule;
 
-  static MessageScheduler create(Service service) {
+  static MessageDispatcher create(Service service) {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     executor.setRemoveOnCancelPolicy(true);
-    return new MessageSchedulerImpl(service, executor);
+    return new MessageDispatcherImpl(service, executor);
   }
 
-  MessageSchedulerImpl(Service service, ScheduledExecutorService executor) {
+  MessageDispatcherImpl(Service service, ScheduledExecutorService executor) {
     this.service = service;
     this.executor = executor;
   }
 
   @Override
-  public synchronized void scheduleWithDelay(long delay, TimeUnit unit) {
+  public synchronized void dispatchWithDelay(long delay, TimeUnit unit) {
     clearSchedule();
     currentSchedule = executor.schedule(this, delay, unit);
   }
 
   @Override
-  public synchronized void scheduleNow() {
+  public synchronized void dispatchNow() {
     clearSchedule();
     currentSchedule = executor.submit(this);
   }
