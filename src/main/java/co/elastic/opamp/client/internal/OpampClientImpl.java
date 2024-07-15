@@ -77,7 +77,7 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
     if (notifyCallback) {
       try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(serverToAgent, state)) {
         callback.onMessage(this, messageBuilder.build());
-        if (watcher.hasStateChanged()) {
+        if (watcher.stateHasChanged()) {
           scheduleNow();
           return;
         }

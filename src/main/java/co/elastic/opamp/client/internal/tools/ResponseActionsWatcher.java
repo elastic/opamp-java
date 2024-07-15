@@ -34,7 +34,7 @@ public final class ResponseActionsWatcher implements Observer, Closeable {
     }
   }
 
-  public boolean hasStateChanged() {
+  public boolean stateHasChanged() {
     if (response.hasRemoteConfig() && remoteConfigChanged) {
       return true;
     }
