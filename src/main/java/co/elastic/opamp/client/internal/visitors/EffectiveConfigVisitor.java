@@ -1,7 +1,7 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
-import co.elastic.opamp.client.state.EffectiveConfigState;
+import co.elastic.opamp.client.internal.state.EffectiveConfigState;
 import opamp.proto.Opamp;
 
 public class EffectiveConfigVisitor extends CompressableAgentToServerVisitor {

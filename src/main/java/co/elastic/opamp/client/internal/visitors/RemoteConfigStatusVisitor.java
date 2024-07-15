@@ -1,7 +1,7 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
-import co.elastic.opamp.client.state.RemoteConfigStatusState;
+import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import opamp.proto.Opamp;
 
 public class RemoteConfigStatusVisitor extends CompressableAgentToServerVisitor {

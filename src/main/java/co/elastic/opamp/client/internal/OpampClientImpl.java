@@ -5,6 +5,7 @@ import co.elastic.opamp.client.internal.scheduler.Message;
 import co.elastic.opamp.client.internal.scheduler.MessageBuilder;
 import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
 import co.elastic.opamp.client.internal.scheduler.ResponseHandler;
+import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.response.Response;
 import java.util.concurrent.TimeUnit;
@@ -14,15 +15,17 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   private final MessageScheduler scheduler;
   private final RequestContext.Builder contextBuilder;
   private final OpampClientVisitors visitors;
+  private final OpampClientState state;
   private final Callback callback;
 
   public static OpampClientImpl create(
       MessageScheduler messageScheduler,
       RequestContext.Builder contextBuilder,
       OpampClientVisitors visitors,
+      OpampClientState state,
       Callback callback) {
     OpampClientImpl client =
-        new OpampClientImpl(messageScheduler, contextBuilder, visitors, callback);
+        new OpampClientImpl(messageScheduler, contextBuilder, visitors, state, callback);
     messageScheduler.setMessageBuilder(client);
     messageScheduler.setResponseHandler(client);
     return client;
@@ -32,10 +35,12 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
       MessageScheduler scheduler,
       RequestContext.Builder contextBuilder,
       OpampClientVisitors visitors,
+      OpampClientState state,
       Callback callback) {
     this.scheduler = scheduler;
     this.contextBuilder = contextBuilder;
     this.visitors = visitors;
+    this.state = state;
     this.callback = callback;
   }
 

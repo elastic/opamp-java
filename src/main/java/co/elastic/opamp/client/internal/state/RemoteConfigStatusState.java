@@ -1,11 +1,10 @@
-package co.elastic.opamp.client.state;
+package co.elastic.opamp.client.internal.state;
 
-import co.elastic.opamp.client.internal.state.StateHolder;
 import opamp.proto.Opamp;
 
 public class RemoteConfigStatusState extends StateHolder<Opamp.RemoteConfigStatus> {
 
-  public static RemoteConfigStatusState create() {
+  static RemoteConfigStatusState create() {
     return new RemoteConfigStatusState(
         Opamp.RemoteConfigStatus.newBuilder()
             .setStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET)
