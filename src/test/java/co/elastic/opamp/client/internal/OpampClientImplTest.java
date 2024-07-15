@@ -113,7 +113,7 @@ class OpampClientImplTest {
             .build();
     OpampClientImpl client =
         buildClient(
-            new OpampClient.Callback() {
+            new TestCallback() {
               @Override
               public void onMessage(OpampClient client, Response response) {
                 client.setRemoteConfigStatus(
@@ -139,7 +139,7 @@ class OpampClientImplTest {
             .build();
     OpampClientImpl client =
         buildClient(
-            new OpampClient.Callback() {
+            new TestCallback() {
               @Override
               public void onMessage(OpampClient client, Response response) {
                 client.setRemoteConfigStatus(
@@ -205,5 +205,20 @@ class OpampClientImplTest {
       OpampClient.Callback callback, OpampClientVisitors visitors, OpampClientState state) {
     return OpampClientImpl.create(
         scheduler, RequestContext.newBuilder(), visitors, state, callback);
+  }
+
+  private static class TestCallback implements OpampClient.Callback {
+
+    @Override
+    public void onConnect(OpampClient client) {}
+
+    @Override
+    public void onConnectFailed(OpampClient client, Throwable throwable) {}
+
+    @Override
+    public void onErrorResponse(OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
+
+    @Override
+    public void onMessage(OpampClient client, Response response) {}
   }
 }
