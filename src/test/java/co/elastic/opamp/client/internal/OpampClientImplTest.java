@@ -2,6 +2,8 @@ package co.elastic.opamp.client.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -87,6 +89,13 @@ class OpampClientImplTest {
   }
 
   @Test
+  void onResponse_scheduleNextPoll() {
+    buildClient(null).handleResponse(Opamp.ServerToAgent.getDefaultInstance());
+
+    verify(scheduler).scheduleWithDelay(anyLong(), any());
+  }
+
+  @Test
   void onResponse_withNotChangesToReport_doNotNotifyCallback() {
     OpampClient.Callback callback = mock();
 
@@ -118,6 +127,7 @@ class OpampClientImplTest {
     client.handleResponse(response);
 
     verify(scheduler).scheduleNow();
+    verify(scheduler, never()).scheduleWithDelay(anyLong(), any());
   }
 
   @Test
@@ -143,6 +153,7 @@ class OpampClientImplTest {
     client.handleResponse(response);
 
     verify(scheduler, never()).scheduleNow();
+    verify(scheduler).scheduleWithDelay(anyLong(), any());
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {

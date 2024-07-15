@@ -79,9 +79,12 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
         callback.onMessage(this, messageBuilder.build());
         if (watcher.hasStateChanged()) {
           scheduleNow();
+          return;
         }
       }
     }
+
+    scheduleWithDelay();
   }
 
   @Override
