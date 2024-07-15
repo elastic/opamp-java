@@ -68,18 +68,22 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
 
   @Override
   public void handleSuccess(Opamp.ServerToAgent serverToAgent) {
+    callback.onConnect(this);
     if (serverToAgent == null) {
       return;
     }
-    boolean notifyCallback = false;
+    if (serverToAgent.hasErrorResponse()) {
+      callback.onErrorResponse(this, serverToAgent.getErrorResponse());
+    }
+    boolean notifyOnMessage = false;
     Response.Builder messageBuilder = Response.builder();
 
     if (serverToAgent.hasRemoteConfig()) {
-      notifyCallback = true;
+      notifyOnMessage = true;
       messageBuilder.setRemoteConfig(serverToAgent.getRemoteConfig());
     }
 
-    if (notifyCallback) {
+    if (notifyOnMessage) {
       try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(serverToAgent, state)) {
         callback.onMessage(this, messageBuilder.build());
         if (watcher.stateHasChanged()) {
@@ -93,7 +97,9 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   }
 
   @Override
-  public void handleError(Throwable throwable) {}
+  public void handleError(Throwable throwable) {
+    callback.onConnectFailed(this, throwable);
+  }
 
   @Override
   public Message buildMessage() {

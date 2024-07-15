@@ -9,7 +9,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.dispatcher.Message;
@@ -90,18 +89,18 @@ class OpampClientImplTest {
 
   @Test
   void onResponse_scheduleDelayedDispatch() {
-    buildClient(null).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient().handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(dispatcher).dispatchWithDelay(anyLong(), any());
   }
 
   @Test
-  void onResponse_withNotChangesToReport_doNotNotifyCallback() {
+  void onResponse_withNotChangesToReport_doNotNotifyCallbackOnMessage() {
     OpampClient.Callback callback = mock();
 
     buildClient(callback).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
-    verifyNoInteractions(callback);
+    verify(callback, never()).onMessage(any(), any());
   }
 
   @Test
@@ -156,6 +155,38 @@ class OpampClientImplTest {
     verify(dispatcher).dispatchWithDelay(anyLong(), any());
   }
 
+  @Test
+  void onResponse_onConnectSuccess_notifyCallback() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    client.handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+
+    verify(callback).onConnect(client);
+    verify(callback, never()).onConnectFailed(any(), any());
+  }
+
+  @Test
+  void onResponse_onConnectSuccess_withError_notifyCallback() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();
+    client.handleSuccess(Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+
+    verify(callback).onErrorResponse(client, errorResponse);
+    verify(callback, never()).onMessage(any(), any());
+  }
+
+  @Test
+  void onResponse_onConnectFailure_notifyCallback() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    Throwable throwable = mock();
+    client.handleError(throwable);
+
+    verify(callback).onConnectFailed(client, throwable);
+    verify(callback, never()).onConnect(any());
+  }
+
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
     return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
   }
@@ -191,6 +222,10 @@ class OpampClientImplTest {
         .setKey(key)
         .setValue(Anyvalue.AnyValue.newBuilder().setStringValue(value).build())
         .build();
+  }
+
+  private OpampClientImpl buildClient() {
+    return buildClient(mock());
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback) {
