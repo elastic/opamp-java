@@ -10,8 +10,10 @@ public class StateHolder<T> extends Observable implements Supplier<T> {
   }
 
   public synchronized void set(T value) {
-    state = value;
-    notifyObservers();
+    if (state != value) {
+      state = value;
+      notifyObservers();
+    }
   }
 
   @Override
