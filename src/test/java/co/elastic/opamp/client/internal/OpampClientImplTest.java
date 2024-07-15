@@ -15,6 +15,8 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.response.Response;
+import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,12 +86,44 @@ class OpampClientImplTest {
   }
 
   @Test
-  void verifyHandleResponseWithoutChangesToReport() {
+  void onResponse_withNotChangesToReport_doNotNotifyCallback() {
     OpampClient.Callback callback = mock();
 
     buildClient(callback).handleResponse(Opamp.ServerToAgent.getDefaultInstance());
 
     verifyNoInteractions(callback);
+  }
+
+  @Test
+  void onResponse_withRemoteConfigStatusUpdate_notifyServerImmediately() {
+    Opamp.ServerToAgent response =
+        Opamp.ServerToAgent.newBuilder()
+            .setRemoteConfig(
+                Opamp.AgentRemoteConfig.newBuilder().setConfig(getAgentConfigMap("fileName", "{}")))
+            .build();
+    OpampClientImpl client =
+        buildClient(
+            new OpampClient.Callback() {
+              @Override
+              public void onMessage(OpampClient client, Response response) {
+                client.setRemoteConfigStatus(
+                    Opamp.RemoteConfigStatus.newBuilder()
+                        .setStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING)
+                        .build());
+              }
+            });
+
+    client.handleResponse(response);
+
+    verify(scheduler).scheduleNow();
+  }
+
+  private Opamp.AgentConfigMap getAgentConfigMap(String configFileName, String content) {
+    Opamp.AgentConfigMap.Builder builder = Opamp.AgentConfigMap.newBuilder();
+    builder.putConfigMap(
+        configFileName,
+        Opamp.AgentConfigFile.newBuilder().setBody(ByteString.copyFromUtf8(content)).build());
+    return builder.build();
   }
 
   private OpampClientVisitors createVisitorsWith(AgentToServerVisitor... visitors) {

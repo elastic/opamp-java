@@ -6,6 +6,7 @@ import co.elastic.opamp.client.internal.scheduler.MessageBuilder;
 import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
 import co.elastic.opamp.client.internal.scheduler.ResponseHandler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.internal.tools.ResponseActionsWatcher;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.response.Response;
 import java.util.concurrent.TimeUnit;
@@ -46,13 +47,13 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
 
   @Override
   public void start() {
-    scheduler.scheduleNow();
+    scheduleNow();
   }
 
   @Override
   public void stop() {
     contextBuilder.stop();
-    scheduler.scheduleNow();
+    scheduleNow();
   }
 
   @Override
@@ -74,7 +75,12 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
     }
 
     if (notifyCallback) {
-      callback.onMessage(this, messageBuilder.build());
+      try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(serverToAgent, state)) {
+        callback.onMessage(this, messageBuilder.build());
+        if (watcher.hasStateChanged()) {
+          scheduleNow();
+        }
+      }
     }
   }
 
@@ -89,7 +95,11 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
     return new Message(builder.build());
   }
 
-  private void scheduleNext() {
+  private void scheduleNow() {
+    scheduler.scheduleNow();
+  }
+
+  private void scheduleWithDelay() {
     scheduler.scheduleWithDelay(30, TimeUnit.SECONDS);
   }
 }
