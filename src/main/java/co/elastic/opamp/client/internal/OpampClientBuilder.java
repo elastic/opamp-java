@@ -21,30 +21,29 @@ import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
   private Service service = Service.create("http://localhost:4320");
-  private AgentDescriptionState agentDescriptionState =
+  private final AgentDescriptionState agentDescriptionState =
       AgentDescriptionState.create(Collections.emptyMap());
-  private EffectiveConfigState effectiveConfigState =
+  private final EffectiveConfigState effectiveConfigState =
       EffectiveConfigState.create(Opamp.EffectiveConfig.getDefaultInstance());
-  private RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
+  private final RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
 
   public OpampClientBuilder setHttpService(Service service) {
     this.service = service;
     return this;
   }
 
-  public OpampClientBuilder setAgentDescriptionState(AgentDescriptionState agentDescriptionState) {
-    this.agentDescriptionState = agentDescriptionState;
+  public OpampClientBuilder setAgentDescription(Opamp.AgentDescription agentDescription) {
+    agentDescriptionState.set(agentDescription);
     return this;
   }
 
-  public OpampClientBuilder setEffectiveConfigState(EffectiveConfigState effectiveConfigState) {
-    this.effectiveConfigState = effectiveConfigState;
+  public OpampClientBuilder setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {
+    effectiveConfigState.set(effectiveConfig);
     return this;
   }
 
-  public OpampClientBuilder setRemoteConfigStatusState(
-      RemoteConfigStatusState remoteConfigStatusState) {
-    this.remoteConfigStatusState = remoteConfigStatusState;
+  public OpampClientBuilder setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus) {
+    remoteConfigStatusState.set(remoteConfigStatus);
     return this;
   }
 
