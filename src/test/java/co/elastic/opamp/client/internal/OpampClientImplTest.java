@@ -89,7 +89,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_scheduleNextPoll() {
+  void onResponse_scheduleDelayedDispatch() {
     buildClient(null).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(dispatcher).dispatchWithDelay(anyLong(), any());
