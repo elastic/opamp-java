@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.scheduler.Message;
@@ -76,9 +77,19 @@ class OpampClientImplTest {
 
     client.buildMessage();
 
+    verify(scheduler).scheduleNow();
     verify(visitor).visit(captor.capture(), notNull());
     RequestContext context = captor.getValue();
     assertThat(context.stop).isTrue();
+  }
+
+  @Test
+  void verifyHandleResponseWithoutChangesToReport() {
+    OpampClient.Callback callback = mock();
+
+    buildClient(callback).handleResponse(Opamp.ServerToAgent.getDefaultInstance());
+
+    verifyNoInteractions(callback);
   }
 
   private OpampClientVisitors createVisitorsWith(AgentToServerVisitor... visitors) {

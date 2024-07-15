@@ -1,10 +1,12 @@
 package co.elastic.opamp.client.response;
 
 import com.google.auto.value.AutoValue;
+import javax.annotation.Nullable;
 import opamp.proto.Opamp;
 
 @AutoValue
 public abstract class Response {
+  @Nullable
   public abstract Opamp.AgentRemoteConfig getRemoteConfig();
 
   public static Builder builder() {

@@ -56,17 +56,26 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   }
 
   @Override
+  public void setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus) {
+    state.remoteConfigStatusState.set(remoteConfigStatus);
+  }
+
+  @Override
   public void handleResponse(Opamp.ServerToAgent serverToAgent) {
     if (serverToAgent == null) {
       return;
     }
+    boolean notifyCallback = false;
     Response.Builder messageBuilder = Response.builder();
 
     if (serverToAgent.hasRemoteConfig()) {
+      notifyCallback = true;
       messageBuilder.setRemoteConfig(serverToAgent.getRemoteConfig());
     }
 
-    callback.onMessage(this, messageBuilder.build());
+    if (notifyCallback) {
+      callback.onMessage(this, messageBuilder.build());
+    }
   }
 
   @Override
