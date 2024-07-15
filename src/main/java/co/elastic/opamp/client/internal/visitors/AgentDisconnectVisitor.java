@@ -7,6 +7,6 @@ public class AgentDisconnectVisitor implements AgentToServerVisitor {
 
   @Override
   public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
+    if (requestContext.stop) builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
   }
 }
