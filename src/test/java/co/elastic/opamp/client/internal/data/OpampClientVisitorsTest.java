@@ -9,6 +9,7 @@ import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
 import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
 import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
 import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
+import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import java.lang.reflect.Field;

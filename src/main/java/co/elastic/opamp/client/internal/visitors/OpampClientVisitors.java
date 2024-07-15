@@ -1,14 +1,5 @@
-package co.elastic.opamp.client.internal.data;
+package co.elastic.opamp.client.internal.visitors;
 
-import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
-import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
-import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
-import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
-import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
-import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
-import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
-import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import java.util.List;
 
 public final class OpampClientVisitors {
