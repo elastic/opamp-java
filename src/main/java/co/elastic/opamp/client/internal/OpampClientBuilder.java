@@ -1,7 +1,6 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
@@ -9,6 +8,7 @@ import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
 import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
 import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
 import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
+import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.request.HttpService;
@@ -59,6 +59,6 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             new InstanceUidVisitor(),
             new AgentDisconnectVisitor());
-    return new OpampClientImpl(httpService, RequestContext.newBuilder(), callback, visitors);
+    return new OpampClientImpl(httpService, RequestContext.newBuilder(), visitors, callback);
   }
 }

@@ -7,9 +7,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.HttpService;
 import co.elastic.opamp.client.state.AgentDescriptionState;
 import java.io.IOException;
@@ -66,6 +66,6 @@ class OpampClientImplTest {
 
   private OpampClientImpl buildCustomClient(
       OpampClient.Callback callback, OpampClientVisitors visitors) {
-    return new OpampClientImpl(service, RequestContext.newBuilder(), callback, visitors);
+    return new OpampClientImpl(service, RequestContext.newBuilder(), visitors, callback);
   }
 }
