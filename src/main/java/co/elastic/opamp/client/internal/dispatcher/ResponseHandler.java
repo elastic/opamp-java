@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.internal.scheduler;
+package co.elastic.opamp.client.internal.dispatcher;
 
 import opamp.proto.Opamp;
 

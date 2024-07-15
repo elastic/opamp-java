@@ -12,8 +12,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.scheduler.Message;
-import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
+import co.elastic.opamp.client.internal.dispatcher.Message;
+import co.elastic.opamp.client.internal.dispatcher.MessageScheduler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;

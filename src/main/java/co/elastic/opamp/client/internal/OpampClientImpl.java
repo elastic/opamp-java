@@ -1,10 +1,10 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.scheduler.Message;
-import co.elastic.opamp.client.internal.scheduler.MessageBuilder;
-import co.elastic.opamp.client.internal.scheduler.MessageScheduler;
-import co.elastic.opamp.client.internal.scheduler.ResponseHandler;
+import co.elastic.opamp.client.internal.dispatcher.Message;
+import co.elastic.opamp.client.internal.dispatcher.MessageBuilder;
+import co.elastic.opamp.client.internal.dispatcher.MessageScheduler;
+import co.elastic.opamp.client.internal.dispatcher.ResponseHandler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.tools.ResponseActionsWatcher;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;

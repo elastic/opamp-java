@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.internal.scheduler;
+package co.elastic.opamp.client.internal.dispatcher;
 
 import co.elastic.opamp.client.request.Service;
 import java.util.concurrent.TimeUnit;
