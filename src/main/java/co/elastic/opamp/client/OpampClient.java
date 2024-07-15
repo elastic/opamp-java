@@ -16,6 +16,8 @@ public interface OpampClient {
 
   void setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus);
 
+  void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig);
+
   interface Callback {
     void onConnect(OpampClient client);
 

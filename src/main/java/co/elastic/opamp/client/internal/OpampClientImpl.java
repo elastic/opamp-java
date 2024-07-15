@@ -62,6 +62,11 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   }
 
   @Override
+  public void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {
+    state.effectiveConfigState.set(effectiveConfig);
+  }
+
+  @Override
   public void handleSuccess(Opamp.ServerToAgent serverToAgent) {
     if (serverToAgent == null) {
       return;
