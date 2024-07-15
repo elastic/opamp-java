@@ -90,7 +90,7 @@ class OpampClientImplTest {
 
   @Test
   void onResponse_scheduleNextPoll() {
-    buildClient(null).handleResponse(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient(null).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(scheduler).scheduleWithDelay(anyLong(), any());
   }
@@ -99,7 +99,7 @@ class OpampClientImplTest {
   void onResponse_withNotChangesToReport_doNotNotifyCallback() {
     OpampClient.Callback callback = mock();
 
-    buildClient(callback).handleResponse(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient(callback).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verifyNoInteractions(callback);
   }
@@ -124,7 +124,7 @@ class OpampClientImplTest {
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
-    client.handleResponse(response);
+    client.handleSuccess(response);
 
     verify(scheduler).scheduleNow();
     verify(scheduler, never()).scheduleWithDelay(anyLong(), any());
@@ -150,7 +150,7 @@ class OpampClientImplTest {
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-    client.handleResponse(response);
+    client.handleSuccess(response);
 
     verify(scheduler, never()).scheduleNow();
     verify(scheduler).scheduleWithDelay(anyLong(), any());

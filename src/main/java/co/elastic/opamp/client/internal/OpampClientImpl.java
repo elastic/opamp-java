@@ -62,7 +62,7 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   }
 
   @Override
-  public void handleResponse(Opamp.ServerToAgent serverToAgent) {
+  public void handleSuccess(Opamp.ServerToAgent serverToAgent) {
     if (serverToAgent == null) {
       return;
     }
@@ -88,7 +88,7 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
   }
 
   @Override
-  public void handleError(Throwable t) {}
+  public void handleError(Throwable throwable) {}
 
   @Override
   public Message buildMessage() {

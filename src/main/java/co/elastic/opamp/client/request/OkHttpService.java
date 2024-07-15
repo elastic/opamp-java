@@ -18,7 +18,7 @@ public class OkHttpService implements Service {
   }
 
   @Override
-  public Opamp.ServerToAgent sendMessage(Opamp.AgentToServer message) throws IOException {
+  public void sendMessage(Opamp.AgentToServer message, RequestCallback callback) {
     Request.Builder builder = new Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
@@ -27,10 +27,17 @@ public class OkHttpService implements Service {
     builder.post(body);
 
     try (Response response = client.newCall(builder.build()).execute()) {
-      if (response.isSuccessful() && response.body() != null) {
-        return Opamp.ServerToAgent.parseFrom(response.body().byteStream());
+      if (response.isSuccessful()) {
+        if (response.body() != null) {
+          Opamp.ServerToAgent serverToAgent =
+              Opamp.ServerToAgent.parseFrom(response.body().byteStream());
+          callback.onSuccess(serverToAgent);
+        }
+      } else {
+        callback.onFailure(response.code(), response.message());
       }
+    } catch (IOException e) {
+      callback.onException(e);
     }
-    return null;
   }
 }

@@ -1,6 +1,5 @@
 package co.elastic.opamp.client.request;
 
-import java.io.IOException;
 import okhttp3.OkHttpClient;
 import opamp.proto.Opamp;
 
@@ -11,5 +10,5 @@ public interface Service {
     return new OkHttpService(client, url);
   }
 
-  Opamp.ServerToAgent sendMessage(Opamp.AgentToServer message) throws IOException;
+  void sendMessage(Opamp.AgentToServer message, RequestCallback callback);
 }

@@ -1,7 +1,8 @@
 package co.elastic.opamp.client.internal.scheduler;
 
+import co.elastic.opamp.client.request.ErrorResponseException;
+import co.elastic.opamp.client.request.RequestCallback;
 import co.elastic.opamp.client.request.Service;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,7 +10,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
-class MessageSchedulerImpl implements MessageScheduler, Runnable {
+class MessageSchedulerImpl implements MessageScheduler, Runnable, RequestCallback {
   private final Service service;
   private final ScheduledExecutorService executor;
   private MessageBuilder messageBuilder;
@@ -48,12 +49,7 @@ class MessageSchedulerImpl implements MessageScheduler, Runnable {
       return;
     }
 
-    try {
-      Opamp.ServerToAgent serverToAgent = service.sendMessage(message.agentToServer);
-      responseHandler.handleResponse(serverToAgent);
-    } catch (IOException e) {
-      responseHandler.handleError(e);
-    }
+    service.sendMessage(message.agentToServer, this);
   }
 
   @Override
@@ -71,5 +67,20 @@ class MessageSchedulerImpl implements MessageScheduler, Runnable {
       currentSchedule.cancel(false);
     }
     currentSchedule = null;
+  }
+
+  @Override
+  public void onSuccess(Opamp.ServerToAgent response) {
+    responseHandler.handleSuccess(response);
+  }
+
+  @Override
+  public void onFailure(int code, String message) {
+    responseHandler.handleError(new ErrorResponseException(code, message));
+  }
+
+  @Override
+  public void onException(Throwable throwable) {
+    responseHandler.handleError(throwable);
   }
 }
