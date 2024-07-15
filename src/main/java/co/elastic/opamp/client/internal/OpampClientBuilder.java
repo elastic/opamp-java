@@ -60,7 +60,7 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             new InstanceUidVisitor(),
             new AgentDisconnectVisitor());
-    MessageScheduler messageScheduler = MessageScheduler.create(this.service);
+    MessageScheduler messageScheduler = MessageScheduler.create(service);
     return OpampClientImpl.create(
         messageScheduler, RequestContext.newBuilder(), visitors, callback);
   }
