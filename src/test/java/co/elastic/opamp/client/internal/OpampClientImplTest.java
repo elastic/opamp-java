@@ -1,5 +1,6 @@
 package co.elastic.opamp.client.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doReturn;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
   private MessageDispatcher dispatcher;
@@ -28,16 +30,27 @@ class OpampClientImplTest {
   }
 
   @Test
-  void verifyMessageBuildingWithVisitors() {
+  void verifyStart() {
+    buildClient(null).start();
+
+    verify(dispatcher).start();
+  }
+
+  @Test
+  void verifyMessageBuilding() {
     OpampClient.Callback callback = mock();
     AgentToServerVisitor descriptionVisitor =
         AgentDescriptionVisitor.create(createAgentDescriptionWithServiceName("startTest"));
     AgentToServerVisitor mockVisitor = mock();
+    ArgumentCaptor<RequestContext> contextCaptor = ArgumentCaptor.forClass(RequestContext.class);
 
     Message message =
         buildClient(callback, createVisitorsWith(descriptionVisitor, mockVisitor)).buildMessage();
 
-    verify(mockVisitor).visit(notNull(), notNull());
+    verify(mockVisitor).visit(contextCaptor.capture(), notNull());
+    RequestContext requestContext = contextCaptor.getValue();
+    assertThat(requestContext.stop).isFalse();
+    assertThat(requestContext.disableCompression).isFalse();
     assertEquals(
         "startTest",
         message
@@ -46,6 +59,20 @@ class OpampClientImplTest {
             .getIdentifyingAttributes(0)
             .getValue()
             .getStringValue());
+  }
+
+  @Test
+  void verifyMessageBuildingAfterStopIsCalled() {
+    AgentToServerVisitor visitor = mock();
+    OpampClientImpl client = buildClient(null, createVisitorsWith(visitor));
+    ArgumentCaptor<RequestContext> captor = ArgumentCaptor.forClass(RequestContext.class);
+    client.stop();
+
+    client.buildMessage();
+
+    verify(visitor).visit(captor.capture(), notNull());
+    RequestContext context = captor.getValue();
+    assertThat(context.stop).isTrue();
   }
 
   private OpampClientVisitors createVisitorsWith(AgentToServerVisitor... visitors) {
@@ -58,6 +85,10 @@ class OpampClientImplTest {
     Map<String, String> identifyingValues = new HashMap<>();
     identifyingValues.put("service.name", serviceName);
     return AgentDescriptionState.create(identifyingValues);
+  }
+
+  private OpampClientImpl buildClient(OpampClient.Callback callback) {
+    return buildClient(callback, mock());
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback, OpampClientVisitors visitors) {
