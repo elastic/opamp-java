@@ -48,7 +48,7 @@ public final class OpampClientBuilder {
   }
 
   public OpampClient build(OpampClient.Callback callback) {
-    SequenceNumberState sequenceNumberState = SequenceNumberState.create();
+    SequenceNumberState sequenceNumberState = SequenceNumberState.create(1);
     OpampClientVisitors visitors =
         new OpampClientVisitors(
             AgentDescriptionVisitor.create(agentDescriptionState),
