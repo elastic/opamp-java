@@ -1,10 +1,11 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class OpampClientVisitors {
-  private final List<AgentToServerVisitor> allVisitors = new ArrayList<>();
+  private final List<AgentToServerVisitor> allVisitors;
 
   public OpampClientVisitors(
       AgentDescriptionVisitor agentDescriptionVisitor,
@@ -15,14 +16,16 @@ public final class OpampClientVisitors {
       FlagsVisitor flagsVisitor,
       InstanceUidVisitor instanceUidVisitor,
       AgentDisconnectVisitor agentDisconnectVisitor) {
-    allVisitors.add(agentDescriptionVisitor);
-    allVisitors.add(effectiveConfigVisitor);
-    allVisitors.add(remoteConfigStatusVisitor);
-    allVisitors.add(sequenceNumberVisitor);
-    allVisitors.add(capabilitiesVisitor);
-    allVisitors.add(flagsVisitor);
-    allVisitors.add(instanceUidVisitor);
-    allVisitors.add(agentDisconnectVisitor);
+    List<AgentToServerVisitor> visitors = new ArrayList<>();
+    visitors.add(agentDescriptionVisitor);
+    visitors.add(effectiveConfigVisitor);
+    visitors.add(remoteConfigStatusVisitor);
+    visitors.add(sequenceNumberVisitor);
+    visitors.add(capabilitiesVisitor);
+    visitors.add(flagsVisitor);
+    visitors.add(instanceUidVisitor);
+    visitors.add(agentDisconnectVisitor);
+    allVisitors = Collections.unmodifiableList(visitors);
   }
 
   public List<AgentToServerVisitor> asList() {
