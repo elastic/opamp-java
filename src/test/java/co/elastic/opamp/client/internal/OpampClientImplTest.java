@@ -40,7 +40,7 @@ class OpampClientImplTest {
 
   @Test
   void verifyStart() {
-    buildClient(null).start();
+    buildClient().start();
 
     verify(dispatcher).dispatchNow();
   }
@@ -187,6 +187,20 @@ class OpampClientImplTest {
     verify(callback, never()).onConnect(any());
   }
 
+  @Test
+  void verifyDisableCompressionWhenRequestedByServer() {
+    Opamp.ServerToAgent serverToAgent =
+        Opamp.ServerToAgent.newBuilder()
+            .setFlags(Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE)
+            .build();
+    RequestContext.Builder contextBuilder = mock();
+    OpampClientImpl client = buildClient(contextBuilder);
+
+    client.handleSuccess(serverToAgent);
+
+    verify(contextBuilder).disableCompression();
+  }
+
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
     return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
   }
@@ -225,7 +239,7 @@ class OpampClientImplTest {
   }
 
   private OpampClientImpl buildClient() {
-    return buildClient(mock());
+    return buildClient(mock(OpampClient.Callback.class));
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback) {
@@ -238,8 +252,19 @@ class OpampClientImplTest {
 
   private OpampClientImpl buildClient(
       OpampClient.Callback callback, OpampClientVisitors visitors, OpampClientState state) {
-    return OpampClientImpl.create(
-        dispatcher, RequestContext.newBuilder(), visitors, state, callback);
+    return buildClient(callback, visitors, state, RequestContext.newBuilder());
+  }
+
+  private OpampClientImpl buildClient(RequestContext.Builder contextBuilder) {
+    return buildClient(mock(), mock(), OpampClientState.create(), contextBuilder);
+  }
+
+  private OpampClientImpl buildClient(
+      OpampClient.Callback callback,
+      OpampClientVisitors visitors,
+      OpampClientState state,
+      RequestContext.Builder contextBuilder) {
+    return OpampClientImpl.create(dispatcher, contextBuilder, visitors, state, callback);
   }
 
   private static class TestCallback implements OpampClient.Callback {

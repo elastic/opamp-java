@@ -75,6 +75,11 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
     if (serverToAgent.hasErrorResponse()) {
       callback.onErrorResponse(this, serverToAgent.getErrorResponse());
     }
+    long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
+    if ((serverToAgent.getFlags() & reportFullState) == reportFullState) {
+      contextBuilder.disableCompression();
+    }
+
     boolean notifyOnMessage = false;
     Response.Builder messageBuilder = Response.builder();
 
