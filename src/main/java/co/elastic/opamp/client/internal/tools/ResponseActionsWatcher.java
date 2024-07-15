@@ -4,6 +4,7 @@ import co.elastic.opamp.client.internal.state.Observable;
 import co.elastic.opamp.client.internal.state.Observer;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
+import co.elastic.opamp.client.internal.state.StateHolder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,15 @@ public final class ResponseActionsWatcher implements Observer, Closeable {
   public static ResponseActionsWatcher create(
       Opamp.ServerToAgent response, OpampClientState state) {
     ResponseActionsWatcher watcher = new ResponseActionsWatcher(response);
-    state.remoteConfigStatusState.addObserver(watcher);
-    watcher.observables.add(state.remoteConfigStatusState);
+
+    observe(state.remoteConfigStatusState, watcher);
 
     return watcher;
+  }
+
+  private static void observe(StateHolder<?> state, ResponseActionsWatcher watcher) {
+    state.addObserver(watcher);
+    watcher.observables.add(state);
   }
 
   private ResponseActionsWatcher(Opamp.ServerToAgent response) {
