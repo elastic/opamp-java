@@ -1,7 +1,6 @@
 package co.elastic.opamp.client.request.impl;
 
 import co.elastic.opamp.client.request.MessageSender;
-import co.elastic.opamp.client.request.RequestCallback;
 import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -28,7 +27,7 @@ public class OkHttpMessageSender implements MessageSender {
   }
 
   @Override
-  public void send(Opamp.AgentToServer message, RequestCallback callback) {
+  public void send(Opamp.AgentToServer message, MessageSender.Callback callback) {
     Request.Builder builder = new Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);

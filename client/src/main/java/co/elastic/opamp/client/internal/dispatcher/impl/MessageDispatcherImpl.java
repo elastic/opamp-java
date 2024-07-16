@@ -6,7 +6,6 @@ import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.dispatcher.ResponseHandler;
 import co.elastic.opamp.client.request.HttpErrorException;
 import co.elastic.opamp.client.request.MessageSender;
-import co.elastic.opamp.client.request.RequestCallback;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,7 +13,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
-public class MessageDispatcherImpl implements MessageDispatcher, Runnable, RequestCallback {
+public class MessageDispatcherImpl implements MessageDispatcher, Runnable, MessageSender.Callback {
   private final MessageSender sender;
   private final ScheduledExecutorService executor;
   private MessageBuilder messageBuilder;
