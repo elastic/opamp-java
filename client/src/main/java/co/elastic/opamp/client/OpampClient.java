@@ -1,6 +1,5 @@
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.internal.OpampClientBuilder;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 

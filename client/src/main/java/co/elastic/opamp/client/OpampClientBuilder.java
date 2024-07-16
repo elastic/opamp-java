@@ -1,6 +1,8 @@
-package co.elastic.opamp.client.internal;
+package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.handlers.InstanceUidHandler;
+import co.elastic.opamp.client.internal.OpampClientImpl;
+import co.elastic.opamp.client.internal.RequestContext;
 import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
@@ -18,10 +20,16 @@ import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
   private MessageSender sender = OkHttpMessageSender.create("http://localhost:4320");
+  private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
   private final OpampClientState state = OpampClientState.create();
 
   public OpampClientBuilder setMessageSender(MessageSender sender) {
     this.sender = sender;
+    return this;
+  }
+
+  public OpampClientBuilder setInstanceUidHandler(InstanceUidHandler instanceUidHandler) {
+    this.instanceUidHandler = instanceUidHandler;
     return this;
   }
 
@@ -44,7 +52,7 @@ public final class OpampClientBuilder {
             SequenceNumberVisitor.create(state.sequenceNumberState),
             new CapabilitiesVisitor(),
             new FlagsVisitor(),
-            new InstanceUidVisitor(),
+            InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
     MessageDispatcher dispatcher = MessageDispatcher.create(sender);
     return OpampClientImpl.create(
