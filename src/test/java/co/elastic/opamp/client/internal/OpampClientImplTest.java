@@ -201,6 +201,28 @@ class OpampClientImplTest {
     verify(contextBuilder).disableCompression();
   }
 
+  @Test
+  void verifySequenceNumberIncreasesOnServerResponseReceived() {
+    OpampClientState state = OpampClientState.create();
+    OpampClientImpl client = buildClient(state);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+
+    client.handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+
+    assertThat(state.sequenceNumberState.get()).isEqualTo(2);
+  }
+
+  @Test
+  void verifySequenceNumberDoesNotIncreaseOnRequestError() {
+    OpampClientState state = OpampClientState.create();
+    OpampClientImpl client = buildClient(state);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+
+    client.handleError(mock());
+
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+  }
+
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
     return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
   }
@@ -240,6 +262,10 @@ class OpampClientImplTest {
 
   private OpampClientImpl buildClient() {
     return buildClient(mock(OpampClient.Callback.class));
+  }
+
+  private OpampClientImpl buildClient(OpampClientState state) {
+    return buildClient(mock(), mock(), state);
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback) {

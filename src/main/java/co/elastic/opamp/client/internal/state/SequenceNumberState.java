@@ -9,4 +9,8 @@ public class SequenceNumberState extends StateHolder<Integer> {
   private SequenceNumberState(Integer initialState) {
     super(initialState);
   }
+
+  public void increment() {
+    set(get() + 1);
+  }
 }

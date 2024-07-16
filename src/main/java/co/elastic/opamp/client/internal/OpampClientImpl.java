@@ -68,6 +68,7 @@ public final class OpampClientImpl implements OpampClient, MessageBuilder, Respo
 
   @Override
   public void handleSuccess(Opamp.ServerToAgent serverToAgent) {
+    state.sequenceNumberState.increment();
     callback.onConnect(this);
     if (serverToAgent == null) {
       return;
