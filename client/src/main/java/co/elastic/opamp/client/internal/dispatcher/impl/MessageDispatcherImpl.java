@@ -1,5 +1,9 @@
-package co.elastic.opamp.client.internal.dispatcher;
+package co.elastic.opamp.client.internal.dispatcher.impl;
 
+import co.elastic.opamp.client.internal.dispatcher.Message;
+import co.elastic.opamp.client.internal.dispatcher.MessageBuilder;
+import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
+import co.elastic.opamp.client.internal.dispatcher.ResponseHandler;
 import co.elastic.opamp.client.request.HttpErrorException;
 import co.elastic.opamp.client.request.RequestCallback;
 import co.elastic.opamp.client.request.Service;
@@ -10,14 +14,14 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
-class MessageDispatcherImpl implements MessageDispatcher, Runnable, RequestCallback {
+public class MessageDispatcherImpl implements MessageDispatcher, Runnable, RequestCallback {
   private final Service service;
   private final ScheduledExecutorService executor;
   private MessageBuilder messageBuilder;
   private ResponseHandler responseHandler;
   private Future<?> currentSchedule;
 
-  static MessageDispatcher create(Service service) {
+  public static MessageDispatcher create(Service service) {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     executor.setRemoveOnCancelPolicy(true);

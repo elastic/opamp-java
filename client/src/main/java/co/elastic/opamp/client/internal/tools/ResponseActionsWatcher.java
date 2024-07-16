@@ -1,10 +1,10 @@
 package co.elastic.opamp.client.internal.tools;
 
-import co.elastic.opamp.client.internal.state.Observable;
-import co.elastic.opamp.client.internal.state.Observer;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.StateHolder;
+import co.elastic.opamp.client.internal.state.observer.Observable;
+import co.elastic.opamp.client.internal.state.observer.Observer;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;

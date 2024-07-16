@@ -1,8 +1,8 @@
 package co.elastic.opamp.client.internal.visitors;
 
 import co.elastic.opamp.client.internal.RequestContext;
-import co.elastic.opamp.client.internal.state.Observable;
-import co.elastic.opamp.client.internal.state.Observer;
+import co.elastic.opamp.client.internal.state.observer.Observable;
+import co.elastic.opamp.client.internal.state.observer.Observer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import opamp.proto.Opamp;
 

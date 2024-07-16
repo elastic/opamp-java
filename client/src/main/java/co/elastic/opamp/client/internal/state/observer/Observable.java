@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.internal.state;
+package co.elastic.opamp.client.internal.state.observer;
 
 import java.util.ArrayList;
 import java.util.List;
