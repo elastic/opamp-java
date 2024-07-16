@@ -1,13 +1,12 @@
 package co.elastic.opamp.client.request;
 
-import okhttp3.OkHttpClient;
+import co.elastic.opamp.client.request.impl.OkHttpService;
 import opamp.proto.Opamp;
 
 public interface Service {
 
   static Service create(String url) {
-    OkHttpClient client = new OkHttpClient();
-    return new OkHttpService(client, url);
+    return OkHttpService.create(url);
   }
 
   void sendMessage(Opamp.AgentToServer message, RequestCallback callback);

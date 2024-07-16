@@ -1,5 +1,7 @@
-package co.elastic.opamp.client.request;
+package co.elastic.opamp.client.request.impl;
 
+import co.elastic.opamp.client.request.RequestCallback;
+import co.elastic.opamp.client.request.Service;
 import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -12,7 +14,15 @@ public class OkHttpService implements Service {
   private final OkHttpClient client;
   private final String url;
 
-  OkHttpService(OkHttpClient client, String url) {
+  public static OkHttpService create(String url) {
+    return create(new OkHttpClient(), url);
+  }
+
+  public static OkHttpService create(OkHttpClient client, String url) {
+    return new OkHttpService(client, url);
+  }
+
+  private OkHttpService(OkHttpClient client, String url) {
     this.client = client;
     this.url = url;
   }
