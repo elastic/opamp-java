@@ -5,8 +5,8 @@ import co.elastic.opamp.client.internal.dispatcher.MessageBuilder;
 import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.dispatcher.ResponseHandler;
 import co.elastic.opamp.client.request.HttpErrorException;
+import co.elastic.opamp.client.request.MessageSender;
 import co.elastic.opamp.client.request.RequestCallback;
-import co.elastic.opamp.client.request.Service;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,21 +15,21 @@ import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
 public class MessageDispatcherImpl implements MessageDispatcher, Runnable, RequestCallback {
-  private final Service service;
+  private final MessageSender sender;
   private final ScheduledExecutorService executor;
   private MessageBuilder messageBuilder;
   private ResponseHandler responseHandler;
   private Future<?> currentSchedule;
 
-  public static MessageDispatcher create(Service service) {
+  public static MessageDispatcher create(MessageSender sender) {
     ScheduledThreadPoolExecutor executor =
         (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     executor.setRemoveOnCancelPolicy(true);
-    return new MessageDispatcherImpl(service, executor);
+    return new MessageDispatcherImpl(sender, executor);
   }
 
-  MessageDispatcherImpl(Service service, ScheduledExecutorService executor) {
-    this.service = service;
+  MessageDispatcherImpl(MessageSender sender, ScheduledExecutorService executor) {
+    this.sender = sender;
     this.executor = executor;
   }
 
@@ -53,7 +53,7 @@ public class MessageDispatcherImpl implements MessageDispatcher, Runnable, Reque
       return;
     }
 
-    service.sendMessage(message.agentToServer, this);
+    sender.send(message.agentToServer, this);
   }
 
   @Override

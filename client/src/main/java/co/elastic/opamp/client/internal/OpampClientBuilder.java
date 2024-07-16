@@ -12,15 +12,15 @@ import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import co.elastic.opamp.client.request.Service;
+import co.elastic.opamp.client.request.MessageSender;
 import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
-  private Service service = Service.create("http://localhost:4320");
+  private MessageSender sender = MessageSender.create("http://localhost:4320");
   private final OpampClientState state = OpampClientState.create();
 
-  public OpampClientBuilder setHttpService(Service service) {
-    this.service = service;
+  public OpampClientBuilder setHttpService(MessageSender sender) {
+    this.sender = sender;
     return this;
   }
 
@@ -45,7 +45,7 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             new InstanceUidVisitor(),
             new AgentDisconnectVisitor());
-    MessageDispatcher dispatcher = MessageDispatcher.create(service);
+    MessageDispatcher dispatcher = MessageDispatcher.create(sender);
     return OpampClientImpl.create(
         dispatcher, RequestContext.newBuilder(), visitors, state, callback);
   }
