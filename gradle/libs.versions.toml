@@ -14,6 +14,7 @@ autoValue-annotations = { module = "com.google.auto.value:auto-value-annotations
 # Tests
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+jupiter = "org.junit.jupiter:junit-jupiter:5.10.0"
 assertj = "org.assertj:assertj-core:3.11.1"
 
 [bundles]
