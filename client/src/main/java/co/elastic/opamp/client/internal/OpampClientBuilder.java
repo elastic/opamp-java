@@ -19,7 +19,7 @@ public final class OpampClientBuilder {
   private MessageSender sender = MessageSender.create("http://localhost:4320");
   private final OpampClientState state = OpampClientState.create();
 
-  public OpampClientBuilder setHttpService(MessageSender sender) {
+  public OpampClientBuilder setMessageSender(MessageSender sender) {
     this.sender = sender;
     return this;
   }
