@@ -13,7 +13,7 @@ import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.request.Service;
-import opamp.proto.Opamp;
+import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
   private Service service = Service.create("http://localhost:4320");
@@ -24,18 +24,13 @@ public final class OpampClientBuilder {
     return this;
   }
 
-  public OpampClientBuilder setAgentDescription(Opamp.AgentDescription agentDescription) {
-    state.agentDescriptionState.set(agentDescription);
+  public OpampClientBuilder setServiceName(String serviceName) {
+    addIdentifyingAttribute("service.name", serviceName);
     return this;
   }
 
-  public OpampClientBuilder setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {
-    state.effectiveConfigState.set(effectiveConfig);
-    return this;
-  }
-
-  public OpampClientBuilder setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus) {
-    state.remoteConfigStatusState.set(remoteConfigStatus);
+  public OpampClientBuilder setServiceVersion(String serviceVersion) {
+    addIdentifyingAttribute("service.version", serviceVersion);
     return this;
   }
 
@@ -53,5 +48,20 @@ public final class OpampClientBuilder {
     MessageDispatcher dispatcher = MessageDispatcher.create(service);
     return OpampClientImpl.create(
         dispatcher, RequestContext.newBuilder(), visitors, state, callback);
+  }
+
+  private void addIdentifyingAttribute(String key, String value) {
+    state
+        .agentDescriptionState
+        .get()
+        .getIdentifyingAttributesList()
+        .add(createKeyValue(key, value));
+  }
+
+  private Anyvalue.KeyValue createKeyValue(String key, String value) {
+    return Anyvalue.KeyValue.newBuilder()
+        .setKey(key)
+        .setValue(Anyvalue.AnyValue.newBuilder().setStringValue(value).build())
+        .build();
   }
 }
