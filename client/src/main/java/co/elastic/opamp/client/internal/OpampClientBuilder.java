@@ -13,10 +13,11 @@ import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.request.MessageSender;
+import co.elastic.opamp.client.request.impl.OkHttpMessageSender;
 import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
-  private MessageSender sender = MessageSender.create("http://localhost:4320");
+  private MessageSender sender = OkHttpMessageSender.create("http://localhost:4320");
   private final OpampClientState state = OpampClientState.create();
 
   public OpampClientBuilder setMessageSender(MessageSender sender) {
