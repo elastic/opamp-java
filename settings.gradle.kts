@@ -5,3 +5,4 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+include(":client")
