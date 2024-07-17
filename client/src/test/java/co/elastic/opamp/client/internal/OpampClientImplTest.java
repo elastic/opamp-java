@@ -63,7 +63,7 @@ class OpampClientImplTest {
     buildClient(callback).onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(callback, never()).onMessage(any(), any());
-    verify(pollingSchedule).reset();
+    verify(pollingSchedule).start();
     verifyNoMoreInteractions(pollingSchedule);
   }
 
@@ -114,7 +114,7 @@ class OpampClientImplTest {
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.onSuccess(response);
 
-    verify(pollingSchedule).reset();
+    verify(pollingSchedule).start();
     verifyNoMoreInteractions(pollingSchedule);
   }
 

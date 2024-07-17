@@ -5,19 +5,18 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 public final class FixedSchedule implements Schedule {
-  private final long intervalMillis;
-  private final Supplier<Long> currentTimeMillisSupplier;
-  private long startTimeMillis;
+  private final long intervalNanos;
+  private final Supplier<Long> nanoTimeSupplier;
+  private long startTimeNanos;
   private boolean forceDue = false;
 
-  public static FixedSchedule create(Duration interval) {
-    return new FixedSchedule(interval.toMillis(), System::currentTimeMillis);
+  public static FixedSchedule of(Duration interval) {
+    return new FixedSchedule(interval.toNanos(), System::nanoTime);
   }
 
-  FixedSchedule(long intervalMillis, Supplier<Long> currentTimeMillisSupplier) {
-    this.intervalMillis = intervalMillis;
-    this.currentTimeMillisSupplier = currentTimeMillisSupplier;
-    startTimeMillis = currentTimeMillisSupplier.get();
+  FixedSchedule(long intervalNanos, Supplier<Long> nanoTimeSupplier) {
+    this.intervalNanos = intervalNanos;
+    this.nanoTimeSupplier = nanoTimeSupplier;
   }
 
   @Override
@@ -25,7 +24,7 @@ public final class FixedSchedule implements Schedule {
     if (forceDue) {
       return true;
     }
-    return intervalMillis >= currentTimeMillisSupplier.get() - startTimeMillis;
+    return nanoTimeSupplier.get() - startTimeNanos >= intervalNanos;
   }
 
   @Override
@@ -35,8 +34,8 @@ public final class FixedSchedule implements Schedule {
   }
 
   @Override
-  public void reset() {
+  public void start() {
     forceDue = false;
-    startTimeMillis = currentTimeMillisSupplier.get();
+    startTimeNanos = nanoTimeSupplier.get();
   }
 }

@@ -101,7 +101,7 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       }
     }
 
-    requestSchedule.reset();
+    requestSchedule.start();
   }
 
   @Override
