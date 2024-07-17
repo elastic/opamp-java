@@ -4,7 +4,8 @@ import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
 import co.elastic.opamp.client.internal.request.RequestDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
-import co.elastic.opamp.client.internal.tools.ResponseActionsWatcher;
+import co.elastic.opamp.client.internal.state.observer.Observable;
+import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
@@ -12,7 +13,8 @@ import co.elastic.opamp.client.request.Schedule;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl implements OpampClient, Runnable, RequestSender.Callback {
+public final class OpampClientImpl
+    implements OpampClient, Observer, Runnable, RequestSender.Callback {
   private final RequestSender sender;
   private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
@@ -50,6 +52,9 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
 
   @Override
   public void start() {
+    state.agentDescriptionState.addObserver(this);
+    state.effectiveConfigState.addObserver(this);
+    state.remoteConfigStatusState.addObserver(this);
     dispatcher.start(this);
   }
 
@@ -72,6 +77,7 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
   @Override
   public void onSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
+    requestSchedule.start();
     callback.onConnect(this);
     if (response == null) {
       return;
@@ -93,15 +99,8 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
     }
 
     if (notifyOnMessage) {
-      try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(response, state)) {
-        callback.onMessage(this, messageBuilder.build());
-        if (watcher.stateHasChanged()) {
-          return; // Avoid restarting the schedule.
-        }
-      }
+      callback.onMessage(this, messageBuilder.build());
     }
-
-    requestSchedule.start();
   }
 
   @Override
@@ -113,5 +112,12 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
   public void run() {
     Request request = requestBuilder.buildAndReset();
     sender.send(request.getAgentToServer(), this);
+  }
+
+  @Override
+  public void update(Observable observable) {
+    // There was an agent status change.
+
+    requestSchedule.fastForward();
   }
 }
