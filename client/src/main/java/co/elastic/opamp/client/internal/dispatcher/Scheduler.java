@@ -11,7 +11,7 @@ public class Scheduler {
   private final RequestDispatcher dispatcher;
   private Future<?> currentSchedule;
 
-  public Scheduler(ScheduledExecutorService executor, RequestDispatcher dispatcher) {
+  Scheduler(ScheduledExecutorService executor, RequestDispatcher dispatcher) {
     this.executor = executor;
     this.dispatcher = dispatcher;
   }
