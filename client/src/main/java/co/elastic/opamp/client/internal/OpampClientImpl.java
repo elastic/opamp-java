@@ -96,7 +96,7 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(response, state)) {
         callback.onMessage(this, messageBuilder.build());
         if (watcher.stateHasChanged()) {
-          return; // Avoid resetting the schedule.
+          return; // Avoid restarting the schedule.
         }
       }
     }
