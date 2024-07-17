@@ -3,7 +3,6 @@ package co.elastic.opamp.client;
 import co.elastic.opamp.client.handlers.InstanceUidHandler;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.RequestContext;
-import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
@@ -14,16 +13,16 @@ import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
-import co.elastic.opamp.client.request.MessageSender;
-import co.elastic.opamp.client.request.impl.OkHttpMessageSender;
+import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
 import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
-  private MessageSender sender = OkHttpMessageSender.create("http://localhost:4320");
+  private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
   private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
   private final OpampClientState state = OpampClientState.create();
 
-  public OpampClientBuilder setMessageSender(MessageSender sender) {
+  public OpampClientBuilder setMessageSender(RequestSender sender) {
     this.sender = sender;
     return this;
   }
@@ -54,9 +53,7 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
-    MessageDispatcher dispatcher = MessageDispatcher.create(sender);
-    return OpampClientImpl.create(
-        dispatcher, RequestContext.newBuilder(), visitors, state, callback);
+    return OpampClientImpl.create(sender, RequestContext.newBuilder(), visitors, state, callback);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

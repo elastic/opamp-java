@@ -11,12 +11,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.Message;
-import co.elastic.opamp.client.internal.dispatcher.MessageDispatcher;
+import co.elastic.opamp.client.internal.dispatcher.Scheduler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
 import java.util.ArrayList;
@@ -31,18 +31,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
-  private MessageDispatcher dispatcher;
+  private Scheduler scheduler;
 
   @BeforeEach
   void setUp() {
-    dispatcher = mock();
+    scheduler = mock();
   }
 
   @Test
   void verifyStart() {
     buildClient().start();
 
-    verify(dispatcher).dispatchNow();
+    verify(scheduler).dispatchNow();
   }
 
   @Test
@@ -55,8 +55,8 @@ class OpampClientImplTest {
     AgentToServerVisitor mockVisitor = mock();
     ArgumentCaptor<RequestContext> contextCaptor = ArgumentCaptor.forClass(RequestContext.class);
 
-    Message message =
-        buildClient(callback, createVisitorsWith(descriptionVisitor, mockVisitor)).buildMessage();
+    Request request =
+        buildClient(callback, createVisitorsWith(descriptionVisitor, mockVisitor)).buildRequest();
 
     verify(mockVisitor).visit(contextCaptor.capture(), notNull());
     RequestContext requestContext = contextCaptor.getValue();
@@ -64,8 +64,8 @@ class OpampClientImplTest {
     assertThat(requestContext.disableCompression).isFalse();
     assertEquals(
         "startTest",
-        message
-            .agentToServer
+        request
+            .getAgentToServer()
             .getAgentDescription()
             .getIdentifyingAttributes(0)
             .getValue()
@@ -79,9 +79,9 @@ class OpampClientImplTest {
     ArgumentCaptor<RequestContext> captor = ArgumentCaptor.forClass(RequestContext.class);
     client.stop();
 
-    client.buildMessage();
+    client.buildRequest();
 
-    verify(dispatcher).dispatchNow();
+    verify(scheduler).dispatchNow();
     verify(visitor).visit(captor.capture(), notNull());
     RequestContext context = captor.getValue();
     assertThat(context.stop).isTrue();
@@ -89,16 +89,16 @@ class OpampClientImplTest {
 
   @Test
   void onResponse_scheduleDelayedDispatch() {
-    buildClient().handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient().onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
-    verify(dispatcher).dispatchWithDelay(anyLong(), any());
+    verify(scheduler).dispatchAfter(anyLong(), any());
   }
 
   @Test
   void onResponse_withNotChangesToReport_doNotNotifyCallbackOnMessage() {
     OpampClient.Callback callback = mock();
 
-    buildClient(callback).handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient(callback).onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(callback, never()).onMessage(any(), any());
   }
@@ -123,10 +123,10 @@ class OpampClientImplTest {
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
-    client.handleSuccess(response);
+    client.onSuccess(response);
 
-    verify(dispatcher).dispatchNow();
-    verify(dispatcher, never()).dispatchWithDelay(anyLong(), any());
+    verify(scheduler).dispatchNow();
+    verify(scheduler, never()).dispatchAfter(anyLong(), any());
   }
 
   @Test
@@ -149,17 +149,17 @@ class OpampClientImplTest {
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-    client.handleSuccess(response);
+    client.onSuccess(response);
 
-    verify(dispatcher, never()).dispatchNow();
-    verify(dispatcher).dispatchWithDelay(anyLong(), any());
+    verify(scheduler, never()).dispatchNow();
+    verify(scheduler).dispatchAfter(anyLong(), any());
   }
 
   @Test
   void onResponse_onConnectSuccess_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
-    client.handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    client.onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(callback).onConnect(client);
     verify(callback, never()).onConnectFailed(any(), any());
@@ -170,7 +170,7 @@ class OpampClientImplTest {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();
-    client.handleSuccess(Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+    client.onSuccess(Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
 
     verify(callback).onErrorResponse(client, errorResponse);
     verify(callback, never()).onMessage(any(), any());
@@ -181,7 +181,7 @@ class OpampClientImplTest {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Throwable throwable = mock();
-    client.handleError(throwable);
+    client.onError(throwable);
 
     verify(callback).onConnectFailed(client, throwable);
     verify(callback, never()).onConnect(any());
@@ -196,7 +196,7 @@ class OpampClientImplTest {
     RequestContext.Builder contextBuilder = mock();
     OpampClientImpl client = buildClient(contextBuilder);
 
-    client.handleSuccess(serverToAgent);
+    client.onSuccess(serverToAgent);
 
     verify(contextBuilder).disableCompression();
   }
@@ -207,7 +207,7 @@ class OpampClientImplTest {
     OpampClientImpl client = buildClient(state);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
 
-    client.handleSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    client.onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     assertThat(state.sequenceNumberState.get()).isEqualTo(2);
   }
@@ -218,7 +218,7 @@ class OpampClientImplTest {
     OpampClientImpl client = buildClient(state);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
 
-    client.handleError(mock());
+    client.onError(mock());
 
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
   }
@@ -290,7 +290,7 @@ class OpampClientImplTest {
       OpampClientVisitors visitors,
       OpampClientState state,
       RequestContext.Builder contextBuilder) {
-    return OpampClientImpl.create(dispatcher, contextBuilder, visitors, state, callback);
+    return new OpampClientImpl(scheduler, contextBuilder, visitors, state, callback);
   }
 
   private static class TestCallback implements OpampClient.Callback {
