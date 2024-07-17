@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RequestScheduler {
   private final ScheduledExecutorService executor;
+  private boolean isRunning = false;
   private Runnable requestRunner;
   private Future<?> currentSchedule;
 
@@ -22,18 +23,39 @@ public class RequestScheduler {
     return new RequestScheduler(executor);
   }
 
-  public synchronized void dispatchAfter(long delay, TimeUnit unit) {
+  public synchronized void start(Runnable requestRunner) {
+    this.requestRunner = requestRunner;
+    isRunning = true;
+    dispatchNow();
+  }
+
+  public synchronized void scheduleImmediatelyAndStop() {
+    dispatchNow(); // todo stop
+    isRunning = false;
+  }
+
+  public void scheduleImmediately() {
+    dispatchNow();
+  }
+
+  public void scheduleNext() {
+    dispatchAfter(30, TimeUnit.SECONDS);
+  }
+
+  public void retry() {
+    // todo
+  }
+
+  private synchronized void dispatchNow() {
+    dispatchAfter(0, TimeUnit.MILLISECONDS);
+  }
+
+  private synchronized void dispatchAfter(long delay, TimeUnit unit) {
+    if (!isRunning) {
+      return;
+    }
     clearSchedule();
     currentSchedule = executor.schedule(requestRunner, delay, unit);
-  }
-
-  public synchronized void dispatchNow() {
-    clearSchedule();
-    currentSchedule = executor.submit(requestRunner);
-  }
-
-  public void setRequestRunner(Runnable requestRunner) {
-    this.requestRunner = requestRunner;
   }
 
   private synchronized void clearSchedule() {

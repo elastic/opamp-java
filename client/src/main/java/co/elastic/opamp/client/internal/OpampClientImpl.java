@@ -9,7 +9,6 @@ import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.response.Response;
-import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl implements OpampClient, Runnable, RequestSender.Callback {
@@ -26,10 +25,7 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       Callback callback) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
     RequestScheduler scheduler = RequestScheduler.create();
-    OpampClientImpl client =
-        new OpampClientImpl(sender, scheduler, requestBuilder, state, callback);
-    scheduler.setRequestRunner(client);
-    return client;
+    return new OpampClientImpl(sender, scheduler, requestBuilder, state, callback);
   }
 
   OpampClientImpl(
@@ -47,13 +43,13 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
 
   @Override
   public void start() {
-    scheduleNow();
+    scheduler.start(this);
   }
 
   @Override
   public void stop() {
     requestBuilder.stop();
-    scheduleNow();
+    scheduler.scheduleImmediatelyAndStop();
   }
 
   @Override
@@ -93,26 +89,18 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(response, state)) {
         callback.onMessage(this, messageBuilder.build());
         if (watcher.stateHasChanged()) {
-          scheduleNow();
+          scheduler.scheduleImmediately();
           return;
         }
       }
     }
 
-    scheduleWithDelay();
+    scheduler.scheduleNext();
   }
 
   @Override
   public void onError(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
-  }
-
-  private void scheduleNow() {
-    scheduler.dispatchNow();
-  }
-
-  private void scheduleWithDelay() {
-    scheduler.dispatchAfter(30, TimeUnit.SECONDS);
   }
 
   @Override
