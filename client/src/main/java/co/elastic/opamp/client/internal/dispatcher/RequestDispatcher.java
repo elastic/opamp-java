@@ -15,21 +15,15 @@ public class RequestDispatcher implements Runnable {
 
   @Override
   public void run() {
-    if (requestSupplier == null) {
+    Request request = (requestSupplier != null) ? requestSupplier.get() : null;
+    if (request == null) {
       return;
-    }
-    Request request;
-    synchronized (this) {
-      request = requestSupplier.get();
-      if (request == null) {
-        return;
-      }
     }
 
     sender.send(request.getAgentToServer(), callback);
   }
 
-  public synchronized void setRequestSupplier(Supplier<Request> requestSupplier) {
+  public void setRequestSupplier(Supplier<Request> requestSupplier) {
     this.requestSupplier = requestSupplier;
   }
 
