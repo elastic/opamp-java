@@ -2,19 +2,21 @@ package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
-import co.elastic.opamp.client.internal.request.RequestScheduler;
+import co.elastic.opamp.client.internal.request.RequestDispatcher;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.tools.ResponseActionsWatcher;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.Schedule;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl implements OpampClient, Runnable, RequestSender.Callback {
   private final RequestSender sender;
-  private final RequestScheduler scheduler;
+  private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
+  private final Schedule requestSchedule;
   private final OpampClientState state;
   private final Callback callback;
 
@@ -22,34 +24,39 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       RequestSender sender,
       OpampClientVisitors visitors,
       OpampClientState state,
+      Schedule pollingSchedule,
+      Schedule retrySchedule,
       Callback callback) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
-    RequestScheduler scheduler = RequestScheduler.create();
-    return new OpampClientImpl(sender, scheduler, requestBuilder, state, callback);
+    RequestDispatcher dispatcher = RequestDispatcher.create(pollingSchedule, retrySchedule);
+    return new OpampClientImpl(
+        sender, dispatcher, requestBuilder, pollingSchedule, state, callback);
   }
 
   OpampClientImpl(
       RequestSender sender,
-      RequestScheduler scheduler,
+      RequestDispatcher dispatcher,
       RequestBuilder requestBuilder,
+      Schedule requestSchedule,
       OpampClientState state,
       Callback callback) {
     this.sender = sender;
-    this.scheduler = scheduler;
+    this.dispatcher = dispatcher;
     this.requestBuilder = requestBuilder;
+    this.requestSchedule = requestSchedule;
     this.state = state;
     this.callback = callback;
   }
 
   @Override
   public void start() {
-    scheduler.start(this);
+    dispatcher.start(this);
   }
 
   @Override
   public void stop() {
     requestBuilder.stop();
-    scheduler.scheduleImmediatelyAndStop();
+    dispatcher.stop();
   }
 
   @Override
@@ -89,13 +96,12 @@ public final class OpampClientImpl implements OpampClient, Runnable, RequestSend
       try (ResponseActionsWatcher watcher = ResponseActionsWatcher.create(response, state)) {
         callback.onMessage(this, messageBuilder.build());
         if (watcher.stateHasChanged()) {
-          scheduler.scheduleImmediately();
-          return;
+          return; // Avoid resetting the schedule.
         }
       }
     }
 
-    scheduler.scheduleNext();
+    requestSchedule.reset();
   }
 
   @Override

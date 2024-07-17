@@ -13,12 +13,17 @@ import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.Schedule;
+import co.elastic.opamp.client.request.impl.FixedSchedule;
 import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
+import java.time.Duration;
 import opamp.proto.Anyvalue;
 
 public final class OpampClientBuilder {
   private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
   private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
+  private Schedule pollingSchedule = FixedSchedule.create(Duration.ofSeconds(30));
+  private Schedule retrySchedule;
   private final OpampClientState state = OpampClientState.create();
 
   public OpampClientBuilder setMessageSender(RequestSender sender) {
@@ -52,7 +57,7 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
-    return OpampClientImpl.create(sender, visitors, state, callback);
+    return OpampClientImpl.create(sender, visitors, state, pollingSchedule, retrySchedule, callback);
   }
 
   private void addIdentifyingAttribute(String key, String value) {
