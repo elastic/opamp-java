@@ -11,7 +11,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.Scheduler;
+import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.internal.request.RequestScheduler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class OpampClientImplTest {
-  private Scheduler scheduler;
+  private RequestScheduler scheduler;
 
   @BeforeEach
   void setUp() {
@@ -290,7 +291,7 @@ class OpampClientImplTest {
       OpampClientVisitors visitors,
       OpampClientState state,
       RequestContext.Builder contextBuilder) {
-    return new OpampClientImpl(scheduler, contextBuilder, visitors, state, callback);
+    return new OpampClientImpl(scheduler, , contextBuilder, visitors, state, callback);
   }
 
   private static class TestCallback implements OpampClient.Callback {

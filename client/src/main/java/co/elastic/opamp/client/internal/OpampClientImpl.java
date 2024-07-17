@@ -1,8 +1,8 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.dispatcher.RequestDispatcher;
-import co.elastic.opamp.client.internal.dispatcher.Scheduler;
+import co.elastic.opamp.client.internal.request.RequestBuilder;
+import co.elastic.opamp.client.internal.request.RequestScheduler;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.tools.ResponseActionsWatcher;
 import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
@@ -12,37 +12,35 @@ import co.elastic.opamp.client.response.Response;
 import java.util.concurrent.TimeUnit;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl implements OpampClient, RequestSender.Callback {
-  private final Scheduler scheduler;
-  private final RequestContext.Builder contextBuilder;
-  private final OpampClientVisitors visitors;
+public final class OpampClientImpl implements OpampClient, Runnable, RequestSender.Callback {
+  private final RequestSender sender;
+  private final RequestScheduler scheduler;
+  private final RequestBuilder requestBuilder;
   private final OpampClientState state;
   private final Callback callback;
 
   public static OpampClientImpl create(
       RequestSender sender,
-      RequestContext.Builder contextBuilder,
       OpampClientVisitors visitors,
       OpampClientState state,
       Callback callback) {
-    RequestDispatcher dispatcher = new RequestDispatcher(sender);
-    Scheduler scheduler = Scheduler.create(dispatcher);
+    RequestBuilder requestBuilder = RequestBuilder.create(visitors);
+    RequestScheduler scheduler = RequestScheduler.create();
     OpampClientImpl client =
-        new OpampClientImpl(scheduler, contextBuilder, visitors, state, callback);
-    dispatcher.setRequestCallback(client);
-    dispatcher.setRequestSupplier(client::buildRequest);
+        new OpampClientImpl(sender, scheduler, requestBuilder, state, callback);
+    scheduler.setRequestRunner(client);
     return client;
   }
 
   OpampClientImpl(
-      Scheduler scheduler,
-      RequestContext.Builder contextBuilder,
-      OpampClientVisitors visitors,
+      RequestSender sender,
+      RequestScheduler scheduler,
+      RequestBuilder requestBuilder,
       OpampClientState state,
       Callback callback) {
+    this.sender = sender;
     this.scheduler = scheduler;
-    this.contextBuilder = contextBuilder;
-    this.visitors = visitors;
+    this.requestBuilder = requestBuilder;
     this.state = state;
     this.callback = callback;
   }
@@ -54,7 +52,7 @@ public final class OpampClientImpl implements OpampClient, RequestSender.Callbac
 
   @Override
   public void stop() {
-    contextBuilder.stop();
+    requestBuilder.stop();
     scheduleNow();
   }
 
@@ -80,7 +78,7 @@ public final class OpampClientImpl implements OpampClient, RequestSender.Callbac
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
     if ((response.getFlags() & reportFullState) == reportFullState) {
-      contextBuilder.disableCompression();
+      requestBuilder.disableCompression();
     }
 
     boolean notifyOnMessage = false;
@@ -109,18 +107,17 @@ public final class OpampClientImpl implements OpampClient, RequestSender.Callbac
     callback.onConnectFailed(this, throwable);
   }
 
-  public Request buildRequest() {
-    Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    RequestContext requestContext = contextBuilder.buildAndReset();
-    visitors.asList().forEach(visitor -> visitor.visit(requestContext, builder));
-    return Request.create(builder.build());
-  }
-
   private void scheduleNow() {
     scheduler.dispatchNow();
   }
 
   private void scheduleWithDelay() {
     scheduler.dispatchAfter(30, TimeUnit.SECONDS);
+  }
+
+  @Override
+  public void run() {
+    Request request = requestBuilder.buildAndReset();
+    sender.send(request.getAgentToServer(), this);
   }
 }

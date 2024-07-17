@@ -1,6 +1,6 @@
 package co.elastic.opamp.client.internal.visitors;
 
-import co.elastic.opamp.client.internal.RequestContext;
+import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import opamp.proto.Opamp;
 

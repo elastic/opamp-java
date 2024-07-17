@@ -5,7 +5,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import co.elastic.opamp.client.internal.RequestContext;
+import co.elastic.opamp.client.internal.request.RequestContext;
 import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class CompressableAgentToServerVisitorTest {
   void verifyDoVisitWhenServerRequiresIt() {
     verifyVisit();
 
-    verifyVisit(RequestContext.newBuilder().disableCompression().buildAndReset());
+    verifyVisit(RequestContext.newBuilder().disableCompression().build());
   }
 
   private void verifyVisit() {

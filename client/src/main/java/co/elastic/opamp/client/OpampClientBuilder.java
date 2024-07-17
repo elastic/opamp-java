@@ -2,7 +2,6 @@ package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.handlers.InstanceUidHandler;
 import co.elastic.opamp.client.internal.OpampClientImpl;
-import co.elastic.opamp.client.internal.RequestContext;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
@@ -53,7 +52,7 @@ public final class OpampClientBuilder {
             new FlagsVisitor(),
             InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
-    return OpampClientImpl.create(sender, RequestContext.newBuilder(), visitors, state, callback);
+    return OpampClientImpl.create(sender, visitors, state, callback);
   }
 
   private void addIdentifyingAttribute(String key, String value) {
