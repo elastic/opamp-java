@@ -23,16 +23,20 @@ public final class RequestDispatcher implements Runnable {
         Executors.newSingleThreadExecutor(), DualSchedule.of(pollingSchedule, retrySchedule));
   }
 
-  public synchronized void start(Runnable requestRunner) {
-    this.requestRunner = requestRunner;
-    isRunning = true;
-    schedule.start();
-    executor.execute(this);
+  public void start(Runnable requestRunner) {
+    synchronized (runningLock) {
+      this.requestRunner = requestRunner;
+      schedule.start();
+      executor.execute(this);
+      isRunning = true;
+    }
   }
 
-  public synchronized void stop() {
-    executor.shutdown();
-    isRunning = false;
+  public void stop() {
+    synchronized (runningLock) {
+      executor.shutdown();
+      isRunning = false;
+    }
   }
 
   public void enableRetryMode() {
