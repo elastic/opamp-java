@@ -9,7 +9,7 @@ import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.request.schedule.Schedule;
+import co.elastic.opamp.client.request.schedule.IntervalSchedule;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 
@@ -24,8 +24,8 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
       RequestSender sender,
       OpampClientVisitors visitors,
       OpampClientState state,
-      Schedule pollingSchedule,
-      Schedule retrySchedule,
+      IntervalSchedule pollingSchedule,
+      IntervalSchedule retrySchedule,
       Callback callback) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
     RequestDispatcher dispatcher = RequestDispatcher.create(pollingSchedule, retrySchedule);

@@ -1,26 +1,26 @@
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.internal.request.schedule.DualSchedule;
-import co.elastic.opamp.client.request.schedule.Schedule;
+import co.elastic.opamp.client.internal.request.schedule.DualIntervalSchedule;
+import co.elastic.opamp.client.request.schedule.IntervalSchedule;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
-  private final DualSchedule schedule;
+  private final DualIntervalSchedule schedule;
   private final Object runningLock = new Object();
   private boolean isRunning = false;
   private Runnable requestRunner;
 
-  RequestDispatcher(ExecutorService executor, DualSchedule schedule) {
+  RequestDispatcher(ExecutorService executor, DualIntervalSchedule schedule) {
     this.executor = executor;
     this.schedule = schedule;
   }
 
-  public static RequestDispatcher create(Schedule pollingSchedule, Schedule retrySchedule) {
+  public static RequestDispatcher create(IntervalSchedule pollingSchedule, IntervalSchedule retrySchedule) {
     return new RequestDispatcher(
-        Executors.newSingleThreadExecutor(), DualSchedule.of(pollingSchedule, retrySchedule));
+        Executors.newSingleThreadExecutor(), DualIntervalSchedule.of(pollingSchedule, retrySchedule));
   }
 
   public void start(Runnable requestRunner) {

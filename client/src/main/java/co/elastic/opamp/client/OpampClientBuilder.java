@@ -14,7 +14,7 @@ import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
-import co.elastic.opamp.client.request.schedule.Schedule;
+import co.elastic.opamp.client.request.schedule.IntervalSchedule;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
@@ -22,8 +22,8 @@ import opamp.proto.Opamp;
 public final class OpampClientBuilder {
   private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
   private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
-  private Schedule pollingSchedule = Schedule.fixed(Duration.ofSeconds(30));
-  private Schedule retrySchedule = Schedule.fixed(Duration.ofSeconds(30));
+  private IntervalSchedule pollingSchedule = IntervalSchedule.fixed(Duration.ofSeconds(30));
+  private IntervalSchedule retrySchedule = IntervalSchedule.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
 
   public OpampClientBuilder setRequestSender(RequestSender sender) {
@@ -46,12 +46,12 @@ public final class OpampClientBuilder {
     return this;
   }
 
-  public OpampClientBuilder setPollingSchedule(Schedule pollingSchedule) {
+  public OpampClientBuilder setPollingSchedule(IntervalSchedule pollingSchedule) {
     this.pollingSchedule = pollingSchedule;
     return this;
   }
 
-  public OpampClientBuilder setRetrySchedule(Schedule retrySchedule) {
+  public OpampClientBuilder setRetrySchedule(IntervalSchedule retrySchedule) {
     this.retrySchedule = retrySchedule;
     return this;
   }

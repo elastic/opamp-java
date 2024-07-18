@@ -3,7 +3,7 @@ package co.elastic.opamp.client.request.schedule;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import co.elastic.opamp.client.internal.request.schedule.DualSchedule;
+import co.elastic.opamp.client.internal.request.schedule.DualIntervalSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,14 +12,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DualScheduleTest {
-  @Mock private Schedule main;
-  @Mock private Schedule secondary;
-  private DualSchedule dualSchedule;
+class DualIntervalScheduleTest {
+  @Mock private IntervalSchedule main;
+  @Mock private IntervalSchedule secondary;
+  private DualIntervalSchedule dualSchedule;
 
   @BeforeEach
   void setUp() {
-    dualSchedule = DualSchedule.of(main, secondary);
+    dualSchedule = DualIntervalSchedule.of(main, secondary);
   }
 
   @Test

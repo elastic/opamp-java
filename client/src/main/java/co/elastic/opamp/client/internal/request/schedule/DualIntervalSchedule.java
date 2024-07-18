@@ -1,19 +1,19 @@
 package co.elastic.opamp.client.internal.request.schedule;
 
-import co.elastic.opamp.client.request.schedule.Schedule;
+import co.elastic.opamp.client.request.schedule.IntervalSchedule;
 
-public final class DualSchedule implements Schedule {
-  private final Schedule main;
-  private final Schedule secondary;
-  private Schedule current;
+public final class DualIntervalSchedule implements IntervalSchedule {
+  private final IntervalSchedule main;
+  private final IntervalSchedule secondary;
+  private IntervalSchedule current;
 
-  public static DualSchedule of(Schedule main, Schedule secondary) {
-    DualSchedule dualSchedule = new DualSchedule(main, secondary);
+  public static DualIntervalSchedule of(IntervalSchedule main, IntervalSchedule secondary) {
+    DualIntervalSchedule dualSchedule = new DualIntervalSchedule(main, secondary);
     dualSchedule.switchToMain();
     return dualSchedule;
   }
 
-  private DualSchedule(Schedule main, Schedule secondary) {
+  private DualIntervalSchedule(IntervalSchedule main, IntervalSchedule secondary) {
     this.main = main;
     this.secondary = secondary;
   }
