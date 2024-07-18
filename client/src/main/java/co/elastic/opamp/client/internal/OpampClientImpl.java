@@ -80,6 +80,10 @@ public final class OpampClientImpl
     if (response == null) {
       return;
     }
+    handleResponse(response);
+  }
+
+  private void handleResponse(Opamp.ServerToAgent response) {
     if (response.hasErrorResponse()) {
       callback.onErrorResponse(this, response.getErrorResponse());
     }
