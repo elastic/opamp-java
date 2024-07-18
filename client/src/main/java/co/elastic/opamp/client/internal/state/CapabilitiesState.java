@@ -5,8 +5,7 @@ import opamp.proto.Opamp;
 public class CapabilitiesState extends StateHolder<Long> {
 
   static CapabilitiesState create() {
-    return new CapabilitiesState(
-        (long) Opamp.AgentCapabilities.AgentCapabilities_ReportsStatus_VALUE);
+    return new CapabilitiesState(Opamp.AgentCapabilities.AgentCapabilities_ReportsStatus_VALUE);
   }
 
   public void add(long capabilities) {
@@ -17,7 +16,7 @@ public class CapabilitiesState extends StateHolder<Long> {
     set(get() & ~capabilities);
   }
 
-  private CapabilitiesState(Long initialState) {
+  private CapabilitiesState(long initialState) {
     super(initialState);
   }
 }
