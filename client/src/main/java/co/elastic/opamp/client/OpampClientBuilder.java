@@ -26,7 +26,7 @@ public final class OpampClientBuilder {
   private Schedule retrySchedule = Schedule.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
 
-  public OpampClientBuilder setMessageSender(RequestSender sender) {
+  public OpampClientBuilder setRequestSender(RequestSender sender) {
     this.sender = sender;
     return this;
   }
