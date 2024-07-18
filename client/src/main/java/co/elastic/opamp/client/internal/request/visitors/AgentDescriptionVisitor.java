@@ -4,7 +4,7 @@ import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import opamp.proto.Opamp;
 
-public class AgentDescriptionVisitor extends CompressableAgentToServerVisitor {
+public final class AgentDescriptionVisitor extends CompressableAgentToServerVisitor {
   private final AgentDescriptionState agentDescriptionState;
 
   public static AgentDescriptionVisitor create(AgentDescriptionState agentDescriptionState) {

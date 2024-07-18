@@ -5,7 +5,7 @@ import co.elastic.opamp.client.internal.request.RequestContext;
 import com.google.protobuf.ByteString;
 import opamp.proto.Opamp;
 
-public class InstanceUidVisitor implements AgentToServerVisitor {
+public final class InstanceUidVisitor implements AgentToServerVisitor {
   private final InstanceUidHandler instanceUidHandler;
 
   public static InstanceUidVisitor create(InstanceUidHandler instanceUidHandler) {

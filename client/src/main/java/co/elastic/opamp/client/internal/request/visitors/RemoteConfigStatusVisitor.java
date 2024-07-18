@@ -4,7 +4,7 @@ import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import opamp.proto.Opamp;
 
-public class RemoteConfigStatusVisitor extends CompressableAgentToServerVisitor {
+public final class RemoteConfigStatusVisitor extends CompressableAgentToServerVisitor {
   private final RemoteConfigStatusState remoteConfigStatusState;
 
   public static RemoteConfigStatusVisitor create(RemoteConfigStatusState remoteConfigStatusState) {

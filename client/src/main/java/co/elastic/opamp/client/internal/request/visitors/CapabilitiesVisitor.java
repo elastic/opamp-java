@@ -4,7 +4,7 @@ import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.CapabilitiesState;
 import opamp.proto.Opamp;
 
-public class CapabilitiesVisitor implements AgentToServerVisitor {
+public final class CapabilitiesVisitor implements AgentToServerVisitor {
   private final CapabilitiesState capabilitiesState;
 
   public static CapabilitiesVisitor create(CapabilitiesState capabilitiesState) {

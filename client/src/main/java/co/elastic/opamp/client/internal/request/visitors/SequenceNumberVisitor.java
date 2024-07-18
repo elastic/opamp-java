@@ -4,7 +4,7 @@ import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import opamp.proto.Opamp;
 
-public class SequenceNumberVisitor implements AgentToServerVisitor {
+public final class SequenceNumberVisitor implements AgentToServerVisitor {
   private final SequenceNumberState sequenceNumberState;
 
   public static SequenceNumberVisitor create(SequenceNumberState sequenceNumberState) {
