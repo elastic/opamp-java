@@ -41,6 +41,11 @@ public final class OpampClientBuilder {
     return this;
   }
 
+  public OpampClientBuilder setServiceNamespace(String serviceNamespace) {
+    addIdentifyingAttribute("service.namespace", serviceNamespace);
+    return this;
+  }
+
   public OpampClientBuilder setServiceVersion(String serviceVersion) {
     addIdentifyingAttribute("service.version", serviceVersion);
     return this;
