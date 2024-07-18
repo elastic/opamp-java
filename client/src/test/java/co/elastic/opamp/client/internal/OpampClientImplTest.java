@@ -77,7 +77,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_withNoChangesToReport_doNotNotifyCallbackOnMessage() {
+  void onSuccess_withNoChangesToReport_doNotNotifyCallbackOnMessage() {
     OpampClient.Callback callback = mock();
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
 
@@ -87,7 +87,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_withRemoteConfigStatusUpdate_notifyServerImmediately() {
+  void onSuccess_withRemoteConfigStatusUpdate_notifyServerImmediately() {
     Opamp.ServerToAgent response =
         Opamp.ServerToAgent.newBuilder()
             .setRemoteConfig(
@@ -112,7 +112,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_withRemoteConfigStatus_withoutChange_doNotNotifyServerImmediately() {
+  void onSuccess_withRemoteConfigStatus_withoutChange_doNotNotifyServerImmediately() {
     Opamp.ServerToAgent response =
         Opamp.ServerToAgent.newBuilder()
             .setRemoteConfig(
@@ -137,7 +137,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_onConnectSuccess_notifyCallback() {
+  void onSuccess_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
@@ -149,7 +149,19 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_onConnectSuccess_withError_notifyCallback() {
+  void onSuccess_whenRetryIsEnabled_disableRetry() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
+    doReturn(true).when(dispatcher).isRetryModeEnabled();
+
+    client.run();
+
+    verify(dispatcher).disableRetryMode();
+  }
+
+  @Test
+  void onSuccess_withServerErrorData_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();

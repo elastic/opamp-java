@@ -80,9 +80,9 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   private void onSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
     callback.onConnect(this);
-    if (response == null) {
-      return;
-    }
+    if (dispatcher.isRetryModeEnabled()) dispatcher.disableRetryMode();
+    if (response == null) return;
+
     handleResponse(response);
   }
 
