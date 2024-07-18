@@ -110,6 +110,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
 
   private void onError(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
+    if (!dispatcher.isRetryModeEnabled()) dispatcher.enableRetryMode();
   }
 
   @Override

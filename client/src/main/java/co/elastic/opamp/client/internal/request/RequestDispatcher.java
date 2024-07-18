@@ -10,6 +10,7 @@ public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
   private final DualIntervalHandler requestInterval;
   private final Object runningLock = new Object();
+  private boolean retryModeEnabled = false;
   private boolean isRunning = false;
   private Runnable requestRunner;
 
@@ -41,14 +42,24 @@ public final class RequestDispatcher implements Runnable {
     }
   }
 
+  public boolean isRetryModeEnabled() {
+    return retryModeEnabled;
+  }
+
   public void enableRetryMode() {
-    requestInterval.switchToSecondary();
-    requestInterval.reset();
+    if (!retryModeEnabled) {
+      retryModeEnabled = true;
+      requestInterval.switchToSecondary();
+      requestInterval.reset();
+    }
   }
 
   public void disableRetryMode() {
-    requestInterval.switchToMain();
-    requestInterval.reset();
+    if (retryModeEnabled) {
+      retryModeEnabled = false;
+      requestInterval.switchToMain();
+      requestInterval.reset();
+    }
   }
 
   public void tryDispatchNow() {

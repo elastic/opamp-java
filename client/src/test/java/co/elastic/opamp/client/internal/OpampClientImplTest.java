@@ -163,7 +163,7 @@ class OpampClientImplTest {
   }
 
   @Test
-  void onResponse_onConnectFailure_notifyCallback() {
+  void onError_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Throwable throwable = mock();
@@ -173,6 +173,30 @@ class OpampClientImplTest {
 
     verify(callback).onConnectFailed(client, throwable);
     verify(callback, never()).onConnect(any());
+  }
+
+  @Test
+  void onError_whenRetryNotEnabled_enableRetry() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    prepareErrorResponse(mock());
+    doReturn(false).when(dispatcher).isRetryModeEnabled();
+
+    client.run();
+
+    verify(dispatcher).enableRetryMode();
+  }
+
+  @Test
+  void onError_whenRetryEnabled_doNotTryEnableRetry() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    prepareErrorResponse(mock());
+    doReturn(true).when(dispatcher).isRetryModeEnabled();
+
+    client.run();
+
+    verify(dispatcher, never()).enableRetryMode();
   }
 
   @Test
