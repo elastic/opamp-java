@@ -73,6 +73,16 @@ public final class OpampClientImpl
   }
 
   @Override
+  public void addCapabilities(long capabilities) {
+    state.capabilitiesState.add(capabilities);
+  }
+
+  @Override
+  public void removeCapabilities(long capabilities) {
+    state.capabilitiesState.remove(capabilities);
+  }
+
+  @Override
   public void onSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
     requestSchedule.start();

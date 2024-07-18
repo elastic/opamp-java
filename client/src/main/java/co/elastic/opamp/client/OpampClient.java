@@ -17,6 +17,10 @@ public interface OpampClient {
 
   void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig);
 
+  void addCapabilities(long capabilities);
+
+  void removeCapabilities(long capabilities);
+
   interface Callback {
     void onConnect(OpampClient client);
 
