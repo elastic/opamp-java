@@ -40,6 +40,11 @@ public final class FixedIntervalHandler implements IntervalHandler {
   }
 
   @Override
+  public void suggestNextInterval(Duration interval) {
+    // Ignored.
+  }
+
+  @Override
   public void reset() {
     startNext();
   }

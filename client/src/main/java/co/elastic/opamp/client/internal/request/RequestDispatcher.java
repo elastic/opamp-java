@@ -2,6 +2,7 @@ package co.elastic.opamp.client.internal.request;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -46,11 +47,14 @@ public final class RequestDispatcher implements Runnable {
     return retryModeEnabled;
   }
 
-  public void enableRetryMode() {
+  public void enableRetryMode(Duration suggestedInterval) {
     if (!retryModeEnabled) {
       retryModeEnabled = true;
       requestInterval.switchToSecondary();
       requestInterval.reset();
+    }
+    if (suggestedInterval != null) {
+      requestInterval.suggestNextInterval(suggestedInterval);
     }
   }
 

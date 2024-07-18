@@ -14,5 +14,7 @@ public interface IntervalHandler {
 
   void startNext();
 
+  void suggestNextInterval(Duration interval);
+
   void reset();
 }

@@ -1,6 +1,7 @@
 package co.elastic.opamp.client.internal.request.handlers;
 
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
+import java.time.Duration;
 
 public final class DualIntervalHandler implements IntervalHandler {
   private final IntervalHandler main;
@@ -29,8 +30,13 @@ public final class DualIntervalHandler implements IntervalHandler {
   }
 
   @Override
-  public synchronized void startNext() {
+  public void startNext() {
     current.startNext();
+  }
+
+  @Override
+  public void suggestNextInterval(Duration interval) {
+    current.suggestNextInterval(interval);
   }
 
   @Override
