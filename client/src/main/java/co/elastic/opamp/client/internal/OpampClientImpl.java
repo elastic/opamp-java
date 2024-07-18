@@ -126,5 +126,6 @@ public final class OpampClientImpl
     state.agentDescriptionState.addObserver(this);
     state.effectiveConfigState.addObserver(this);
     state.remoteConfigStatusState.addObserver(this);
+    state.capabilitiesState.addObserver(this);
   }
 }
