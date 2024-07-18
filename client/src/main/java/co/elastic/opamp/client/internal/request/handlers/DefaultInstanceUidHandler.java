@@ -1,11 +1,11 @@
-package co.elastic.opamp.client.handlers.impl;
+package co.elastic.opamp.client.internal.request.handlers;
 
-import co.elastic.opamp.client.handlers.InstanceUidHandler;
+import co.elastic.opamp.client.request.handlers.InstanceUidHandler;
 import com.github.f4b6a3.uuid.UuidCreator;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-public class DefaultInstanceUidHandler implements InstanceUidHandler {
+public final class DefaultInstanceUidHandler implements InstanceUidHandler {
   private byte[] uuid;
 
   @Override

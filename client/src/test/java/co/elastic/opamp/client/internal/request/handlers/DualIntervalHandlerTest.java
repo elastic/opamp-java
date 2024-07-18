@@ -1,9 +1,9 @@
-package co.elastic.opamp.client.request.schedule;
+package co.elastic.opamp.client.internal.request.handlers;
 
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import co.elastic.opamp.client.internal.request.schedule.DualIntervalSchedule;
+import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,22 +12,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DualIntervalScheduleTest {
-  @Mock private IntervalSchedule main;
-  @Mock private IntervalSchedule secondary;
-  private DualIntervalSchedule dualSchedule;
+class DualIntervalHandlerTest {
+  @Mock private IntervalHandler main;
+  @Mock private IntervalHandler secondary;
+  private DualIntervalHandler dualIntervalHandler;
 
   @BeforeEach
   void setUp() {
-    dualSchedule = DualIntervalSchedule.of(main, secondary);
+    dualIntervalHandler = DualIntervalHandler.of(main, secondary);
   }
 
   @Test
-  void verifyDefaultSchedule() {
-    dualSchedule.fastForward();
-    dualSchedule.startNext();
-    dualSchedule.isDue();
-    dualSchedule.reset();
+  void verifyDefaultIntervalHandler() {
+    dualIntervalHandler.fastForward();
+    dualIntervalHandler.startNext();
+    dualIntervalHandler.isDue();
+    dualIntervalHandler.reset();
 
     InOrder inOrder = inOrder(main);
     inOrder.verify(main).fastForward();
@@ -39,11 +39,11 @@ class DualIntervalScheduleTest {
 
   @Test
   void verifySwitchToSecondary() {
-    dualSchedule.switchToSecondary();
-    dualSchedule.fastForward();
-    dualSchedule.startNext();
-    dualSchedule.isDue();
-    dualSchedule.reset();
+    dualIntervalHandler.switchToSecondary();
+    dualIntervalHandler.fastForward();
+    dualIntervalHandler.startNext();
+    dualIntervalHandler.isDue();
+    dualIntervalHandler.reset();
 
     InOrder inOrder = inOrder(secondary);
     inOrder.verify(secondary).fastForward();

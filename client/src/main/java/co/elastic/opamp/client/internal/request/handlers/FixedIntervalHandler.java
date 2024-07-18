@@ -1,19 +1,20 @@
-package co.elastic.opamp.client.request.schedule;
+package co.elastic.opamp.client.internal.request.handlers;
 
+import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import java.time.Duration;
 import java.util.function.Supplier;
 
-public class FixedIntervalSchedule implements IntervalSchedule {
+public final class FixedIntervalHandler implements IntervalHandler {
   private final long intervalNanos;
   private final Supplier<Long> nanoTimeSupplier;
   private long startTimeNanos;
   private boolean forceDue = false;
 
-  public static FixedIntervalSchedule of(Duration interval) {
-    return new FixedIntervalSchedule(interval.toNanos(), System::nanoTime);
+  public static FixedIntervalHandler of(Duration interval) {
+    return new FixedIntervalHandler(interval.toNanos(), System::nanoTime);
   }
 
-  FixedIntervalSchedule(long intervalNanos, Supplier<Long> nanoTimeSupplier) {
+  FixedIntervalHandler(long intervalNanos, Supplier<Long> nanoTimeSupplier) {
     this.intervalNanos = intervalNanos;
     this.nanoTimeSupplier = nanoTimeSupplier;
   }

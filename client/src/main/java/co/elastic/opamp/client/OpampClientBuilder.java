@@ -1,6 +1,5 @@
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.handlers.InstanceUidHandler;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
@@ -13,8 +12,9 @@ import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisit
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.handlers.InstanceUidHandler;
+import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
-import co.elastic.opamp.client.request.schedule.IntervalSchedule;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
@@ -22,8 +22,8 @@ import opamp.proto.Opamp;
 public final class OpampClientBuilder {
   private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
   private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
-  private IntervalSchedule pollingSchedule = IntervalSchedule.fixed(Duration.ofSeconds(30));
-  private IntervalSchedule retrySchedule = IntervalSchedule.fixed(Duration.ofSeconds(30));
+  private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
+  private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
 
   public OpampClientBuilder setRequestSender(RequestSender sender) {
@@ -46,13 +46,13 @@ public final class OpampClientBuilder {
     return this;
   }
 
-  public OpampClientBuilder setPollingSchedule(IntervalSchedule pollingSchedule) {
-    this.pollingSchedule = pollingSchedule;
+  public OpampClientBuilder setPollingIntervalHandler(IntervalHandler pollingIntervalHandler) {
+    this.pollingIntervalHandler = pollingIntervalHandler;
     return this;
   }
 
-  public OpampClientBuilder setRetrySchedule(IntervalSchedule retrySchedule) {
-    this.retrySchedule = retrySchedule;
+  public OpampClientBuilder setRetryIntervalHandler(IntervalHandler retryIntervalHandler) {
+    this.retryIntervalHandler = retryIntervalHandler;
     return this;
   }
 
@@ -81,7 +81,7 @@ public final class OpampClientBuilder {
             InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
     return OpampClientImpl.create(
-        sender, visitors, state, pollingSchedule, retrySchedule, callback);
+        sender, visitors, state, pollingIntervalHandler, retryIntervalHandler, callback);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

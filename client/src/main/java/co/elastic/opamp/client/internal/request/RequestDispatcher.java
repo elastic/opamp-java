@@ -1,32 +1,34 @@
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.internal.request.schedule.DualIntervalSchedule;
-import co.elastic.opamp.client.request.schedule.IntervalSchedule;
+import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
+import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
-  private final DualIntervalSchedule schedule;
+  private final DualIntervalHandler requestInterval;
   private final Object runningLock = new Object();
   private boolean isRunning = false;
   private Runnable requestRunner;
 
-  RequestDispatcher(ExecutorService executor, DualIntervalSchedule schedule) {
+  RequestDispatcher(ExecutorService executor, DualIntervalHandler requestInterval) {
     this.executor = executor;
-    this.schedule = schedule;
+    this.requestInterval = requestInterval;
   }
 
-  public static RequestDispatcher create(IntervalSchedule pollingSchedule, IntervalSchedule retrySchedule) {
+  public static RequestDispatcher create(
+      IntervalHandler pollingInterval, IntervalHandler retryInterval) {
     return new RequestDispatcher(
-        Executors.newSingleThreadExecutor(), DualIntervalSchedule.of(pollingSchedule, retrySchedule));
+        Executors.newSingleThreadExecutor(),
+        DualIntervalHandler.of(pollingInterval, retryInterval));
   }
 
   public void start(Runnable requestRunner) {
     synchronized (runningLock) {
       this.requestRunner = requestRunner;
-      schedule.startNext();
+      requestInterval.startNext();
       executor.execute(this);
       isRunning = true;
     }
@@ -40,24 +42,24 @@ public final class RequestDispatcher implements Runnable {
   }
 
   public void enableRetryMode() {
-    schedule.switchToSecondary();
+    requestInterval.switchToSecondary();
   }
 
   public void disableRetryMode() {
-    schedule.switchToMain();
+    requestInterval.switchToMain();
   }
 
   public void tryDispatchNow() {
-    schedule.fastForward();
+    requestInterval.fastForward();
   }
 
   @Override
   public void run() {
     while (true) {
       try {
-        if (schedule.isDue()) {
+        if (requestInterval.isDue()) {
           requestRunner.run();
-          schedule.startNext();
+          requestInterval.startNext();
         }
         synchronized (runningLock) {
           if (!isRunning) {

@@ -1,7 +1,7 @@
 package co.elastic.opamp.client.internal.request.visitors;
 
-import co.elastic.opamp.client.handlers.InstanceUidHandler;
 import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.request.handlers.InstanceUidHandler;
 import com.google.protobuf.ByteString;
 import opamp.proto.Opamp;
 
