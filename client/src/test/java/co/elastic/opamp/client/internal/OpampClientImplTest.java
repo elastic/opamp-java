@@ -6,12 +6,17 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
 import co.elastic.opamp.client.internal.request.RequestDispatcher;
+import co.elastic.opamp.client.internal.state.AgentDescriptionState;
+import co.elastic.opamp.client.internal.state.EffectiveConfigState;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
+import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.request.Schedule;
 import co.elastic.opamp.client.response.Response;
@@ -37,11 +42,25 @@ class OpampClientImplTest {
 
   @Test
   void verifyStart() {
-    OpampClientImpl client = buildClient();
+    RemoteConfigStatusState remoteConfigStatusState = mock();
+    SequenceNumberState sequenceNumberState = mock();
+    AgentDescriptionState agentDescriptionState = mock();
+    EffectiveConfigState effectiveConfigState = mock();
+    OpampClientState state =
+        new OpampClientState(
+            remoteConfigStatusState,
+            sequenceNumberState,
+            agentDescriptionState,
+            effectiveConfigState);
+    OpampClientImpl client = buildClient(state);
 
     client.start();
 
     verify(scheduler).start(client);
+    verify(remoteConfigStatusState).addObserver(client);
+    verify(agentDescriptionState).addObserver(client);
+    verify(effectiveConfigState).addObserver(client);
+    verifyNoInteractions(sequenceNumberState);
   }
 
   @Test

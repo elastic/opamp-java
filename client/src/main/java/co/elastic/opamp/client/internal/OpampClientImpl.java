@@ -52,9 +52,7 @@ public final class OpampClientImpl
 
   @Override
   public void start() {
-    state.agentDescriptionState.addObserver(this);
-    state.effectiveConfigState.addObserver(this);
-    state.remoteConfigStatusState.addObserver(this);
+    observeStatusChange();
     dispatcher.start(this);
   }
 
@@ -119,5 +117,11 @@ public final class OpampClientImpl
     // There was an agent status change.
 
     requestSchedule.fastForward();
+  }
+
+  private void observeStatusChange() {
+    state.agentDescriptionState.addObserver(this);
+    state.effectiveConfigState.addObserver(this);
+    state.remoteConfigStatusState.addObserver(this);
   }
 }

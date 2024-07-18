@@ -14,7 +14,7 @@ public final class OpampClientState {
         EffectiveConfigState.create());
   }
 
-  private OpampClientState(
+  public OpampClientState(
       RemoteConfigStatusState remoteConfigStatusState,
       SequenceNumberState sequenceNumberState,
       AgentDescriptionState agentDescriptionState,
