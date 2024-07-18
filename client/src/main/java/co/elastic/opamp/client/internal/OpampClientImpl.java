@@ -18,7 +18,6 @@ public final class OpampClientImpl
   private final RequestSender sender;
   private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
-  private final Schedule requestSchedule;
   private final OpampClientState state;
   private final Callback callback;
 
@@ -31,21 +30,18 @@ public final class OpampClientImpl
       Callback callback) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
     RequestDispatcher dispatcher = RequestDispatcher.create(pollingSchedule, retrySchedule);
-    return new OpampClientImpl(
-        sender, dispatcher, requestBuilder, pollingSchedule, state, callback);
+    return new OpampClientImpl(sender, dispatcher, requestBuilder, state, callback);
   }
 
   OpampClientImpl(
       RequestSender sender,
       RequestDispatcher dispatcher,
       RequestBuilder requestBuilder,
-      Schedule requestSchedule,
       OpampClientState state,
       Callback callback) {
     this.sender = sender;
     this.dispatcher = dispatcher;
     this.requestBuilder = requestBuilder;
-    this.requestSchedule = requestSchedule;
     this.state = state;
     this.callback = callback;
   }
@@ -85,7 +81,6 @@ public final class OpampClientImpl
   @Override
   public void onSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
-    requestSchedule.start();
     callback.onConnect(this);
     if (response == null) {
       return;
@@ -129,7 +124,7 @@ public final class OpampClientImpl
   @Override
   public void update(Observable observable) {
     // There was an agent status change.
-    requestSchedule.fastForward();
+    dispatcher.tryDispatchNow();
   }
 
   private void observeStatusChange() {
