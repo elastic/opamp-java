@@ -22,6 +22,7 @@ import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
+import java.time.Duration;
 import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -172,6 +173,27 @@ class OpampClientImplTest {
 
     verify(callback).onErrorResponse(client, errorResponse);
     verify(callback, never()).onMessage(any(), any());
+  }
+
+  @Test
+  void onSuccess_withServerErrorData_withRetryInfo_enableRetryWithSuggestedInterval() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    long retryAfterNanoseconds = 123;
+    Opamp.ServerErrorResponse errorResponse =
+        Opamp.ServerErrorResponse.newBuilder()
+            .setType(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)
+            .setRetryInfo(
+                Opamp.RetryInfo.newBuilder()
+                    .setRetryAfterNanoseconds(retryAfterNanoseconds)
+                    .build())
+            .build();
+    prepareSuccessResponse(
+        Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+
+    client.run();
+
+    verify(dispatcher).enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
   }
 
   @Test

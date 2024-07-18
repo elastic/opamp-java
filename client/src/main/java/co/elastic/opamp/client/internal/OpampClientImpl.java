@@ -11,6 +11,7 @@ import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.Response;
+import java.time.Duration;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl implements OpampClient, Observer, Runnable {
@@ -88,7 +89,9 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
 
   private void handleResponse(Opamp.ServerToAgent response) {
     if (response.hasErrorResponse()) {
-      callback.onErrorResponse(this, response.getErrorResponse());
+      Opamp.ServerErrorResponse errorResponse = response.getErrorResponse();
+      handleRetry(errorResponse);
+      callback.onErrorResponse(this, errorResponse);
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
     if ((response.getFlags() & reportFullState) == reportFullState) {
@@ -105,6 +108,13 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
 
     if (notifyOnMessage) {
       callback.onMessage(this, messageBuilder.build());
+    }
+  }
+
+  private void handleRetry(Opamp.ServerErrorResponse errorResponse) {
+    if (errorResponse.hasRetryInfo()) {
+      long retryAfterNanoseconds = errorResponse.getRetryInfo().getRetryAfterNanoseconds();
+      dispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
     }
   }
 
