@@ -115,7 +115,6 @@ public final class OpampClientImpl
   @Override
   public void update(Observable observable) {
     // There was an agent status change.
-
     requestSchedule.fastForward();
   }
 

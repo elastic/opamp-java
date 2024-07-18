@@ -103,11 +103,12 @@ class OpampClientImplTest {
               }
             });
 
-    client.setRemoteConfigStatus(
-        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
+    client.start();
     client.onSuccess(response);
 
-    verify(pollingSchedule).start();
+    InOrder inOrder = inOrder(pollingSchedule);
+    inOrder.verify(pollingSchedule).start();
+    inOrder.verify(pollingSchedule).fastForward();
   }
 
   @Test
@@ -130,6 +131,7 @@ class OpampClientImplTest {
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+    client.start();
     client.onSuccess(response);
 
     verify(pollingSchedule).start();
@@ -201,6 +203,32 @@ class OpampClientImplTest {
     client.onError(mock());
 
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+  }
+
+  @Test
+  void whenStatusIsUpdated_notifyServerImmediately() {
+    OpampClientImpl client = buildClient();
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
+    client.start();
+
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+
+    verify(pollingSchedule).fastForward();
+  }
+
+  @Test
+  void whenStatusIsNotUpdated_doNotNotifyServerImmediately() {
+    OpampClientImpl client = buildClient();
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+    client.start();
+
+    client.setRemoteConfigStatus(
+        getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+
+    verify(pollingSchedule, never()).fastForward();
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
