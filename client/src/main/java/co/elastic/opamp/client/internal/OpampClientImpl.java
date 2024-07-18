@@ -9,7 +9,7 @@ import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.request.Schedule;
+import co.elastic.opamp.client.request.schedule.Schedule;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 

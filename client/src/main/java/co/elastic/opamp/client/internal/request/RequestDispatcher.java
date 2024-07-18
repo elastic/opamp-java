@@ -1,6 +1,6 @@
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.request.Schedule;
+import co.elastic.opamp.client.request.schedule.Schedule;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -9,9 +9,9 @@ public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
   private final Schedule regularSchedule;
   private final Schedule retrySchedule;
+  private Schedule currentSchedule;
   private final Object scheduleLock = new Object();
   private final Object runningLock = new Object();
-  private Schedule currentSchedule;
   private boolean isRunning = false;
   private Runnable requestRunner;
 

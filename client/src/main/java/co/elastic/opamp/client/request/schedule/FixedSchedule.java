@@ -1,6 +1,5 @@
-package co.elastic.opamp.client.request.impl;
+package co.elastic.opamp.client.request.schedule;
 
-import co.elastic.opamp.client.request.Schedule;
 import java.time.Duration;
 import java.util.function.Supplier;
 

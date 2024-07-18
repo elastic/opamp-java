@@ -19,7 +19,7 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.request.Schedule;
+import co.elastic.opamp.client.request.schedule.Schedule;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
 import opamp.proto.Opamp;

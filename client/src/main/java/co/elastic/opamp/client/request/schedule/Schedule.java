@@ -1,6 +1,5 @@
-package co.elastic.opamp.client.request;
+package co.elastic.opamp.client.request.schedule;
 
-import co.elastic.opamp.client.request.impl.FixedSchedule;
 import java.time.Duration;
 
 public interface Schedule {
