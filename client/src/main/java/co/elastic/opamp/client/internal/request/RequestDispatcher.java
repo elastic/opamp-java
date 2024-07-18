@@ -43,10 +43,12 @@ public final class RequestDispatcher implements Runnable {
 
   public void enableRetryMode() {
     requestInterval.switchToSecondary();
+    requestInterval.reset();
   }
 
   public void disableRetryMode() {
     requestInterval.switchToMain();
+    requestInterval.reset();
   }
 
   public void tryDispatchNow() {
