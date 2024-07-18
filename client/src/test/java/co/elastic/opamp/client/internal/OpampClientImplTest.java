@@ -197,6 +197,22 @@ class OpampClientImplTest {
   }
 
   @Test
+  void onSuccess_withUnavailableType_withoutRetryInfo_enableRetry() {
+    OpampClient.Callback callback = mock();
+    OpampClientImpl client = buildClient(callback);
+    Opamp.ServerErrorResponse errorResponse =
+        Opamp.ServerErrorResponse.newBuilder()
+            .setType(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)
+            .build();
+    prepareSuccessResponse(
+        Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+
+    client.run();
+
+    verify(dispatcher).enableRetryMode(null);
+  }
+
+  @Test
   void onError_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);

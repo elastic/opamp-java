@@ -78,7 +78,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     state.capabilitiesState.remove(capabilities);
   }
 
-  private void onSuccess(Opamp.ServerToAgent response) {
+  private void onConnectionSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
     callback.onConnect(this);
     if (dispatcher.isRetryModeEnabled()) dispatcher.disableRetryMode();
@@ -87,10 +87,15 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     handleResponse(response);
   }
 
+  private void onConnectionError(Throwable throwable) {
+    callback.onConnectFailed(this, throwable);
+    if (!dispatcher.isRetryModeEnabled()) dispatcher.enableRetryMode(null);
+  }
+
   private void handleResponse(Opamp.ServerToAgent response) {
     if (response.hasErrorResponse()) {
       Opamp.ServerErrorResponse errorResponse = response.getErrorResponse();
-      handleRetry(errorResponse);
+      handleErrorResponse(errorResponse);
       callback.onErrorResponse(this, errorResponse);
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
@@ -111,16 +116,16 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     }
   }
 
-  private void handleRetry(Opamp.ServerErrorResponse errorResponse) {
-    if (errorResponse.hasRetryInfo()) {
-      long retryAfterNanoseconds = errorResponse.getRetryInfo().getRetryAfterNanoseconds();
-      dispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
+  private void handleErrorResponse(Opamp.ServerErrorResponse errorResponse) {
+    if (errorResponse.getType()
+        == Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable) {
+      if (errorResponse.hasRetryInfo()) {
+        long retryAfterNanoseconds = errorResponse.getRetryInfo().getRetryAfterNanoseconds();
+        dispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
+      } else {
+        dispatcher.enableRetryMode(null);
+      }
     }
-  }
-
-  private void onError(Throwable throwable) {
-    callback.onConnectFailed(this, throwable);
-    if (!dispatcher.isRetryModeEnabled()) dispatcher.enableRetryMode(null);
   }
 
   @Override
@@ -130,9 +135,9 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     RequestSender.Response response = sender.send(request.getAgentToServer());
 
     if (response instanceof RequestSender.Response.Success) {
-      onSuccess(((RequestSender.Response.Success) response).data);
+      onConnectionSuccess(((RequestSender.Response.Success) response).data);
     } else if (response instanceof RequestSender.Response.Error) {
-      onError(((RequestSender.Response.Error) response).throwable);
+      onConnectionError(((RequestSender.Response.Error) response).throwable);
     } else {
       throw new IllegalStateException("Unexpected response: " + response);
     }
