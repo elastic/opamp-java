@@ -4,11 +4,31 @@ import opamp.proto.Opamp;
 
 public interface RequestSender {
 
-  void send(Opamp.AgentToServer message, Callback callback);
+  Response send(Opamp.AgentToServer message);
 
-  interface Callback {
-    void onSuccess(Opamp.ServerToAgent response);
+  interface Response {
+    static Response success(Opamp.ServerToAgent data) {
+      return new Response.Success(data);
+    }
 
-    void onError(Throwable throwable);
+    static Response error(Throwable throwable) {
+      return new Error(throwable);
+    }
+
+    final class Success implements Response {
+      public final Opamp.ServerToAgent data;
+
+      private Success(Opamp.ServerToAgent data) {
+        this.data = data;
+      }
+    }
+
+    final class Error implements Response {
+      public final Throwable throwable;
+
+      private Error(Throwable throwable) {
+        this.throwable = throwable;
+      }
+    }
   }
 }

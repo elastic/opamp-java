@@ -28,7 +28,7 @@ public class OkHttpRequestSender implements RequestSender {
   }
 
   @Override
-  public void send(Opamp.AgentToServer message, RequestSender.Callback callback) {
+  public Response send(Opamp.AgentToServer message) {
     Request.Builder builder = new Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
@@ -36,18 +36,20 @@ public class OkHttpRequestSender implements RequestSender {
     RequestBody body = RequestBody.create(message.toByteArray(), MediaType.parse(contentType));
     builder.post(body);
 
-    try (Response response = client.newCall(builder.build()).execute()) {
+    try (okhttp3.Response response = client.newCall(builder.build()).execute()) {
       if (response.isSuccessful()) {
         if (response.body() != null) {
           Opamp.ServerToAgent serverToAgent =
               Opamp.ServerToAgent.parseFrom(response.body().byteStream());
-          callback.onSuccess(serverToAgent);
+          return Response.success(serverToAgent);
         }
       } else {
-        callback.onError(new HttpErrorException(response.code(), response.message()));
+        return Response.error(new HttpErrorException(response.code(), response.message()));
       }
     } catch (IOException e) {
-      callback.onError(e);
+      return Response.error(e);
     }
+
+    return Response.error(new IllegalStateException());
   }
 }

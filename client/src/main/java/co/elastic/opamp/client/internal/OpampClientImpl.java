@@ -13,8 +13,7 @@ import co.elastic.opamp.client.request.schedule.Schedule;
 import co.elastic.opamp.client.response.Response;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl
-    implements OpampClient, Observer, Runnable, RequestSender.Callback {
+public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   private final RequestSender sender;
   private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
@@ -78,8 +77,7 @@ public final class OpampClientImpl
     state.capabilitiesState.remove(capabilities);
   }
 
-  @Override
-  public void onSuccess(Opamp.ServerToAgent response) {
+  private void onSuccess(Opamp.ServerToAgent response) {
     state.sequenceNumberState.increment();
     callback.onConnect(this);
     if (response == null) {
@@ -110,15 +108,23 @@ public final class OpampClientImpl
     }
   }
 
-  @Override
-  public void onError(Throwable throwable) {
+  private void onError(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
   }
 
   @Override
   public void run() {
     Request request = requestBuilder.buildAndReset();
-    sender.send(request.getAgentToServer(), this);
+
+    RequestSender.Response response = sender.send(request.getAgentToServer());
+
+    if (response instanceof RequestSender.Response.Success) {
+      onSuccess(((RequestSender.Response.Success) response).data);
+    } else if (response instanceof RequestSender.Response.Error) {
+      onError(((RequestSender.Response.Error) response).throwable);
+    } else {
+      throw new IllegalStateException("Unexpected response: " + response);
+    }
   }
 
   @Override

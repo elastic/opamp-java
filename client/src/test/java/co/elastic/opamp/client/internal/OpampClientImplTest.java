@@ -2,6 +2,7 @@ package co.elastic.opamp.client.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -17,6 +18,7 @@ import co.elastic.opamp.client.internal.state.EffectiveConfigState;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
+import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
@@ -77,8 +79,9 @@ class OpampClientImplTest {
   @Test
   void onResponse_withNoChangesToReport_doNotNotifyCallbackOnMessage() {
     OpampClient.Callback callback = mock();
+    prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
 
-    buildClient(callback).onSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    buildClient(callback).run();
 
     verify(callback, never()).onMessage(any(), any());
   }
@@ -102,7 +105,8 @@ class OpampClientImplTest {
             });
 
     client.start();
-    client.onSuccess(response);
+    prepareSuccessResponse(response);
+    client.run();
 
     verify(dispatcher).tryDispatchNow();
   }
@@ -128,14 +132,17 @@ class OpampClientImplTest {
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.start();
-    client.onSuccess(response);
+    prepareSuccessResponse(response);
+    client.run();
   }
 
   @Test
   void onResponse_onConnectSuccess_notifyCallback() {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
-    client.onSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
+
+    client.run();
 
     verify(callback).onConnect(client);
     verify(callback, never()).onConnectFailed(any(), any());
@@ -146,7 +153,10 @@ class OpampClientImplTest {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();
-    client.onSuccess(Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+    prepareSuccessResponse(
+        Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
+
+    client.run();
 
     verify(callback).onErrorResponse(client, errorResponse);
     verify(callback, never()).onMessage(any(), any());
@@ -157,7 +167,9 @@ class OpampClientImplTest {
     OpampClient.Callback callback = mock();
     OpampClientImpl client = buildClient(callback);
     Throwable throwable = mock();
-    client.onError(throwable);
+    prepareErrorResponse(throwable);
+
+    client.run();
 
     verify(callback).onConnectFailed(client, throwable);
     verify(callback, never()).onConnect(any());
@@ -170,8 +182,9 @@ class OpampClientImplTest {
             .setFlags(Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE)
             .build();
     OpampClientImpl client = buildClient();
+    prepareSuccessResponse(serverToAgent);
 
-    client.onSuccess(serverToAgent);
+    client.run();
 
     verify(requestBuilder).disableCompression();
   }
@@ -181,8 +194,9 @@ class OpampClientImplTest {
     OpampClientState state = OpampClientState.create();
     OpampClientImpl client = buildClient(state);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+    prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
 
-    client.onSuccess(Opamp.ServerToAgent.getDefaultInstance());
+    client.run();
 
     assertThat(state.sequenceNumberState.get()).isEqualTo(2);
   }
@@ -192,8 +206,9 @@ class OpampClientImplTest {
     OpampClientState state = OpampClientState.create();
     OpampClientImpl client = buildClient(state);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
+    prepareErrorResponse(mock());
 
-    client.onError(mock());
+    client.run();
 
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
   }
@@ -250,6 +265,22 @@ class OpampClientImplTest {
 
   private OpampClientImpl buildClient(OpampClient.Callback callback, OpampClientState state) {
     return new OpampClientImpl(sender, dispatcher, requestBuilder, state, callback);
+  }
+
+  private void prepareSuccessResponse(Opamp.ServerToAgent serverToAgent) {
+    Opamp.AgentToServer message = prepareRequestData();
+    doReturn(RequestSender.Response.success(serverToAgent)).when(sender).send(message);
+  }
+
+  private void prepareErrorResponse(Throwable throwable) {
+    Opamp.AgentToServer message = prepareRequestData();
+    doReturn(RequestSender.Response.error(throwable)).when(sender).send(message);
+  }
+
+  private Opamp.AgentToServer prepareRequestData() {
+    Opamp.AgentToServer requestData = Opamp.AgentToServer.getDefaultInstance();
+    doReturn(Request.create(requestData)).when(requestBuilder).buildAndReset();
+    return requestData;
   }
 
   private static class TestCallback implements OpampClient.Callback {
