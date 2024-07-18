@@ -17,6 +17,7 @@ import co.elastic.opamp.client.request.Schedule;
 import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
+import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
   private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
@@ -55,6 +56,19 @@ public final class OpampClientBuilder {
     return this;
   }
 
+  public OpampClientBuilder enableRemoteConfig() {
+    state.capabilitiesState.add(
+        Opamp.AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig_VALUE
+            | Opamp.AgentCapabilities.AgentCapabilities_ReportsRemoteConfig_VALUE);
+    return this;
+  }
+
+  public OpampClientBuilder enableEffectiveConfigReporting() {
+    state.capabilitiesState.add(
+        Opamp.AgentCapabilities.AgentCapabilities_ReportsEffectiveConfig_VALUE);
+    return this;
+  }
+
   public OpampClient build(OpampClient.Callback callback) {
     OpampClientVisitors visitors =
         new OpampClientVisitors(
@@ -62,7 +76,7 @@ public final class OpampClientBuilder {
             EffectiveConfigVisitor.create(state.effectiveConfigState),
             RemoteConfigStatusVisitor.create(state.remoteConfigStatusState),
             SequenceNumberVisitor.create(state.sequenceNumberState),
-            new CapabilitiesVisitor(),
+            CapabilitiesVisitor.create(state.capabilitiesState),
             new FlagsVisitor(),
             InstanceUidVisitor.create(instanceUidHandler),
             new AgentDisconnectVisitor());
