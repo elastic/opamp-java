@@ -25,12 +25,12 @@ class DualScheduleTest {
   @Test
   void verifyDefaultSchedule() {
     dualSchedule.fastForward();
-    dualSchedule.start();
+    dualSchedule.startNext();
     dualSchedule.isDue();
 
     InOrder inOrder = inOrder(main);
     inOrder.verify(main).fastForward();
-    inOrder.verify(main).start();
+    inOrder.verify(main).startNext();
     inOrder.verify(main).isDue();
     verifyNoInteractions(secondary);
   }
@@ -39,12 +39,12 @@ class DualScheduleTest {
   void verifySwitchToSecondary() {
     dualSchedule.switchToSecondary();
     dualSchedule.fastForward();
-    dualSchedule.start();
+    dualSchedule.startNext();
     dualSchedule.isDue();
 
     InOrder inOrder = inOrder(secondary);
     inOrder.verify(secondary).fastForward();
-    inOrder.verify(secondary).start();
+    inOrder.verify(secondary).startNext();
     inOrder.verify(secondary).isDue();
   }
 }

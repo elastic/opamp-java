@@ -11,5 +11,5 @@ public interface Schedule {
 
   boolean fastForward();
 
-  void start();
+  void startNext();
 }

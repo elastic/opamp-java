@@ -29,8 +29,8 @@ public final class DualSchedule implements Schedule {
   }
 
   @Override
-  public synchronized void start() {
-    current.start();
+  public synchronized void startNext() {
+    current.startNext();
   }
 
   public synchronized void switchToMain() {

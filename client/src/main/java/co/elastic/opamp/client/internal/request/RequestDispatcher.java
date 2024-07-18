@@ -26,7 +26,7 @@ public final class RequestDispatcher implements Runnable {
   public void start(Runnable requestRunner) {
     synchronized (runningLock) {
       this.requestRunner = requestRunner;
-      schedule.start();
+      schedule.startNext();
       executor.execute(this);
       isRunning = true;
     }
@@ -57,7 +57,7 @@ public final class RequestDispatcher implements Runnable {
       try {
         if (schedule.isDue()) {
           requestRunner.run();
-          schedule.start();
+          schedule.startNext();
         }
         synchronized (runningLock) {
           if (!isRunning) {
