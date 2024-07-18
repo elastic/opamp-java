@@ -12,4 +12,6 @@ public interface Schedule {
   boolean fastForward();
 
   void startNext();
+
+  void reset();
 }

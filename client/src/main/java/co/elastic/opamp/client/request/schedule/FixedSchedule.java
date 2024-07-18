@@ -37,4 +37,9 @@ public final class FixedSchedule implements Schedule {
     forceDue = false;
     startTimeNanos = nanoTimeSupplier.get();
   }
+
+  @Override
+  public void reset() {
+    startNext();
+  }
 }

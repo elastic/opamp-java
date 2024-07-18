@@ -33,6 +33,11 @@ public final class DualSchedule implements Schedule {
     current.startNext();
   }
 
+  @Override
+  public synchronized void reset() {
+    current.reset();
+  }
+
   public synchronized void switchToMain() {
     current = main;
   }
