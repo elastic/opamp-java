@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
@@ -19,7 +18,6 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.request.schedule.Schedule;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
 import opamp.proto.Opamp;
@@ -29,15 +27,13 @@ import org.mockito.InOrder;
 
 class OpampClientImplTest {
   private RequestSender sender;
-  private RequestDispatcher scheduler;
-  private Schedule pollingSchedule;
+  private RequestDispatcher dispatcher;
   private RequestBuilder requestBuilder;
 
   @BeforeEach
   void setUp() {
     sender = mock();
-    scheduler = mock();
-    pollingSchedule = mock();
+    dispatcher = mock();
     requestBuilder = mock();
   }
 
@@ -59,7 +55,7 @@ class OpampClientImplTest {
 
     client.start();
 
-    verify(scheduler).start(client);
+    verify(dispatcher).start(client);
     verify(remoteConfigStatusState).addObserver(client);
     verify(agentDescriptionState).addObserver(client);
     verify(effectiveConfigState).addObserver(client);
@@ -73,9 +69,9 @@ class OpampClientImplTest {
 
     client.stop();
 
-    InOrder inOrder = inOrder(requestBuilder, scheduler);
+    InOrder inOrder = inOrder(requestBuilder, dispatcher);
     inOrder.verify(requestBuilder).stop();
-    inOrder.verify(scheduler).stop();
+    inOrder.verify(dispatcher).stop();
   }
 
   @Test
@@ -85,8 +81,6 @@ class OpampClientImplTest {
     buildClient(callback).onSuccess(Opamp.ServerToAgent.getDefaultInstance());
 
     verify(callback, never()).onMessage(any(), any());
-    verify(pollingSchedule).start();
-    verifyNoMoreInteractions(pollingSchedule);
   }
 
   @Test
@@ -110,9 +104,7 @@ class OpampClientImplTest {
     client.start();
     client.onSuccess(response);
 
-    InOrder inOrder = inOrder(pollingSchedule);
-    inOrder.verify(pollingSchedule).start();
-    inOrder.verify(pollingSchedule).fastForward();
+    verify(dispatcher).tryDispatchNow();
   }
 
   @Test
@@ -137,9 +129,6 @@ class OpampClientImplTest {
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.start();
     client.onSuccess(response);
-
-    verify(pollingSchedule).start();
-    verifyNoMoreInteractions(pollingSchedule);
   }
 
   @Test
@@ -219,7 +208,7 @@ class OpampClientImplTest {
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
 
-    verify(pollingSchedule).fastForward();
+    verify(dispatcher).tryDispatchNow();
   }
 
   @Test
@@ -232,7 +221,7 @@ class OpampClientImplTest {
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
 
-    verify(pollingSchedule, never()).fastForward();
+    verify(dispatcher, never()).tryDispatchNow();
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
@@ -260,7 +249,7 @@ class OpampClientImplTest {
   }
 
   private OpampClientImpl buildClient(OpampClient.Callback callback, OpampClientState state) {
-    return new OpampClientImpl(sender, scheduler, requestBuilder, pollingSchedule, state, callback);
+    return new OpampClientImpl(sender, dispatcher, requestBuilder, state, callback);
   }
 
   private static class TestCallback implements OpampClient.Callback {
