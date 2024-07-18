@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.internal.visitors;
+package co.elastic.opamp.client.internal.request.visitors;
 
 import java.util.ArrayList;
 import java.util.Collections;

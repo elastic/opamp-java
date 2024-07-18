@@ -7,8 +7,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import java.util.List;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;

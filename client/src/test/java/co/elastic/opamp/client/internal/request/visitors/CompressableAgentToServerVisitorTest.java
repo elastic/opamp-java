@@ -1,4 +1,4 @@
-package co.elastic.opamp.client.internal.visitors;
+package co.elastic.opamp.client.internal.request.visitors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;

@@ -1,6 +1,6 @@
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.Request;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;

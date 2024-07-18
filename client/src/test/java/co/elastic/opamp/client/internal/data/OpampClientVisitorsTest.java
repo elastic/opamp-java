@@ -2,16 +2,16 @@ package co.elastic.opamp.client.internal.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import co.elastic.opamp.client.internal.visitors.AgentDescriptionVisitor;
-import co.elastic.opamp.client.internal.visitors.AgentDisconnectVisitor;
-import co.elastic.opamp.client.internal.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.internal.visitors.CapabilitiesVisitor;
-import co.elastic.opamp.client.internal.visitors.EffectiveConfigVisitor;
-import co.elastic.opamp.client.internal.visitors.FlagsVisitor;
-import co.elastic.opamp.client.internal.visitors.InstanceUidVisitor;
-import co.elastic.opamp.client.internal.visitors.OpampClientVisitors;
-import co.elastic.opamp.client.internal.visitors.RemoteConfigStatusVisitor;
-import co.elastic.opamp.client.internal.visitors.SequenceNumberVisitor;
+import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
+import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
+import co.elastic.opamp.client.internal.request.visitors.AgentToServerVisitor;
+import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
+import co.elastic.opamp.client.internal.request.visitors.EffectiveConfigVisitor;
+import co.elastic.opamp.client.internal.request.visitors.FlagsVisitor;
+import co.elastic.opamp.client.internal.request.visitors.InstanceUidVisitor;
+import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
+import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
