@@ -4,8 +4,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import co.elastic.opamp.client.internal.request.visitors.AgentToServerVisitor;
 import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 class RequestBuilderTest {
   private OpampClientVisitors visitors;
@@ -40,8 +41,10 @@ class RequestBuilderTest {
 
     requestBuilder.buildAndReset();
 
-    verify(mockVisitor1).visit(eq(requestContext), notNull());
-    verify(mockVisitor2).visit(eq(requestContext), notNull());
-    verify(contextBuilderSupplier).get();
+    InOrder inOrder = inOrder(contextBuilder, mockVisitor1, mockVisitor2, contextBuilderSupplier);
+    inOrder.verify(contextBuilder).build();
+    inOrder.verify(mockVisitor1).visit(eq(requestContext), notNull());
+    inOrder.verify(mockVisitor2).visit(eq(requestContext), notNull());
+    inOrder.verify(contextBuilderSupplier).get();
   }
 }

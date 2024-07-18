@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class RequestDispatcher implements Runnable {
+public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
   private final Schedule regularSchedule;
   private final Schedule retrySchedule;
