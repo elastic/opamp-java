@@ -29,9 +29,6 @@ public final class FixedSleepSchedule implements SleepSchedule {
   @Override
   public void sleep() throws InterruptedException {
     synchronized (this) {
-      if (isSleeping) {
-        return;
-      }
       if (ignoreNextSleep) {
         ignoreNextSleep = false;
         return;

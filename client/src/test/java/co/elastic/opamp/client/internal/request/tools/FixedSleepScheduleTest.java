@@ -1,5 +1,7 @@
 package co.elastic.opamp.client.internal.request.tools;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.CountDownLatch;
@@ -29,6 +31,22 @@ class FixedSleepScheduleTest {
     schedule.awakeOrIgnoreNextSleep();
 
     verify(sleeper).awake();
+  }
+
+  @Test
+  void verifyIgnoreNextSleepingWhenNotSleeping() throws InterruptedException {
+    FixedSleepSchedule schedule = create(123);
+
+    schedule.awakeOrIgnoreNextSleep();
+    verify(sleeper, never()).awake();
+
+    // Try call sleep:
+    schedule.sleep();
+    verify(sleeper, never()).sleep(anyLong());
+
+    // Try again:
+    schedule.sleep();
+    verify(sleeper).sleep(123);
   }
 
   private FixedSleepSchedule sleepAndLock() throws InterruptedException {
