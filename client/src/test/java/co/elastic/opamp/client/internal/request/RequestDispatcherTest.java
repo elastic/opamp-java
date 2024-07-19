@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.SleeperHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleeper.ThreadSleepHandler;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -27,13 +27,13 @@ class RequestDispatcherTest {
   @Mock private Runnable requestRunner;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
-  private TestSleeperHandler threadSleeper;
+  private TestThreadSleepHandler threadSleepHandler;
   private RequestDispatcher requestDispatcher;
 
   @BeforeEach
   void setUp() {
-    threadSleeper = new TestSleeperHandler();
-    requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleeper);
+    threadSleepHandler = new TestThreadSleepHandler();
+    requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleepHandler);
   }
 
   @Test
@@ -149,7 +149,7 @@ class RequestDispatcherTest {
     startAndDispatch();
 
     requestDispatcher.stop();
-    threadSleeper.awakeOrIgnoreNextSleep();
+    threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner).run();
     verify(requestInterval).startNext();
   }
@@ -161,7 +161,7 @@ class RequestDispatcherTest {
     startAndDispatch();
 
     requestDispatcher.stop();
-    threadSleeper.awakeOrIgnoreNextSleep();
+    threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner, never()).run();
     verify(requestInterval, never()).startNext();
   }
@@ -170,14 +170,14 @@ class RequestDispatcherTest {
     requestDispatcher.start(requestRunner);
     clearInvocations(requestInterval, executor);
     new Thread(requestDispatcher).start();
-    threadSleeper.awaitForDispatcherExecution();
+    threadSleepHandler.awaitForDispatcherExecution();
   }
 
-  private static class TestSleeperHandler implements SleeperHandler {
+  private static class TestThreadSleepHandler implements ThreadSleepHandler {
     private CountDownLatch dispatcherLatch;
     private final CountDownLatch testLatch;
 
-    public TestSleeperHandler() {
+    public TestThreadSleepHandler() {
       testLatch = new CountDownLatch(1);
     }
 

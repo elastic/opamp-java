@@ -1,8 +1,8 @@
 package co.elastic.opamp.client.internal.request;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.SleeperHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.impl.FixedSleeperHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleeper.ThreadSleepHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleeper.impl.FixedThreadSleepHandler;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
   private final DualIntervalHandler requestInterval;
-  private final SleeperHandler sleeperHandler;
+  private final ThreadSleepHandler threadSleepHandler;
   private final Object runningLock = new Object();
   private boolean retryModeEnabled = false;
   private boolean isRunning = false;
@@ -20,10 +20,10 @@ public final class RequestDispatcher implements Runnable {
   RequestDispatcher(
       ExecutorService executor,
       DualIntervalHandler requestInterval,
-      SleeperHandler sleeperHandler) {
+      ThreadSleepHandler threadSleepHandler) {
     this.executor = executor;
     this.requestInterval = requestInterval;
-    this.sleeperHandler = sleeperHandler;
+    this.threadSleepHandler = threadSleepHandler;
   }
 
   public static RequestDispatcher create(
@@ -31,7 +31,7 @@ public final class RequestDispatcher implements Runnable {
     return new RequestDispatcher(
         Executors.newSingleThreadExecutor(),
         DualIntervalHandler.of(pollingInterval, retryInterval),
-        FixedSleeperHandler.of(Duration.ofSeconds(1)));
+        FixedThreadSleepHandler.of(Duration.ofSeconds(1)));
   }
 
   public void start(Runnable requestRunner) {
@@ -81,7 +81,7 @@ public final class RequestDispatcher implements Runnable {
 
   public void tryDispatchNow() {
     if (requestInterval.fastForward()) {
-      sleeperHandler.awakeOrIgnoreNextSleep();
+      threadSleepHandler.awakeOrIgnoreNextSleep();
     }
   }
 
@@ -98,7 +98,7 @@ public final class RequestDispatcher implements Runnable {
           requestRunner.run();
           requestInterval.startNext();
         }
-        sleeperHandler.sleep();
+        threadSleepHandler.sleep();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;

@@ -12,13 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class FixedSleeperHandlerTest {
+class FixedThreadSleepHandlerTest {
   @Mock private Sleeper sleeper;
 
   @Test
   void verifyDefaultBehavior() throws InterruptedException {
     long interval = 123;
-    FixedSleeperHandler handler = create(interval);
+    FixedThreadSleepHandler handler = create(interval);
 
     handler.sleep();
 
@@ -27,7 +27,7 @@ class FixedSleeperHandlerTest {
 
   @Test
   void verifyAwakeWhenSleeping() throws InterruptedException {
-    FixedSleeperHandler handler = sleepAndLock();
+    FixedThreadSleepHandler handler = sleepAndLock();
 
     handler.awakeOrIgnoreNextSleep();
 
@@ -36,7 +36,7 @@ class FixedSleeperHandlerTest {
 
   @Test
   void verifyIgnoreNextSleepingWhenNotSleeping() throws InterruptedException {
-    FixedSleeperHandler handler = create(123);
+    FixedThreadSleepHandler handler = create(123);
 
     handler.awakeOrIgnoreNextSleep();
     verify(sleeper, never()).awake();
@@ -50,9 +50,9 @@ class FixedSleeperHandlerTest {
     verify(sleeper).sleep(123);
   }
 
-  private FixedSleeperHandler sleepAndLock() throws InterruptedException {
+  private FixedThreadSleepHandler sleepAndLock() throws InterruptedException {
     CountDownLatch testLatch = new CountDownLatch(1);
-    FixedSleeperHandler handler = new FixedSleeperHandler(123, new TestSleeper());
+    FixedThreadSleepHandler handler = new FixedThreadSleepHandler(123, new TestSleeper());
     new Thread(
             () -> {
               try {
@@ -69,8 +69,8 @@ class FixedSleeperHandlerTest {
     return handler;
   }
 
-  private FixedSleeperHandler create(long intervalMillis) {
-    return new FixedSleeperHandler(intervalMillis, sleeper);
+  private FixedThreadSleepHandler create(long intervalMillis) {
+    return new FixedThreadSleepHandler(intervalMillis, sleeper);
   }
 
   private class TestSleeper implements Sleeper {

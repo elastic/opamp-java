@@ -1,6 +1,6 @@
 package co.elastic.opamp.client.internal.request.handlers.sleeper;
 
-public interface SleeperHandler {
+public interface ThreadSleepHandler {
   void awakeOrIgnoreNextSleep();
 
   void sleep() throws InterruptedException;

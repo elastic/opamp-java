@@ -1,20 +1,20 @@
 package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
 
 import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.SleeperHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleeper.ThreadSleepHandler;
 import java.time.Duration;
 
-public final class FixedSleeperHandler implements SleeperHandler {
+public final class FixedThreadSleepHandler implements ThreadSleepHandler {
   private final long intervalMillis;
   private final Sleeper sleeper;
   private boolean isSleeping = false;
   private boolean ignoreNextSleep = false;
 
-  public static FixedSleeperHandler of(Duration interval) {
-    return new FixedSleeperHandler(interval.toMillis(), Sleeper.create());
+  public static FixedThreadSleepHandler of(Duration interval) {
+    return new FixedThreadSleepHandler(interval.toMillis(), Sleeper.create());
   }
 
-  FixedSleeperHandler(long intervalMillis, Sleeper sleeper) {
+  FixedThreadSleepHandler(long intervalMillis, Sleeper sleeper) {
     this.intervalMillis = intervalMillis;
     this.sleeper = sleeper;
   }
