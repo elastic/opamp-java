@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.tools.ThreadSleeper;
+import co.elastic.opamp.client.internal.request.tools.SleepSchedule;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -27,12 +27,12 @@ class RequestDispatcherTest {
   @Mock private Runnable requestRunner;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
-  private TestThreadSleeper threadSleeper;
+  private TestSleepSchedule threadSleeper;
   private RequestDispatcher requestDispatcher;
 
   @BeforeEach
   void setUp() {
-    threadSleeper = new TestThreadSleeper();
+    threadSleeper = new TestSleepSchedule();
     requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleeper);
   }
 
@@ -149,7 +149,7 @@ class RequestDispatcherTest {
     startAndDispatch();
 
     requestDispatcher.stop();
-    threadSleeper.releaseDispatcher();
+    threadSleeper.awakeOrIgnoreNextSleep();
     verify(requestRunner).run();
     verify(requestInterval).startNext();
   }
@@ -161,7 +161,7 @@ class RequestDispatcherTest {
     startAndDispatch();
 
     requestDispatcher.stop();
-    threadSleeper.releaseDispatcher();
+    threadSleeper.awakeOrIgnoreNextSleep();
     verify(requestRunner, never()).run();
     verify(requestInterval, never()).startNext();
   }
@@ -173,12 +173,17 @@ class RequestDispatcherTest {
     threadSleeper.awaitForDispatcherExecution();
   }
 
-  private static class TestThreadSleeper implements ThreadSleeper {
+  private static class TestSleepSchedule implements SleepSchedule {
     private CountDownLatch dispatcherLatch;
     private final CountDownLatch testLatch;
 
-    public TestThreadSleeper() {
+    public TestSleepSchedule() {
       testLatch = new CountDownLatch(1);
+    }
+
+    @Override
+    public void awakeOrIgnoreNextSleep() {
+      dispatcherLatch.countDown();
     }
 
     @Override
@@ -186,10 +191,6 @@ class RequestDispatcherTest {
       testLatch.countDown();
       dispatcherLatch = new CountDownLatch(1);
       dispatcherLatch.await();
-    }
-
-    public void releaseDispatcher() {
-      dispatcherLatch.countDown();
     }
 
     public void awaitForDispatcherExecution() throws InterruptedException {
