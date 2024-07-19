@@ -1,7 +1,7 @@
-package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
+package co.elastic.opamp.client.internal.request.handlers.sleep.impl;
 
-import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.ThreadSleepHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleep.Sleeper;
+import co.elastic.opamp.client.internal.request.handlers.sleep.ThreadSleepHandler;
 import java.time.Duration;
 
 public final class FixedThreadSleepHandler implements ThreadSleepHandler {

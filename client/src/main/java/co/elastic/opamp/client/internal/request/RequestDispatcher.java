@@ -1,8 +1,8 @@
 package co.elastic.opamp.client.internal.request;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.ThreadSleepHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleeper.impl.FixedThreadSleepHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleep.ThreadSleepHandler;
+import co.elastic.opamp.client.internal.request.handlers.sleep.impl.FixedThreadSleepHandler;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;

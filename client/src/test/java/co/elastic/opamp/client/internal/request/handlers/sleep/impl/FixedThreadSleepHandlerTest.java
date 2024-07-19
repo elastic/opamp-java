@@ -1,10 +1,10 @@
-package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
+package co.elastic.opamp.client.internal.request.handlers.sleep.impl;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
+import co.elastic.opamp.client.internal.request.handlers.sleep.Sleeper;
 import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

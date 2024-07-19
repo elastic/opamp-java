@@ -1,6 +1,6 @@
-package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
+package co.elastic.opamp.client.internal.request.handlers.sleep.impl;
 
-import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
+import co.elastic.opamp.client.internal.request.handlers.sleep.Sleeper;
 
 /** Wrapper for {@link Object#wait()} and {@link Object#notify()} to make them testable. */
 public final class SleeperImpl implements Sleeper {
