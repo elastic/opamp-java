@@ -4,7 +4,7 @@ import opamp.proto.Opamp;
 
 public interface RequestSender {
 
-  Response send(Opamp.AgentToServer message);
+  Response send(Request request);
 
   interface Response {
     static Response success(Opamp.ServerToAgent data) {

@@ -330,19 +330,19 @@ class OpampClientImplTest {
   }
 
   private void prepareSuccessResponse(Opamp.ServerToAgent serverToAgent) {
-    Opamp.AgentToServer message = prepareRequestData();
-    doReturn(RequestSender.Response.success(serverToAgent)).when(sender).send(message);
+    Request request = prepareRequestData();
+    doReturn(RequestSender.Response.success(serverToAgent)).when(sender).send(request);
   }
 
   private void prepareErrorResponse(Throwable throwable) {
-    Opamp.AgentToServer message = prepareRequestData();
-    doReturn(RequestSender.Response.error(throwable)).when(sender).send(message);
+    Request request = prepareRequestData();
+    doReturn(RequestSender.Response.error(throwable)).when(sender).send(request);
   }
 
-  private Opamp.AgentToServer prepareRequestData() {
-    Opamp.AgentToServer requestData = Opamp.AgentToServer.getDefaultInstance();
-    doReturn(Request.create(requestData)).when(requestBuilder).buildAndReset();
-    return requestData;
+  private Request prepareRequestData() {
+    Request request = mock();
+    doReturn(request).when(requestBuilder).buildAndReset();
+    return request;
   }
 
   private static class TestCallback implements OpampClient.Callback {

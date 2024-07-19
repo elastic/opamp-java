@@ -1,11 +1,11 @@
 package co.elastic.opamp.client.request.impl;
 
 import co.elastic.opamp.client.request.HttpErrorException;
+import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import opamp.proto.Opamp;
@@ -28,12 +28,13 @@ public class OkHttpRequestSender implements RequestSender {
   }
 
   @Override
-  public Response send(Opamp.AgentToServer message) {
-    Request.Builder builder = new Request.Builder().url(url);
+  public Response send(Request request) {
+    okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
 
-    RequestBody body = RequestBody.create(message.toByteArray(), MediaType.parse(contentType));
+    RequestBody body =
+        RequestBody.create(request.getAgentToServer().toByteArray(), MediaType.parse(contentType));
     builder.post(body);
 
     try (okhttp3.Response response = client.newCall(builder.build()).execute()) {

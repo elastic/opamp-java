@@ -132,7 +132,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   public void run() {
     Request request = requestBuilder.buildAndReset();
 
-    RequestSender.Response response = sender.send(request.getAgentToServer());
+    RequestSender.Response response = sender.send(request);
 
     if (response instanceof RequestSender.Response.Success) {
       onConnectionSuccess(((RequestSender.Response.Success) response).data);
