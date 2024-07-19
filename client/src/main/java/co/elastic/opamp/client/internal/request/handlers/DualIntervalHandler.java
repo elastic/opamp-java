@@ -30,12 +30,12 @@ public final class DualIntervalHandler implements IntervalHandler {
   }
 
   @Override
-  public void startNext() {
+  public synchronized void startNext() {
     current.startNext();
   }
 
   @Override
-  public void suggestNextInterval(Duration interval) {
+  public synchronized void suggestNextInterval(Duration interval) {
     current.suggestNextInterval(interval);
   }
 
