@@ -24,7 +24,8 @@ public final class RequestDispatcher implements Runnable {
     this.threadSleeper = threadSleeper;
   }
 
-  static RequestDispatcher create(IntervalHandler pollingInterval, IntervalHandler retryInterval) {
+  public static RequestDispatcher create(
+      IntervalHandler pollingInterval, IntervalHandler retryInterval) {
     return new RequestDispatcher(
         Executors.newSingleThreadExecutor(),
         DualIntervalHandler.of(pollingInterval, retryInterval),
@@ -77,15 +78,15 @@ public final class RequestDispatcher implements Runnable {
   @Override
   public void run() {
     while (true) {
+      synchronized (runningLock) {
+        if (!isRunning) {
+          break;
+        }
+      }
       try {
         if (requestInterval.isDue()) {
           requestRunner.run();
           requestInterval.startNext();
-        }
-        synchronized (runningLock) {
-          if (!isRunning) {
-            break;
-          }
         }
         threadSleeper.sleep();
       } catch (InterruptedException e) {
