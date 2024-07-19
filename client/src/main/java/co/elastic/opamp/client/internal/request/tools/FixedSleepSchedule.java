@@ -2,38 +2,45 @@ package co.elastic.opamp.client.internal.request.tools;
 
 import java.time.Duration;
 
-public class FixedSleepSchedule implements SleepSchedule {
+public final class FixedSleepSchedule implements SleepSchedule {
   private final long intervalMillis;
-  private final Object sleepLock;
+  private final Sleeper sleeper;
   private boolean isSleeping = false;
   private boolean ignoreNextSleep = false;
 
   public static FixedSleepSchedule of(Duration interval) {
-    return new FixedSleepSchedule(interval.toMillis(), new Object());
+    return new FixedSleepSchedule(interval.toMillis(), Sleeper.create());
   }
 
-  private FixedSleepSchedule(long intervalMillis, Object sleepLock) {
+  FixedSleepSchedule(long intervalMillis, Sleeper sleeper) {
     this.intervalMillis = intervalMillis;
-    this.sleepLock = sleepLock;
+    this.sleeper = sleeper;
   }
 
   @Override
   public synchronized void awakeOrIgnoreNextSleep() {
     if (isSleeping) {
-      sleepLock.notify();
+      sleeper.awake();
     } else {
       ignoreNextSleep = true;
     }
   }
 
   @Override
-  public synchronized void sleep() throws InterruptedException {
-    if (!ignoreNextSleep) {
+  public void sleep() throws InterruptedException {
+    synchronized (this) {
+      if (isSleeping) {
+        return;
+      }
+      if (ignoreNextSleep) {
+        ignoreNextSleep = false;
+        return;
+      }
       isSleeping = true;
-      sleepLock.wait(intervalMillis);
+    }
+    sleeper.sleep(intervalMillis);
+    synchronized (this) {
       isSleeping = false;
-    } else {
-      ignoreNextSleep = false;
     }
   }
 }
