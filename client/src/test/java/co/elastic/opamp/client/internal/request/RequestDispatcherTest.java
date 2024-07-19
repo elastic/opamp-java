@@ -121,6 +121,28 @@ class RequestDispatcherTest {
   }
 
   @Test
+  void verifyDisablingRetryMode() {
+    requestDispatcher.enableRetryMode(null);
+    clearInvocations(requestInterval);
+
+    requestDispatcher.disableRetryMode();
+
+    InOrder inOrder = inOrder(requestInterval);
+    inOrder.verify(requestInterval).switchToMain();
+    inOrder.verify(requestInterval).reset();
+    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+    verifyNoMoreInteractions(requestInterval);
+  }
+
+  @Test
+  void verifyDisablingRetryMode_whenItIsAlreadyDisabled() {
+    requestDispatcher.disableRetryMode();
+
+    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+    verifyNoInteractions(requestInterval);
+  }
+
+  @Test
   void verifyRunWhenRequestIsDue() throws InterruptedException {
     doReturn(true).when(requestInterval).isDue();
 
