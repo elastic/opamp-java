@@ -34,6 +34,9 @@ public final class RequestDispatcher implements Runnable {
 
   public void start(Runnable requestRunner) {
     synchronized (runningLock) {
+      if (isRunning) {
+        throw new IllegalStateException("RequestDispatcher is already running");
+      }
       this.requestRunner = requestRunner;
       requestInterval.startNext();
       executor.execute(this);
@@ -43,6 +46,9 @@ public final class RequestDispatcher implements Runnable {
 
   public void stop() {
     synchronized (runningLock) {
+      if (!isRunning) {
+        return;
+      }
       executor.shutdown();
       isRunning = false;
     }

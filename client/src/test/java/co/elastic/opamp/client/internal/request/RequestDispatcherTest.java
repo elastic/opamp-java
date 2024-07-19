@@ -1,9 +1,12 @@
 package co.elastic.opamp.client.internal.request;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.internal.request.tools.ThreadSleeper;
@@ -12,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,6 +31,35 @@ class RequestDispatcherTest {
   void setUp() {
     threadSleeper = new TestThreadSleeper();
     requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleeper);
+  }
+
+  @Test
+  void verifyStart() {
+    requestDispatcher.start(requestRunner);
+
+    InOrder inOrder = inOrder(requestInterval, executor);
+    inOrder.verify(requestInterval).startNext();
+    inOrder.verify(executor).execute(requestDispatcher);
+
+    // Try starting it again:
+    try {
+      requestDispatcher.start(requestRunner);
+      fail();
+    } catch (IllegalStateException ignored) {
+    }
+  }
+
+  @Test
+  void verifyStop() {
+    requestDispatcher.start(requestRunner);
+    requestDispatcher.stop();
+
+    verify(executor).shutdown();
+
+    // Try stopping it again:
+    clearInvocations(executor);
+    requestDispatcher.stop();
+    verifyNoInteractions(executor);
   }
 
   @Test
