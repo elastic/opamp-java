@@ -1,5 +1,6 @@
 package co.elastic.opamp.client.internal.request;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
@@ -7,9 +8,11 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.internal.request.tools.ThreadSleeper;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +63,61 @@ class RequestDispatcherTest {
     clearInvocations(executor);
     requestDispatcher.stop();
     verifyNoInteractions(executor);
+  }
+
+  @Test
+  void verifyInitialRetryMode() {
+    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+  }
+
+  @Test
+  void verifyEnablingRetryMode() {
+    requestDispatcher.enableRetryMode(null);
+
+    InOrder inOrder = inOrder(requestInterval);
+    inOrder.verify(requestInterval).switchToSecondary();
+    inOrder.verify(requestInterval).reset();
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    verifyNoMoreInteractions(requestInterval);
+  }
+
+  @Test
+  void verifyEnablingRetryMode_withSuggestedInterval() {
+    Duration suggestedInterval = Duration.ofSeconds(1);
+    requestDispatcher.enableRetryMode(suggestedInterval);
+
+    InOrder inOrder = inOrder(requestInterval);
+    inOrder.verify(requestInterval).switchToSecondary();
+    inOrder.verify(requestInterval).reset();
+    inOrder.verify(requestInterval).suggestNextInterval(suggestedInterval);
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    verifyNoMoreInteractions(requestInterval);
+  }
+
+  @Test
+  void verifyEnablingRetryMode_whenItIsAlreadyEnabled() {
+    requestDispatcher.enableRetryMode(null);
+    clearInvocations(requestInterval);
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+
+    // Try again:
+    requestDispatcher.enableRetryMode(null);
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    verifyNoInteractions(requestInterval);
+  }
+
+  @Test
+  void verifyEnablingRetryMode_whenItIsAlreadyEnabled_withSuggestedInterval() {
+    requestDispatcher.enableRetryMode(null);
+    clearInvocations(requestInterval);
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+
+    // Try again:
+    Duration suggestedInterval = Duration.ofSeconds(1);
+    requestDispatcher.enableRetryMode(suggestedInterval);
+    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    verify(requestInterval).suggestNextInterval(suggestedInterval);
+    verifyNoMoreInteractions(requestInterval);
   }
 
   @Test
