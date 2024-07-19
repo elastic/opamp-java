@@ -27,12 +27,11 @@ class RequestDispatcherTest {
   @Mock private Runnable requestRunner;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
-  private TestThreadSleepHandler threadSleepHandler;
+  @Mock private ThreadSleepHandler threadSleepHandler;
   private RequestDispatcher requestDispatcher;
 
   @BeforeEach
   void setUp() {
-    threadSleepHandler = new TestThreadSleepHandler();
     requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleepHandler);
   }
 
@@ -145,10 +144,11 @@ class RequestDispatcherTest {
   @Test
   void verifyRunWhenRequestIsDue() throws InterruptedException {
     doReturn(true).when(requestInterval).isDue();
+    TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    startAndDispatch();
+    RequestDispatcher dispatcher = startAndDispatch(threadSleepHandler);
 
-    requestDispatcher.stop();
+    dispatcher.stop();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner).run();
     verify(requestInterval).startNext();
@@ -157,20 +157,43 @@ class RequestDispatcherTest {
   @Test
   void verifyRunWhenRequestIsNotDue() throws InterruptedException {
     doReturn(false).when(requestInterval).isDue();
+    TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    startAndDispatch();
+    RequestDispatcher dispatcher = startAndDispatch(threadSleepHandler);
 
-    requestDispatcher.stop();
+    dispatcher.stop();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner, never()).run();
     verify(requestInterval, never()).startNext();
   }
 
-  private void startAndDispatch() throws InterruptedException {
+  @Test
+  void verifyTryDispatchNow_whenIntervalIsCleared() {
+    doReturn(true).when(requestInterval).fastForward();
+
+    requestDispatcher.tryDispatchNow();
+
+    verify(threadSleepHandler).awakeOrIgnoreNextSleep();
+  }
+
+  @Test
+  void verifyTryDispatchNow_whenIntervalIsNotCleared() {
+    doReturn(false).when(requestInterval).fastForward();
+
+    requestDispatcher.tryDispatchNow();
+
+    verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
+  }
+
+  private RequestDispatcher startAndDispatch(TestThreadSleepHandler threadSleepHandler)
+      throws InterruptedException {
+    RequestDispatcher requestDispatcher =
+        new RequestDispatcher(executor, requestInterval, threadSleepHandler);
     requestDispatcher.start(requestRunner);
     clearInvocations(requestInterval, executor);
     new Thread(requestDispatcher).start();
     threadSleepHandler.awaitForDispatcherExecution();
+    return requestDispatcher;
   }
 
   private static class TestThreadSleepHandler implements ThreadSleepHandler {
