@@ -1,30 +1,34 @@
 package co.elastic.opamp.client.internal.request;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
+import co.elastic.opamp.client.internal.request.tools.FixedThreadSleeper;
+import co.elastic.opamp.client.internal.request.tools.ThreadSleeper;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public final class RequestDispatcher implements Runnable {
   private final ExecutorService executor;
   private final DualIntervalHandler requestInterval;
+  private final ThreadSleeper threadSleeper;
   private final Object runningLock = new Object();
   private boolean retryModeEnabled = false;
   private boolean isRunning = false;
   private Runnable requestRunner;
 
-  RequestDispatcher(ExecutorService executor, DualIntervalHandler requestInterval) {
+  RequestDispatcher(
+      ExecutorService executor, DualIntervalHandler requestInterval, ThreadSleeper threadSleeper) {
     this.executor = executor;
     this.requestInterval = requestInterval;
+    this.threadSleeper = threadSleeper;
   }
 
-  public static RequestDispatcher create(
-      IntervalHandler pollingInterval, IntervalHandler retryInterval) {
+  static RequestDispatcher create(IntervalHandler pollingInterval, IntervalHandler retryInterval) {
     return new RequestDispatcher(
         Executors.newSingleThreadExecutor(),
-        DualIntervalHandler.of(pollingInterval, retryInterval));
+        DualIntervalHandler.of(pollingInterval, retryInterval),
+        FixedThreadSleeper.of(Duration.ofSeconds(1)));
   }
 
   public void start(Runnable requestRunner) {
@@ -83,7 +87,7 @@ public final class RequestDispatcher implements Runnable {
             break;
           }
         }
-        TimeUnit.SECONDS.sleep(1);
+        threadSleeper.sleep();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
