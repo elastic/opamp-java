@@ -18,46 +18,46 @@ class FixedSleeperHandlerTest {
   @Test
   void verifyDefaultBehavior() throws InterruptedException {
     long interval = 123;
-    FixedSleeperHandler schedule = create(interval);
+    FixedSleeperHandler handler = create(interval);
 
-    schedule.sleep();
+    handler.sleep();
 
     verify(sleeper).sleep(interval);
   }
 
   @Test
   void verifyAwakeWhenSleeping() throws InterruptedException {
-    FixedSleeperHandler schedule = sleepAndLock();
+    FixedSleeperHandler handler = sleepAndLock();
 
-    schedule.awakeOrIgnoreNextSleep();
+    handler.awakeOrIgnoreNextSleep();
 
     verify(sleeper).awake();
   }
 
   @Test
   void verifyIgnoreNextSleepingWhenNotSleeping() throws InterruptedException {
-    FixedSleeperHandler schedule = create(123);
+    FixedSleeperHandler handler = create(123);
 
-    schedule.awakeOrIgnoreNextSleep();
+    handler.awakeOrIgnoreNextSleep();
     verify(sleeper, never()).awake();
 
     // Try call sleep:
-    schedule.sleep();
+    handler.sleep();
     verify(sleeper, never()).sleep(anyLong());
 
     // Try again:
-    schedule.sleep();
+    handler.sleep();
     verify(sleeper).sleep(123);
   }
 
   private FixedSleeperHandler sleepAndLock() throws InterruptedException {
     CountDownLatch testLatch = new CountDownLatch(1);
-    FixedSleeperHandler schedule = new FixedSleeperHandler(123, new TestSleeper());
+    FixedSleeperHandler handler = new FixedSleeperHandler(123, new TestSleeper());
     new Thread(
             () -> {
               try {
                 testLatch.countDown();
-                schedule.sleep();
+                handler.sleep();
               } catch (InterruptedException e) {
                 throw new RuntimeException(e);
               }
@@ -66,7 +66,7 @@ class FixedSleeperHandlerTest {
 
     testLatch.await();
 
-    return schedule;
+    return handler;
   }
 
   private FixedSleeperHandler create(long intervalMillis) {
