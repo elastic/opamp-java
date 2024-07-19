@@ -18,7 +18,9 @@ public final class RequestDispatcher implements Runnable {
   private Runnable requestRunner;
 
   RequestDispatcher(
-      ExecutorService executor, DualIntervalHandler requestInterval, SleeperHandler sleeperHandler) {
+      ExecutorService executor,
+      DualIntervalHandler requestInterval,
+      SleeperHandler sleeperHandler) {
     this.executor = executor;
     this.requestInterval = requestInterval;
     this.sleeperHandler = sleeperHandler;
