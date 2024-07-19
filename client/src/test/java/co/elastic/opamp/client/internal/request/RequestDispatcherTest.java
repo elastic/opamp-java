@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.tools.SleepSchedule;
+import co.elastic.opamp.client.internal.request.handlers.sleeper.SleeperHandler;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -27,12 +27,12 @@ class RequestDispatcherTest {
   @Mock private Runnable requestRunner;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
-  private TestSleepSchedule threadSleeper;
+  private TestSleeperHandler threadSleeper;
   private RequestDispatcher requestDispatcher;
 
   @BeforeEach
   void setUp() {
-    threadSleeper = new TestSleepSchedule();
+    threadSleeper = new TestSleeperHandler();
     requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleeper);
   }
 
@@ -173,11 +173,11 @@ class RequestDispatcherTest {
     threadSleeper.awaitForDispatcherExecution();
   }
 
-  private static class TestSleepSchedule implements SleepSchedule {
+  private static class TestSleeperHandler implements SleeperHandler {
     private CountDownLatch dispatcherLatch;
     private final CountDownLatch testLatch;
 
-    public TestSleepSchedule() {
+    public TestSleeperHandler() {
       testLatch = new CountDownLatch(1);
     }
 

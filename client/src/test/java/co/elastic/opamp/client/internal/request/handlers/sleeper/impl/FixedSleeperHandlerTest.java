@@ -1,9 +1,10 @@
-package co.elastic.opamp.client.internal.request.tools;
+package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
 import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,13 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class FixedSleepScheduleTest {
+class FixedSleeperHandlerTest {
   @Mock private Sleeper sleeper;
 
   @Test
   void verifyDefaultBehavior() throws InterruptedException {
     long interval = 123;
-    FixedSleepSchedule schedule = create(interval);
+    FixedSleeperHandler schedule = create(interval);
 
     schedule.sleep();
 
@@ -26,7 +27,7 @@ class FixedSleepScheduleTest {
 
   @Test
   void verifyAwakeWhenSleeping() throws InterruptedException {
-    FixedSleepSchedule schedule = sleepAndLock();
+    FixedSleeperHandler schedule = sleepAndLock();
 
     schedule.awakeOrIgnoreNextSleep();
 
@@ -35,7 +36,7 @@ class FixedSleepScheduleTest {
 
   @Test
   void verifyIgnoreNextSleepingWhenNotSleeping() throws InterruptedException {
-    FixedSleepSchedule schedule = create(123);
+    FixedSleeperHandler schedule = create(123);
 
     schedule.awakeOrIgnoreNextSleep();
     verify(sleeper, never()).awake();
@@ -49,9 +50,9 @@ class FixedSleepScheduleTest {
     verify(sleeper).sleep(123);
   }
 
-  private FixedSleepSchedule sleepAndLock() throws InterruptedException {
+  private FixedSleeperHandler sleepAndLock() throws InterruptedException {
     CountDownLatch testLatch = new CountDownLatch(1);
-    FixedSleepSchedule schedule = new FixedSleepSchedule(123, new TestSleeper());
+    FixedSleeperHandler schedule = new FixedSleeperHandler(123, new TestSleeper());
     new Thread(
             () -> {
               try {
@@ -68,8 +69,8 @@ class FixedSleepScheduleTest {
     return schedule;
   }
 
-  private FixedSleepSchedule create(long intervalMillis) {
-    return new FixedSleepSchedule(intervalMillis, sleeper);
+  private FixedSleeperHandler create(long intervalMillis) {
+    return new FixedSleeperHandler(intervalMillis, sleeper);
   }
 
   private class TestSleeper implements Sleeper {

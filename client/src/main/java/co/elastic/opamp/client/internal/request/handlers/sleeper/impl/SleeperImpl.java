@@ -1,7 +1,9 @@
-package co.elastic.opamp.client.internal.request.tools;
+package co.elastic.opamp.client.internal.request.handlers.sleeper.impl;
+
+import co.elastic.opamp.client.internal.request.handlers.sleeper.Sleeper;
 
 /** Wrapper for {@link Object#wait()} and {@link Object#notify()} to make them testable. */
-final class SleeperImpl implements Sleeper {
+public final class SleeperImpl implements Sleeper {
   @Override
   public void sleep(long millis) throws InterruptedException {
     wait(millis);

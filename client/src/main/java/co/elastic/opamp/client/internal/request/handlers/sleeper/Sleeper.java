@@ -1,4 +1,6 @@
-package co.elastic.opamp.client.internal.request.tools;
+package co.elastic.opamp.client.internal.request.handlers.sleeper;
+
+import co.elastic.opamp.client.internal.request.handlers.sleeper.impl.SleeperImpl;
 
 public interface Sleeper {
   static Sleeper create() {
