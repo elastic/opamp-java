@@ -5,18 +5,18 @@ import javax.annotation.Nullable;
 import opamp.proto.Opamp;
 
 @AutoValue
-public abstract class Response {
+public abstract class MessageData {
   @Nullable
   public abstract Opamp.AgentRemoteConfig getRemoteConfig();
 
   public static Builder builder() {
-    return new AutoValue_Response.Builder();
+    return new AutoValue_MessageData.Builder();
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder setRemoteConfig(Opamp.AgentRemoteConfig remoteConfig);
 
-    public abstract Response build();
+    public abstract MessageData build();
   }
 }

@@ -1,6 +1,6 @@
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.response.Response;
+import co.elastic.opamp.client.response.MessageData;
 import opamp.proto.Opamp;
 
 public interface OpampClient {
@@ -28,6 +28,6 @@ public interface OpampClient {
 
     void onErrorResponse(OpampClient client, Opamp.ServerErrorResponse errorResponse);
 
-    void onMessage(OpampClient client, Response response);
+    void onMessage(OpampClient client, MessageData messageData);
   }
 }

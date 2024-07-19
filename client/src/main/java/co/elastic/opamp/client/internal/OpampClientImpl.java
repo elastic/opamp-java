@@ -10,7 +10,7 @@ import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
-import co.elastic.opamp.client.response.Response;
+import co.elastic.opamp.client.response.MessageData;
 import java.time.Duration;
 import opamp.proto.Opamp;
 
@@ -104,7 +104,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     }
 
     boolean notifyOnMessage = false;
-    Response.Builder messageBuilder = Response.builder();
+    MessageData.Builder messageBuilder = MessageData.builder();
 
     if (response.hasRemoteConfig()) {
       notifyOnMessage = true;

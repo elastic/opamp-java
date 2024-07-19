@@ -20,7 +20,7 @@ import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.response.Response;
+import co.elastic.opamp.client.response.MessageData;
 import com.google.protobuf.ByteString;
 import java.time.Duration;
 import opamp.proto.Opamp;
@@ -98,7 +98,7 @@ class OpampClientImplTest {
         buildClient(
             new TestCallback() {
               @Override
-              public void onMessage(OpampClient client, Response response) {
+              public void onMessage(OpampClient client, MessageData messageData) {
                 client.setRemoteConfigStatus(
                     getRemoteConfigStatus(
                         Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
@@ -123,7 +123,7 @@ class OpampClientImplTest {
         buildClient(
             new TestCallback() {
               @Override
-              public void onMessage(OpampClient client, Response response) {
+              public void onMessage(OpampClient client, MessageData messageData) {
                 client.setRemoteConfigStatus(
                     getRemoteConfigStatus(
                         Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
@@ -357,6 +357,6 @@ class OpampClientImplTest {
     public void onErrorResponse(OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
 
     @Override
-    public void onMessage(OpampClient client, Response response) {}
+    public void onMessage(OpampClient client, MessageData messageData) {}
   }
 }
