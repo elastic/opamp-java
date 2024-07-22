@@ -12,7 +12,6 @@ import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisit
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.RequestSender;
-import co.elastic.opamp.client.request.handlers.InstanceUidHandler;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
 import java.time.Duration;
@@ -21,7 +20,6 @@ import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
   private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
-  private InstanceUidHandler instanceUidHandler = InstanceUidHandler.getDefault();
   private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
@@ -31,8 +29,8 @@ public final class OpampClientBuilder {
     return this;
   }
 
-  public OpampClientBuilder setInstanceUidHandler(InstanceUidHandler instanceUidHandler) {
-    this.instanceUidHandler = instanceUidHandler;
+  public OpampClientBuilder setInstanceUid(byte[] instanceUid) {
+    state.instanceUidState.set(instanceUid);
     return this;
   }
 
@@ -82,9 +80,9 @@ public final class OpampClientBuilder {
             RemoteConfigStatusVisitor.create(state.remoteConfigStatusState),
             SequenceNumberVisitor.create(state.sequenceNumberState),
             CapabilitiesVisitor.create(state.capabilitiesState),
-            new FlagsVisitor(),
-            InstanceUidVisitor.create(instanceUidHandler),
-            new AgentDisconnectVisitor());
+            InstanceUidVisitor.create(state.instanceUidState),
+            FlagsVisitor.create(),
+            AgentDisconnectVisitor.create());
     return OpampClientImpl.create(
         sender, visitors, state, pollingIntervalHandler, retryIntervalHandler, callback);
   }

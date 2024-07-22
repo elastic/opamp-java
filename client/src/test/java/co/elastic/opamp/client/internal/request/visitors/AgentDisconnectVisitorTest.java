@@ -16,7 +16,7 @@ class AgentDisconnectVisitorTest {
 
   @BeforeEach
   void setUp() {
-    agentDisconnectVisitor = new AgentDisconnectVisitor();
+    agentDisconnectVisitor = AgentDisconnectVisitor.create();
   }
 
   @Test

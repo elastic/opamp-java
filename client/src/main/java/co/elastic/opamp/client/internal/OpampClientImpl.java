@@ -154,5 +154,6 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     state.effectiveConfigState.addObserver(this);
     state.remoteConfigStatusState.addObserver(this);
     state.capabilitiesState.addObserver(this);
+    state.instanceUidState.addObserver(this);
   }
 }

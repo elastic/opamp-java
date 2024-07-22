@@ -11,10 +11,14 @@ public class StateHolder<T> extends Observable implements Supplier<T> {
   }
 
   public synchronized void set(T value) {
-    if (!state.equals(value)) {
+    if (!areEqual(state, value)) {
       state = value;
       notifyObservers();
     }
+  }
+
+  protected boolean areEqual(T first, T second) {
+    return first.equals(second);
   }
 
   @Override

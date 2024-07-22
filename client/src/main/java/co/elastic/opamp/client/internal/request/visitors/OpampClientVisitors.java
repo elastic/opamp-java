@@ -13,8 +13,8 @@ public final class OpampClientVisitors {
       RemoteConfigStatusVisitor remoteConfigStatusVisitor,
       SequenceNumberVisitor sequenceNumberVisitor,
       CapabilitiesVisitor capabilitiesVisitor,
-      FlagsVisitor flagsVisitor,
       InstanceUidVisitor instanceUidVisitor,
+      FlagsVisitor flagsVisitor,
       AgentDisconnectVisitor agentDisconnectVisitor) {
     List<AgentToServerVisitor> visitors = new ArrayList<>();
     visitors.add(agentDescriptionVisitor);
@@ -22,8 +22,8 @@ public final class OpampClientVisitors {
     visitors.add(remoteConfigStatusVisitor);
     visitors.add(sequenceNumberVisitor);
     visitors.add(capabilitiesVisitor);
-    visitors.add(flagsVisitor);
     visitors.add(instanceUidVisitor);
+    visitors.add(flagsVisitor);
     visitors.add(agentDisconnectVisitor);
     allVisitors = Collections.unmodifiableList(visitors);
   }

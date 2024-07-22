@@ -15,6 +15,7 @@ import co.elastic.opamp.client.internal.request.RequestDispatcher;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import co.elastic.opamp.client.internal.state.CapabilitiesState;
 import co.elastic.opamp.client.internal.state.EffectiveConfigState;
+import co.elastic.opamp.client.internal.state.InstanceUidState;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
@@ -47,13 +48,15 @@ class OpampClientImplTest {
     AgentDescriptionState agentDescriptionState = mock();
     EffectiveConfigState effectiveConfigState = mock();
     CapabilitiesState capabilitiesState = mock();
+    InstanceUidState instanceUidState = mock();
     OpampClientState state =
         new OpampClientState(
             remoteConfigStatusState,
             sequenceNumberState,
             agentDescriptionState,
             effectiveConfigState,
-            capabilitiesState);
+            capabilitiesState,
+            instanceUidState);
     OpampClientImpl client = buildClient(state);
 
     client.start();
@@ -63,6 +66,7 @@ class OpampClientImplTest {
     verify(agentDescriptionState).addObserver(client);
     verify(effectiveConfigState).addObserver(client);
     verify(capabilitiesState).addObserver(client);
+    verify(instanceUidState).addObserver(client);
     verifyNoInteractions(sequenceNumberState);
   }
 

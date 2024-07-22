@@ -6,6 +6,7 @@ public final class OpampClientState {
   public final AgentDescriptionState agentDescriptionState;
   public final EffectiveConfigState effectiveConfigState;
   public final CapabilitiesState capabilitiesState;
+  public final InstanceUidState instanceUidState;
 
   public static OpampClientState create() {
     return new OpampClientState(
@@ -13,7 +14,8 @@ public final class OpampClientState {
         SequenceNumberState.create(),
         AgentDescriptionState.create(),
         EffectiveConfigState.create(),
-        CapabilitiesState.create());
+        CapabilitiesState.create(),
+        InstanceUidState.createRandom());
   }
 
   public OpampClientState(
@@ -21,11 +23,13 @@ public final class OpampClientState {
       SequenceNumberState sequenceNumberState,
       AgentDescriptionState agentDescriptionState,
       EffectiveConfigState effectiveConfigState,
-      CapabilitiesState capabilitiesState) {
+      CapabilitiesState capabilitiesState,
+      InstanceUidState instanceUidState) {
     this.remoteConfigStatusState = remoteConfigStatusState;
     this.sequenceNumberState = sequenceNumberState;
     this.agentDescriptionState = agentDescriptionState;
     this.effectiveConfigState = effectiveConfigState;
     this.capabilitiesState = capabilitiesState;
+    this.instanceUidState = instanceUidState;
   }
 }
