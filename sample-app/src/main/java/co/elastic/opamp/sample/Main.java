@@ -12,6 +12,7 @@ public class Main {
             () -> {
               OpampClient client =
                   OpampClient.builder()
+                      .setServiceName("My Service")
                       .build(
                           new OpampClient.Callback() {
                             @Override

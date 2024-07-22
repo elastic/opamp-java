@@ -88,11 +88,10 @@ public final class OpampClientBuilder {
   }
 
   private void addIdentifyingAttribute(String key, String value) {
-    state
-        .agentDescriptionState
-        .get()
-        .getIdentifyingAttributesList()
-        .add(createKeyValue(key, value));
+    state.agentDescriptionState.set(
+        Opamp.AgentDescription.newBuilder(state.agentDescriptionState.get())
+            .addIdentifyingAttributes(createKeyValue(key, value))
+            .build());
   }
 
   private Anyvalue.KeyValue createKeyValue(String key, String value) {
