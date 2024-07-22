@@ -48,7 +48,8 @@ class RequestDispatcherTest {
     try {
       requestDispatcher.start(requestRunner);
       fail();
-    } catch (IllegalStateException ignored) {
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("RequestDispatcher is already running");
     }
   }
 
@@ -63,6 +64,24 @@ class RequestDispatcherTest {
     clearInvocations(threadSleepHandler);
     requestDispatcher.stop();
     verifyNoInteractions(threadSleepHandler);
+  }
+
+  @Test
+  void verifyStop_whenNotStarted() {
+    requestDispatcher.stop();
+
+    verifyNoInteractions(threadSleepHandler, requestRunner, requestInterval);
+  }
+
+  @Test
+  void whenTryingToStartAfterStopHasBeenCalled_throwException() {
+    requestDispatcher.start(requestRunner);
+    requestDispatcher.stop();
+    try {
+      requestDispatcher.start(requestRunner);
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("RequestDispatcher has been stopped");
+    }
   }
 
   @Test

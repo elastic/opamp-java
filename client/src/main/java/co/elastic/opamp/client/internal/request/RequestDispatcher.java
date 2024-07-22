@@ -37,6 +37,9 @@ public final class RequestDispatcher implements Runnable {
 
   public void start(Runnable requestRunner) {
     synchronized (runningLock) {
+      if (isStopped) {
+        throw new IllegalStateException("RequestDispatcher has been stopped");
+      }
       if (isRunning) {
         throw new IllegalStateException("RequestDispatcher is already running");
       }
