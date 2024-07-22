@@ -19,7 +19,7 @@ import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 public final class OpampClientBuilder {
-  private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320");
+  private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320/v1/opamp");
   private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
