@@ -8,6 +8,7 @@ public final class FixedIntervalHandler implements IntervalHandler {
   private final long intervalNanos;
   private final Supplier<Long> nanoTimeSupplier;
   private long startTimeNanos;
+  private boolean firstCheck = true;
   private boolean forceDue = false;
 
   public static FixedIntervalHandler of(Duration interval) {
@@ -21,6 +22,10 @@ public final class FixedIntervalHandler implements IntervalHandler {
 
   @Override
   public boolean isDue() {
+    if (firstCheck) {
+      firstCheck = false;
+      return true;
+    }
     if (forceDue) {
       return true;
     }
@@ -46,6 +51,7 @@ public final class FixedIntervalHandler implements IntervalHandler {
 
   @Override
   public void reset() {
+    firstCheck = true;
     startNext();
   }
 }
