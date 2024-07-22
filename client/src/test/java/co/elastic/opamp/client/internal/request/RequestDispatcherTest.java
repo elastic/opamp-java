@@ -16,6 +16,8 @@ import co.elastic.opamp.client.internal.request.handlers.sleep.ThreadSleepHandle
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -164,42 +166,42 @@ class RequestDispatcherTest {
   @Test
   void verifyRunWhenRequestIsDue() throws InterruptedException {
     doReturn(true).when(requestInterval).isDue();
-    TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
-
-    dispatchTest.thread.interrupt();
-    threadSleepHandler.awakeOrIgnoreNextSleep();
-    verify(requestRunner).run();
-    verify(requestInterval).startNext();
+    startAndDispatch(
+        dispatchTest -> {
+          dispatchTest.thread.interrupt();
+          threadSleepHandler.awakeOrIgnoreNextSleep();
+          verify(requestRunner).run();
+          verify(requestInterval).startNext();
+        });
   }
 
   @Test
   void verifyRunWhenRequestIsNotDue() throws InterruptedException {
     doReturn(false).when(requestInterval).isDue();
-    TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
-
-    dispatchTest.thread.interrupt();
-    threadSleepHandler.awakeOrIgnoreNextSleep();
-    verify(requestRunner, never()).run();
-    verify(requestInterval, never()).startNext();
+    startAndDispatch(
+        dispatchTest -> {
+          dispatchTest.thread.interrupt();
+          threadSleepHandler.awakeOrIgnoreNextSleep();
+          verify(requestRunner, never()).run();
+          verify(requestInterval, never()).startNext();
+        });
   }
 
   @Test
   void whenStopped_ensureFinalMessageIsSentImmediatelyPriorShutdown() throws InterruptedException {
     doReturn(false).when(requestInterval).isDue();
-    TestThreadSleepHandler threadSleepHandler = spy(new TestThreadSleepHandler());
 
-    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
-
-    dispatchTest.dispatcher.stop();
-    InOrder inOrder = inOrder(executor, requestRunner, requestInterval, threadSleepHandler);
-    inOrder.verify(threadSleepHandler).awakeOrIgnoreNextSleep();
-    inOrder.verify(requestRunner).run();
-    inOrder.verify(requestInterval).startNext();
-    inOrder.verify(executor).shutdown();
+    startAndDispatch(
+        dispatchTest -> {
+          dispatchTest.dispatcher.stop();
+          InOrder inOrder = inOrder(executor, requestRunner, requestInterval, threadSleepHandler);
+          inOrder.verify(threadSleepHandler).awakeOrIgnoreNextSleep();
+          inOrder.verify(requestRunner).run();
+          inOrder.verify(requestInterval).startNext();
+          inOrder.verify(executor).shutdown();
+        });
   }
 
   @Test
@@ -220,16 +222,27 @@ class RequestDispatcherTest {
     verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
   }
 
-  private DispatchTest startAndDispatch(TestThreadSleepHandler threadSleepHandler)
-      throws InterruptedException {
+  private void startAndDispatch(Consumer<DispatchTest> testCase) throws InterruptedException {
+    TestThreadSleepHandler testThreadSleepHandler = spy(new TestThreadSleepHandler());
+    threadSleepHandler = testThreadSleepHandler;
+    CountDownLatch dispatchEndLock = new CountDownLatch(1);
     RequestDispatcher requestDispatcher =
         new RequestDispatcher(executor, requestInterval, threadSleepHandler);
     requestDispatcher.start(requestRunner);
     clearInvocations(requestInterval, executor);
-    Thread thread = new Thread(requestDispatcher);
+    Thread thread =
+        new Thread(
+            () -> {
+              requestDispatcher.run();
+              dispatchEndLock.countDown();
+            });
     thread.start();
-    threadSleepHandler.awaitForDispatcherExecution();
-    return new DispatchTest(requestDispatcher, thread);
+    testThreadSleepHandler.awaitForDispatcherExecution();
+    testCase.accept(new DispatchTest(requestDispatcher, thread));
+
+    if (!dispatchEndLock.await(5, TimeUnit.SECONDS)) {
+      fail("The dispatcher did not finish.");
+    }
   }
 
   private static class DispatchTest {
