@@ -7,6 +7,7 @@ import java.time.Duration;
 public final class FixedThreadSleepHandler implements ThreadSleepHandler {
   private final long intervalMillis;
   private final Sleeper sleeper;
+  private final Object sleepingLock = new Object();
   private boolean isSleeping = false;
   private boolean ignoreNextSleep = false;
 
@@ -20,17 +21,19 @@ public final class FixedThreadSleepHandler implements ThreadSleepHandler {
   }
 
   @Override
-  public synchronized void awakeOrIgnoreNextSleep() {
-    if (isSleeping) {
-      sleeper.awake();
-    } else {
-      ignoreNextSleep = true;
+  public void awakeOrIgnoreNextSleep() {
+    synchronized (sleepingLock) {
+      if (isSleeping) {
+        sleeper.awake();
+      } else {
+        ignoreNextSleep = true;
+      }
     }
   }
 
   @Override
   public void sleep() throws InterruptedException {
-    synchronized (this) {
+    synchronized (sleepingLock) {
       if (ignoreNextSleep) {
         ignoreNextSleep = false;
         return;
@@ -38,7 +41,7 @@ public final class FixedThreadSleepHandler implements ThreadSleepHandler {
       isSleeping = true;
     }
     sleeper.sleep(intervalMillis);
-    synchronized (this) {
+    synchronized (sleepingLock) {
       isSleeping = false;
     }
   }
