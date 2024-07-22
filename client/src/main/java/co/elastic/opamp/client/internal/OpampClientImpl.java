@@ -11,6 +11,7 @@ import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.request.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.MessageData;
+import com.google.protobuf.ByteString;
 import java.time.Duration;
 import opamp.proto.Opamp;
 
@@ -102,6 +103,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     if ((response.getFlags() & reportFullState) == reportFullState) {
       requestBuilder.disableCompression();
     }
+    handleAgentIdentification(response);
 
     boolean notifyOnMessage = false;
     MessageData.Builder messageBuilder = MessageData.builder();
@@ -113,6 +115,15 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
 
     if (notifyOnMessage) {
       callback.onMessage(this, messageBuilder.build());
+    }
+  }
+
+  private void handleAgentIdentification(Opamp.ServerToAgent response) {
+    if (response.hasAgentIdentification()) {
+      ByteString newInstanceUid = response.getAgentIdentification().getNewInstanceUid();
+      if (!newInstanceUid.isEmpty()) {
+        state.instanceUidState.set(newInstanceUid.toByteArray());
+      }
     }
   }
 

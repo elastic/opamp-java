@@ -25,39 +25,29 @@ import co.elastic.opamp.client.response.MessageData;
 import com.google.protobuf.ByteString;
 import java.time.Duration;
 import opamp.proto.Opamp;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class OpampClientImplTest {
-  private RequestSender sender;
-  private RequestDispatcher dispatcher;
-  private RequestBuilder requestBuilder;
-
-  @BeforeEach
-  void setUp() {
-    sender = mock();
-    dispatcher = mock();
-    requestBuilder = mock();
-  }
+  @Mock private RequestSender sender;
+  @Mock private RequestDispatcher dispatcher;
+  @Mock private RequestBuilder requestBuilder;
+  @Mock private RemoteConfigStatusState remoteConfigStatusState;
+  @Mock private SequenceNumberState sequenceNumberState;
+  @Mock private AgentDescriptionState agentDescriptionState;
+  @Mock private EffectiveConfigState effectiveConfigState;
+  @Mock private CapabilitiesState capabilitiesState;
+  @Mock private InstanceUidState instanceUidState;
+  @InjectMocks private OpampClientState mockState;
 
   @Test
   void verifyStart() {
-    RemoteConfigStatusState remoteConfigStatusState = mock();
-    SequenceNumberState sequenceNumberState = mock();
-    AgentDescriptionState agentDescriptionState = mock();
-    EffectiveConfigState effectiveConfigState = mock();
-    CapabilitiesState capabilitiesState = mock();
-    InstanceUidState instanceUidState = mock();
-    OpampClientState state =
-        new OpampClientState(
-            remoteConfigStatusState,
-            sequenceNumberState,
-            agentDescriptionState,
-            effectiveConfigState,
-            capabilitiesState,
-            instanceUidState);
-    OpampClientImpl client = buildClient(state);
+    OpampClientImpl client = buildClient(mockState);
 
     client.start();
 
@@ -303,6 +293,24 @@ class OpampClientImplTest {
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
 
     verify(dispatcher, never()).tryDispatchNow();
+  }
+
+  @Test
+  void whenServerProvidesNewInstanceUid_useIt() {
+    OpampClientImpl client = buildClient(mockState);
+    byte[] serverProvidedUid = new byte[] {1, 2, 3};
+    Opamp.ServerToAgent response =
+        Opamp.ServerToAgent.newBuilder()
+            .setAgentIdentification(
+                Opamp.AgentIdentification.newBuilder()
+                    .setNewInstanceUid(ByteString.copyFrom(serverProvidedUid))
+                    .build())
+            .build();
+    prepareSuccessResponse(response);
+
+    client.run();
+
+    verify(instanceUidState).set(serverProvidedUid);
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
