@@ -21,6 +21,9 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   private final RequestBuilder requestBuilder;
   private final OpampClientState state;
   private final Callback callback;
+  private final Object runningLock = new Object();
+  private boolean isRunning;
+  private boolean isStopped;
 
   public static OpampClientImpl create(
       RequestSender sender,
@@ -49,14 +52,31 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
 
   @Override
   public void start() {
-    observeStatusChange();
-    dispatcher.start(this);
+    synchronized (runningLock) {
+      if (!isRunning) {
+        isRunning = true;
+        observeStatusChange();
+        dispatcher.start(this);
+      } else {
+        throw new IllegalStateException("The client has already been started");
+      }
+    }
   }
 
   @Override
   public void stop() {
-    requestBuilder.stop();
-    dispatcher.stop();
+    synchronized (runningLock) {
+      if (!isRunning) {
+        throw new IllegalStateException("The client has not been started");
+      }
+      if (!isStopped) {
+        isStopped = true;
+        requestBuilder.stop();
+        dispatcher.stop();
+      } else {
+        throw new IllegalStateException("The client has already been stopped");
+      }
+    }
   }
 
   @Override
@@ -67,16 +87,6 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   @Override
   public void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {
     state.effectiveConfigState.set(effectiveConfig);
-  }
-
-  @Override
-  public void addCapabilities(long capabilities) {
-    state.capabilitiesState.add(capabilities);
-  }
-
-  @Override
-  public void removeCapabilities(long capabilities) {
-    state.capabilitiesState.remove(capabilities);
   }
 
   private void onConnectionSuccess(Opamp.ServerToAgent response) {

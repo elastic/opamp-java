@@ -1,6 +1,7 @@
 package co.elastic.opamp.client.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
@@ -61,8 +62,50 @@ class OpampClientImplTest {
   }
 
   @Test
+  void verifyStartOnlyOnce() {
+    OpampClientImpl client = buildClient();
+
+    client.start();
+
+    try {
+      client.start();
+      fail("Should have thrown an exception");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("The client has already been started");
+    }
+  }
+
+  @Test
+  void verifyStopOnlyOnce() {
+    OpampClientImpl client = buildClient();
+    client.start();
+
+    client.stop();
+
+    try {
+      client.stop();
+      fail("Should have thrown an exception");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("The client has already been stopped");
+    }
+  }
+
+  @Test
+  void verifyStopOnlyAfterStart() {
+    OpampClientImpl client = buildClient();
+
+    try {
+      client.stop();
+      fail("Should have thrown an exception");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("The client has not been started");
+    }
+  }
+
+  @Test
   void verifyRequestBuildingAfterStopIsCalled() {
     OpampClientImpl client = buildClient();
+    client.start();
 
     client.stop();
 
