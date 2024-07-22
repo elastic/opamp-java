@@ -88,6 +88,9 @@ public final class RequestDispatcher implements Runnable {
   @Override
   public void run() {
     while (true) {
+      if (Thread.currentThread().isInterrupted()) {
+        break;
+      }
       synchronized (runningLock) {
         if (!isRunning) {
           break;

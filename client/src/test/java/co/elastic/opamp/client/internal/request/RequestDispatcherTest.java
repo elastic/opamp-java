@@ -146,9 +146,9 @@ class RequestDispatcherTest {
     doReturn(true).when(requestInterval).isDue();
     TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    RequestDispatcher dispatcher = startAndDispatch(threadSleepHandler);
+    Thread dispatchingThread = startAndDispatch(threadSleepHandler);
 
-    dispatcher.stop();
+    dispatchingThread.interrupt();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner).run();
     verify(requestInterval).startNext();
@@ -159,9 +159,9 @@ class RequestDispatcherTest {
     doReturn(false).when(requestInterval).isDue();
     TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    RequestDispatcher dispatcher = startAndDispatch(threadSleepHandler);
+    Thread dispatchingThread = startAndDispatch(threadSleepHandler);
 
-    dispatcher.stop();
+    dispatchingThread.interrupt();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner, never()).run();
     verify(requestInterval, never()).startNext();
@@ -185,15 +185,16 @@ class RequestDispatcherTest {
     verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
   }
 
-  private RequestDispatcher startAndDispatch(TestThreadSleepHandler threadSleepHandler)
+  private Thread startAndDispatch(TestThreadSleepHandler threadSleepHandler)
       throws InterruptedException {
     RequestDispatcher requestDispatcher =
         new RequestDispatcher(executor, requestInterval, threadSleepHandler);
     requestDispatcher.start(requestRunner);
     clearInvocations(requestInterval, executor);
-    new Thread(requestDispatcher).start();
+    Thread thread = new Thread(requestDispatcher);
+    thread.start();
     threadSleepHandler.awaitForDispatcherExecution();
-    return requestDispatcher;
+    return thread;
   }
 
   private static class TestThreadSleepHandler implements ThreadSleepHandler {
