@@ -53,6 +53,10 @@ class FixedIntervalHandlerTest {
     // Wait for interval:
     doReturn(INITIAL_NANO_TIME + INTERVAL_NANOS).when(nanoTimeSupplier).get();
     assertThat(handler.isDue()).isTrue();
+
+    // Wait for more than the interval:
+    doReturn(INITIAL_NANO_TIME + INTERVAL_NANOS + 1).when(nanoTimeSupplier).get();
+    assertThat(handler.isDue()).isTrue();
   }
 
   @Test
