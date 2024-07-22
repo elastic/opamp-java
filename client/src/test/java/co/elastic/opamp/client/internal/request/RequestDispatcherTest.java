@@ -6,6 +6,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -56,12 +57,12 @@ class RequestDispatcherTest {
     requestDispatcher.start(requestRunner);
     requestDispatcher.stop();
 
-    verify(executor).shutdown();
+    verify(threadSleepHandler).awakeOrIgnoreNextSleep();
 
     // Try stopping it again:
-    clearInvocations(executor);
+    clearInvocations(threadSleepHandler);
     requestDispatcher.stop();
-    verifyNoInteractions(executor);
+    verifyNoInteractions(threadSleepHandler);
   }
 
   @Test
@@ -146,9 +147,9 @@ class RequestDispatcherTest {
     doReturn(true).when(requestInterval).isDue();
     TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    Thread dispatchingThread = startAndDispatch(threadSleepHandler);
+    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
 
-    dispatchingThread.interrupt();
+    dispatchTest.thread.interrupt();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner).run();
     verify(requestInterval).startNext();
@@ -159,16 +160,31 @@ class RequestDispatcherTest {
     doReturn(false).when(requestInterval).isDue();
     TestThreadSleepHandler threadSleepHandler = new TestThreadSleepHandler();
 
-    Thread dispatchingThread = startAndDispatch(threadSleepHandler);
+    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
 
-    dispatchingThread.interrupt();
+    dispatchTest.thread.interrupt();
     threadSleepHandler.awakeOrIgnoreNextSleep();
     verify(requestRunner, never()).run();
     verify(requestInterval, never()).startNext();
   }
 
   @Test
-  void verifyTryDispatchNow_whenIntervalIsCleared() {
+  void whenStopped_ensureFinalMessageIsSentImmediatelyPriorShutdown() throws InterruptedException {
+    doReturn(false).when(requestInterval).isDue();
+    TestThreadSleepHandler threadSleepHandler = spy(new TestThreadSleepHandler());
+
+    DispatchTest dispatchTest = startAndDispatch(threadSleepHandler);
+
+    dispatchTest.dispatcher.stop();
+    InOrder inOrder = inOrder(executor, requestRunner, requestInterval, threadSleepHandler);
+    inOrder.verify(threadSleepHandler).awakeOrIgnoreNextSleep();
+    inOrder.verify(requestRunner).run();
+    inOrder.verify(requestInterval).startNext();
+    inOrder.verify(executor).shutdown();
+  }
+
+  @Test
+  void verifypatchNow_whenIntervalIsCleared() {
     doReturn(true).when(requestInterval).fastForward();
 
     requestDispatcher.tryDispatchNow();
@@ -177,7 +193,7 @@ class RequestDispatcherTest {
   }
 
   @Test
-  void verifyTryDispatchNow_whenIntervalIsNotCleared() {
+  void verifypatchNow_whenIntervalIsNotCleared() {
     doReturn(false).when(requestInterval).fastForward();
 
     requestDispatcher.tryDispatchNow();
@@ -185,7 +201,7 @@ class RequestDispatcherTest {
     verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
   }
 
-  private Thread startAndDispatch(TestThreadSleepHandler threadSleepHandler)
+  private DispatchTest startAndDispatch(TestThreadSleepHandler threadSleepHandler)
       throws InterruptedException {
     RequestDispatcher requestDispatcher =
         new RequestDispatcher(executor, requestInterval, threadSleepHandler);
@@ -194,12 +210,22 @@ class RequestDispatcherTest {
     Thread thread = new Thread(requestDispatcher);
     thread.start();
     threadSleepHandler.awaitForDispatcherExecution();
-    return thread;
+    return new DispatchTest(requestDispatcher, thread);
+  }
+
+  private static class DispatchTest {
+    public final RequestDispatcher dispatcher;
+    public final Thread thread;
+
+    private DispatchTest(RequestDispatcher requestDispatcher, Thread thread) {
+      this.dispatcher = requestDispatcher;
+      this.thread = thread;
+    }
   }
 
   private static class TestThreadSleepHandler implements ThreadSleepHandler {
-    private CountDownLatch dispatcherLatch;
     private final CountDownLatch testLatch;
+    private CountDownLatch dispatcherLatch;
 
     public TestThreadSleepHandler() {
       testLatch = new CountDownLatch(1);

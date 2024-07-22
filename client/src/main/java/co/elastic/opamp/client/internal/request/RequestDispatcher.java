@@ -15,6 +15,7 @@ public final class RequestDispatcher implements Runnable {
   private final Object runningLock = new Object();
   private boolean retryModeEnabled = false;
   private boolean isRunning = false;
+  private boolean isStopped = false;
   private Runnable requestRunner;
 
   RequestDispatcher(
@@ -48,11 +49,11 @@ public final class RequestDispatcher implements Runnable {
 
   public void stop() {
     synchronized (runningLock) {
-      if (!isRunning) {
+      if (!isRunning || isStopped) {
         return;
       }
-      executor.shutdown();
-      isRunning = false;
+      isStopped = true;
+      threadSleepHandler.awakeOrIgnoreNextSleep();
     }
   }
 
@@ -88,20 +89,29 @@ public final class RequestDispatcher implements Runnable {
   @Override
   public void run() {
     while (true) {
-      if (Thread.currentThread().isInterrupted()) {
-        break;
-      }
+      boolean stopped;
       synchronized (runningLock) {
         if (!isRunning) {
           break;
+        } else if (Thread.currentThread().isInterrupted()) {
+          isRunning = false;
+          break;
         }
+        stopped = isStopped;
       }
       try {
-        if (requestInterval.isDue()) {
+        if (requestInterval.isDue() || stopped) {
           requestRunner.run();
           requestInterval.startNext();
         }
-        threadSleepHandler.sleep();
+        if (!stopped) {
+          threadSleepHandler.sleep();
+        } else {
+          synchronized (runningLock) {
+            isRunning = false;
+            executor.shutdown();
+          }
+        }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
