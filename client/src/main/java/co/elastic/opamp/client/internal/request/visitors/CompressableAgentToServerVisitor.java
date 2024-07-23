@@ -6,10 +6,20 @@ import co.elastic.opamp.client.internal.state.observer.Observer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import opamp.proto.Opamp;
 
-/** Utility for values that can be omitted once they've been previously sent. */
+/**
+ * Utility for {@link AgentToServerVisitor} implementations of fields that can be omitted once
+ * they've been previously sent.
+ */
 public abstract class CompressableAgentToServerVisitor implements AgentToServerVisitor, Observer {
   private final AtomicBoolean alreadySent = new AtomicBoolean(false);
 
+  /**
+   * Called only when the field is needed for the next request.
+   *
+   * @param requestContext The context of the request being build. Check {@link RequestContext} for
+   *     more details.
+   * @param builder The AgentToServer message builder.
+   */
   protected abstract void doVisit(
       RequestContext requestContext, Opamp.AgentToServer.Builder builder);
 
