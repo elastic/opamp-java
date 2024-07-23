@@ -4,6 +4,11 @@ import com.google.auto.value.AutoValue;
 import javax.annotation.Nullable;
 import opamp.proto.Opamp;
 
+/**
+ * Data class provided in {@link
+ * co.elastic.opamp.client.OpampClient.Callback#onMessage(co.elastic.opamp.client.OpampClient,
+ * MessageData)} with Server's provided status changes.
+ */
 @AutoValue
 public abstract class MessageData {
   @Nullable
