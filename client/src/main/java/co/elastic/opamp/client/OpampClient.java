@@ -27,8 +27,9 @@ public interface OpampClient {
 
   /**
    * Stops the client. May be called only after {@link
-   * #start(co.elastic.opamp.client.OpampClient.Callback)} )}. May be called only once. Once
-   * stopped, the client cannot be started again.
+   * #start(co.elastic.opamp.client.OpampClient.Callback)}. May be called only once. After this call
+   * returns successfully it is guaranteed that no callbacks will be called. Once stopped, the
+   * client cannot be started again.
    */
   void stop();
 
@@ -49,9 +50,10 @@ public interface OpampClient {
   interface Callback {
     /**
      * Called when the connection is successfully established to the Server. May be called after
-     * {@link #start()} is called and every time a connection is established to the Server. For
-     * WebSocket clients this is called after the handshake is completed without any error. For HTTP
-     * clients this is called for any request if the response status is OK.
+     * {@link #start(co.elastic.opamp.client.OpampClient.Callback)} is called and every time a
+     * connection is established to the Server. For WebSocket clients this is called after the
+     * handshake is completed without any error. For HTTP clients this is called for any request if
+     * the response status is OK.
      *
      * @param client The relevant {@link co.elastic.opamp.client.OpampClient} instance.
      */
@@ -59,8 +61,8 @@ public interface OpampClient {
 
     /**
      * Called when the connection to the Server cannot be established. May be called after {@link
-     * #start()} is called and tries to connect to the Server. May also be called if the connection
-     * is lost and reconnection attempt fails.
+     * #start(co.elastic.opamp.client.OpampClient.Callback)} is called and tries to connect to the
+     * Server. May also be called if the connection is lost and reconnection attempt fails.
      *
      * @param client The relevant {@link co.elastic.opamp.client.OpampClient} instance.
      * @param throwable The exception.
