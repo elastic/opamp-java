@@ -1,39 +1,22 @@
 package co.elastic.opamp.sample;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.response.MessageData;
-import java.util.concurrent.CountDownLatch;
-import opamp.proto.Opamp;
+import java.util.Scanner;
 
 public class Main {
-  public static void main(String[] args) throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(1);
-    new Thread(
-            () -> {
-              OpampClient.Callback callback =
-                  new OpampClient.Callback() {
-                    @Override
-                    public void onConnect(OpampClient client) {
-                      client.stop();
-                      latch.countDown();
-                    }
-
-                    @Override
-                    public void onConnectFailed(OpampClient client, Throwable throwable) {}
-
-                    @Override
-                    public void onErrorResponse(
-                        OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
-
-                    @Override
-                    public void onMessage(OpampClient client, MessageData messageData) {}
-                  };
-              OpampClient client = OpampClient.builder().setServiceName("My Service").build();
-
-              client.start(callback);
-            })
-        .start();
-
-    latch.await();
+  public static void main(String[] args) {
+    OpampClient client = OpampClient.builder().setServiceName("My Service").build();
+    LoggerCallback callback = new LoggerCallback();
+    client.start(callback);
+    Scanner scanner = new Scanner(System.in);
+    while (true) {
+      System.out.println("Enter a command: (exit)");
+      String line = scanner.nextLine();
+      if (line.equals("exit")) {
+        client.stop();
+        break;
+      }
+    }
+    scanner.close();
   }
 }
