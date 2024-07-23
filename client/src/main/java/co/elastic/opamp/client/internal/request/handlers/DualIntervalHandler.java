@@ -35,8 +35,8 @@ public final class DualIntervalHandler implements IntervalHandler {
   }
 
   @Override
-  public synchronized void suggestNextInterval(Duration interval) {
-    current.suggestNextInterval(interval);
+  public synchronized boolean suggestNextInterval(Duration interval) {
+    return current.suggestNextInterval(interval);
   }
 
   @Override

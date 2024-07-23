@@ -7,9 +7,11 @@ import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.Response;
 import opamp.proto.Opamp;
 
+/**
+ * {@link RequestSender} implementation that uses {@link okhttp3.OkHttpClient} to send the request.
+ */
 public class OkHttpRequestSender implements RequestSender {
   private final OkHttpClient client;
   private final String url;

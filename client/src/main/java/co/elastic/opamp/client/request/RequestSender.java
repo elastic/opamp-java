@@ -2,8 +2,19 @@ package co.elastic.opamp.client.request;
 
 import opamp.proto.Opamp;
 
+/** Interface for any HTTP request sender implementation. */
 public interface RequestSender {
 
+  /**
+   * Sends a request synchronously.
+   *
+   * @param request The request to be sent.
+   * @return {@link Response.Success} for responses with a "ServerToAgent" body, {@link
+   *     Response.Error} for when there's either an HTTP error code or the connection couldn't be
+   *     established due to IO errors. For HTTP errors, the {@link java.lang.Throwable} provided in
+   *     {@link Response.Error} should be of type {@link
+   *     co.elastic.opamp.client.request.HttpErrorException}.
+   */
   Response send(Request request);
 
   interface Response {

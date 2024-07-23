@@ -45,8 +45,9 @@ public final class FixedIntervalHandler implements IntervalHandler {
   }
 
   @Override
-  public void suggestNextInterval(Duration interval) {
+  public boolean suggestNextInterval(Duration interval) {
     // Ignored.
+    return false;
   }
 
   @Override
