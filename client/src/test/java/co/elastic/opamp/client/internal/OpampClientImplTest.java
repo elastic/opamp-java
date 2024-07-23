@@ -38,6 +38,7 @@ class OpampClientImplTest {
   @Mock private RequestSender sender;
   @Mock private RequestDispatcher dispatcher;
   @Mock private RequestBuilder requestBuilder;
+  @Mock private OpampClient.Callback callback;
   @Mock private RemoteConfigStatusState remoteConfigStatusState;
   @Mock private SequenceNumberState sequenceNumberState;
   @Mock private AgentDescriptionState agentDescriptionState;
@@ -50,7 +51,7 @@ class OpampClientImplTest {
   void verifyStart() {
     OpampClientImpl client = buildClient(mockState);
 
-    client.start();
+    client.start(callback);
 
     verify(dispatcher).start(client);
     verify(remoteConfigStatusState).addObserver(client);
@@ -65,10 +66,10 @@ class OpampClientImplTest {
   void verifyStartOnlyOnce() {
     OpampClientImpl client = buildClient();
 
-    client.start();
+    client.start(callback);
 
     try {
-      client.start();
+      client.start(callback);
       fail("Should have thrown an exception");
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("The client has already been started");
@@ -78,7 +79,7 @@ class OpampClientImplTest {
   @Test
   void verifyStopOnlyOnce() {
     OpampClientImpl client = buildClient();
-    client.start();
+    client.start(callback);
 
     client.stop();
 
@@ -105,7 +106,7 @@ class OpampClientImplTest {
   @Test
   void verifyRequestBuildingAfterStopIsCalled() {
     OpampClientImpl client = buildClient();
-    client.start();
+    client.start(callback);
 
     client.stop();
 
@@ -116,10 +117,11 @@ class OpampClientImplTest {
 
   @Test
   void onSuccess_withNoChangesToReport_doNotNotifyCallbackOnMessage() {
-    OpampClient.Callback callback = mock();
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
+    OpampClientImpl client = buildClient();
+    client.start(callback);
 
-    buildClient(callback).run();
+    client.run();
 
     verify(callback, never()).onMessage(any(), any());
   }
@@ -131,19 +133,18 @@ class OpampClientImplTest {
             .setRemoteConfig(
                 Opamp.AgentRemoteConfig.newBuilder().setConfig(getAgentConfigMap("fileName", "{}")))
             .build();
-    OpampClientImpl client =
-        buildClient(
-            new TestCallback() {
-              @Override
-              public void onMessage(OpampClient client, MessageData messageData) {
-                client.setRemoteConfigStatus(
-                    getRemoteConfigStatus(
-                        Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-              }
-            });
-
-    client.start();
+    TestCallback testCallback =
+        new TestCallback() {
+          @Override
+          public void onMessage(OpampClient client, MessageData messageData) {
+            client.setRemoteConfigStatus(
+                getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+          }
+        };
+    OpampClientImpl client = buildClient();
+    client.start(testCallback);
     prepareSuccessResponse(response);
+
     client.run();
 
     verify(dispatcher).tryDispatchNow();
@@ -156,28 +157,29 @@ class OpampClientImplTest {
             .setRemoteConfig(
                 Opamp.AgentRemoteConfig.newBuilder().setConfig(getAgentConfigMap("fileName", "{}")))
             .build();
-    OpampClientImpl client =
-        buildClient(
-            new TestCallback() {
-              @Override
-              public void onMessage(OpampClient client, MessageData messageData) {
-                client.setRemoteConfigStatus(
-                    getRemoteConfigStatus(
-                        Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-              }
-            });
-
+    TestCallback testCallback =
+        new TestCallback() {
+          @Override
+          public void onMessage(OpampClient client, MessageData messageData) {
+            client.setRemoteConfigStatus(
+                getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
+          }
+        };
+    OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-    client.start();
+    client.start(testCallback);
     prepareSuccessResponse(response);
+
     client.run();
+
+    verify(dispatcher, never()).tryDispatchNow();
   }
 
   @Test
   void onSuccess_notifyCallback() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
 
     client.run();
@@ -188,8 +190,8 @@ class OpampClientImplTest {
 
   @Test
   void onSuccess_whenRetryIsEnabled_disableRetry() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
     doReturn(true).when(dispatcher).isRetryModeEnabled();
 
@@ -200,8 +202,8 @@ class OpampClientImplTest {
 
   @Test
   void onSuccess_withServerErrorData_notifyCallback() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();
     prepareSuccessResponse(
         Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build());
@@ -214,8 +216,8 @@ class OpampClientImplTest {
 
   @Test
   void onSuccess_withServerErrorData_withRetryInfo_enableRetryWithSuggestedInterval() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     long retryAfterNanoseconds = 123;
     Opamp.ServerErrorResponse errorResponse =
         Opamp.ServerErrorResponse.newBuilder()
@@ -235,8 +237,8 @@ class OpampClientImplTest {
 
   @Test
   void onSuccess_withUnavailableType_withoutRetryInfo_enableRetry() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     Opamp.ServerErrorResponse errorResponse =
         Opamp.ServerErrorResponse.newBuilder()
             .setType(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)
@@ -251,8 +253,8 @@ class OpampClientImplTest {
 
   @Test
   void onError_notifyCallback() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     Throwable throwable = mock();
     prepareErrorResponse(throwable);
 
@@ -264,8 +266,8 @@ class OpampClientImplTest {
 
   @Test
   void onError_enableRetry() {
-    OpampClient.Callback callback = mock();
-    OpampClientImpl client = buildClient(callback);
+    OpampClientImpl client = buildClient();
+    client.start(callback);
     prepareErrorResponse(mock());
     doReturn(false).when(dispatcher).isRetryModeEnabled();
 
@@ -281,6 +283,7 @@ class OpampClientImplTest {
             .setFlags(Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE)
             .build();
     OpampClientImpl client = buildClient();
+    client.start(callback);
     prepareSuccessResponse(serverToAgent);
 
     client.run();
@@ -292,6 +295,7 @@ class OpampClientImplTest {
   void verifySequenceNumberIncreasesOnServerResponseReceived() {
     OpampClientState state = OpampClientState.create();
     OpampClientImpl client = buildClient(state);
+    client.start(callback);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
     prepareSuccessResponse(Opamp.ServerToAgent.getDefaultInstance());
 
@@ -304,6 +308,7 @@ class OpampClientImplTest {
   void verifySequenceNumberDoesNotIncreaseOnRequestError() {
     OpampClientState state = OpampClientState.create();
     OpampClientImpl client = buildClient(state);
+    client.start(callback);
     assertThat(state.sequenceNumberState.get()).isEqualTo(1);
     prepareErrorResponse(mock());
 
@@ -317,7 +322,7 @@ class OpampClientImplTest {
     OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
-    client.start();
+    client.start(callback);
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
@@ -330,7 +335,7 @@ class OpampClientImplTest {
     OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
-    client.start();
+    client.start(callback);
 
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
@@ -341,6 +346,7 @@ class OpampClientImplTest {
   @Test
   void whenServerProvidesNewInstanceUid_useIt() {
     OpampClientImpl client = buildClient(mockState);
+    client.start(callback);
     byte[] serverProvidedUid = new byte[] {1, 2, 3};
     Opamp.ServerToAgent response =
         Opamp.ServerToAgent.newBuilder()
@@ -369,19 +375,11 @@ class OpampClientImplTest {
   }
 
   private OpampClientImpl buildClient() {
-    return buildClient(mock(OpampClient.Callback.class));
+    return buildClient(OpampClientState.create());
   }
 
   private OpampClientImpl buildClient(OpampClientState state) {
-    return buildClient(mock(), state);
-  }
-
-  private OpampClientImpl buildClient(OpampClient.Callback callback) {
-    return buildClient(callback, OpampClientState.create());
-  }
-
-  private OpampClientImpl buildClient(OpampClient.Callback callback, OpampClientState state) {
-    return new OpampClientImpl(sender, dispatcher, requestBuilder, state, callback);
+    return new OpampClientImpl(sender, dispatcher, requestBuilder, state);
   }
 
   private void prepareSuccessResponse(Opamp.ServerToAgent serverToAgent) {

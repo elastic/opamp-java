@@ -142,7 +142,7 @@ public final class OpampClientBuilder {
     return this;
   }
 
-  public OpampClient build(OpampClient.Callback callback) {
+  public OpampClient build() {
     OpampClientVisitors visitors =
         new OpampClientVisitors(
             AgentDescriptionVisitor.create(state.agentDescriptionState),
@@ -154,7 +154,7 @@ public final class OpampClientBuilder {
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
     return OpampClientImpl.create(
-        sender, visitors, state, pollingIntervalHandler, retryIntervalHandler, callback);
+        sender, visitors, state, pollingIntervalHandler, retryIntervalHandler);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

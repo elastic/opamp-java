@@ -19,11 +19,15 @@ public interface OpampClient {
    * return before the connection attempts are even made.
    *
    * <p>This method may be called only once.
+   *
+   * @param callback The Callback to which the Client will notify about any Server requests and
+   *     responses.
    */
-  void start();
+  void start(Callback callback);
 
   /**
-   * Stops the client. May be called only after {@link #start()}. May be called only once. Once
+   * Stops the client. May be called only after {@link
+   * #start(co.elastic.opamp.client.OpampClient.Callback)} )}. May be called only once. Once
    * stopped, the client cannot be started again.
    */
   void stop();

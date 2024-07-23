@@ -20,8 +20,8 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
   private final OpampClientState state;
-  private final Callback callback;
   private final Object runningLock = new Object();
+  private Callback callback;
   private boolean isRunning;
   private boolean isStopped;
 
@@ -30,31 +30,29 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
       OpampClientVisitors visitors,
       OpampClientState state,
       IntervalHandler pollingInterval,
-      IntervalHandler retryInterval,
-      Callback callback) {
+      IntervalHandler retryInterval) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
     RequestDispatcher dispatcher = RequestDispatcher.create(pollingInterval, retryInterval);
-    return new OpampClientImpl(sender, dispatcher, requestBuilder, state, callback);
+    return new OpampClientImpl(sender, dispatcher, requestBuilder, state);
   }
 
   OpampClientImpl(
       RequestSender sender,
       RequestDispatcher dispatcher,
       RequestBuilder requestBuilder,
-      OpampClientState state,
-      Callback callback) {
+      OpampClientState state) {
     this.sender = sender;
     this.dispatcher = dispatcher;
     this.requestBuilder = requestBuilder;
     this.state = state;
-    this.callback = callback;
   }
 
   @Override
-  public void start() {
+  public void start(Callback callback) {
     synchronized (runningLock) {
       if (!isRunning) {
         isRunning = true;
+        this.callback = callback;
         observeStatusChange();
         dispatcher.start(this);
       } else {
@@ -154,6 +152,10 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
     Request request = requestBuilder.buildAndReset();
 
     RequestSender.Response response = sender.send(request);
+
+    if (isStopped) {
+      return;
+    }
 
     if (response instanceof RequestSender.Response.Success) {
       onConnectionSuccess(((RequestSender.Response.Success) response).data);
