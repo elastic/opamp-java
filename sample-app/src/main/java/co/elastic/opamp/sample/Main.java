@@ -10,29 +10,27 @@ public class Main {
     CountDownLatch latch = new CountDownLatch(1);
     new Thread(
             () -> {
-              OpampClient client =
-                  OpampClient.builder()
-                      .setServiceName("My Service")
-                      .build(
-                          new OpampClient.Callback() {
-                            @Override
-                            public void onConnect(OpampClient client) {
-                              client.stop();
-                              latch.countDown();
-                            }
+              OpampClient.Callback callback =
+                  new OpampClient.Callback() {
+                    @Override
+                    public void onConnect(OpampClient client) {
+                      client.stop();
+                      latch.countDown();
+                    }
 
-                            @Override
-                            public void onConnectFailed(OpampClient client, Throwable throwable) {}
+                    @Override
+                    public void onConnectFailed(OpampClient client, Throwable throwable) {}
 
-                            @Override
-                            public void onErrorResponse(
-                                OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
+                    @Override
+                    public void onErrorResponse(
+                        OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
 
-                            @Override
-                            public void onMessage(OpampClient client, MessageData messageData) {}
-                          });
+                    @Override
+                    public void onMessage(OpampClient client, MessageData messageData) {}
+                  };
+              OpampClient client = OpampClient.builder().setServiceName("My Service").build();
 
-              client.start();
+              client.start(callback);
             })
         .start();
 
