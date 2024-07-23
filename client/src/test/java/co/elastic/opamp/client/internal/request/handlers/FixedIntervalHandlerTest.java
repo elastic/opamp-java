@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,5 +75,10 @@ class FixedIntervalHandlerTest {
     assertThat(handler.isDue()).isTrue();
     handler.startNext();
     assertThat(handler.isDue()).isFalse();
+  }
+
+  @Test
+  void verifySuggestionsAreIgnored() {
+    assertThat(handler.suggestNextInterval(Duration.ofSeconds(1))).isFalse();
   }
 }
