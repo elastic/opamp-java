@@ -22,3 +22,4 @@ mockito = ["mockito", "mockito-jupiter"]
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
+spotless = { id = "com.diffplug.spotless", version = "6.25.0" }

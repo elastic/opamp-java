@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.spotless)
 }
 
 sourceSets {
@@ -8,6 +9,18 @@ sourceSets {
         proto {
             srcDir("../../opamp-spec/proto")
         }
+    }
+}
+
+spotless {
+    java {
+        target("src/*/java/**/*.java")
+    }
+}
+
+afterEvaluate {
+    tasks.named("classes").configure {
+        dependsOn("spotlessApply")
     }
 }
 
