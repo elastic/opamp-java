@@ -7,8 +7,8 @@ public class Main {
   public static void main(String[] args) {
     OpampClient client =
         OpampClient.builder()
-            .setServiceName("My Service")
-            .setServiceNamespace("something")
+            .setServiceName("my-service")
+            //            .setServiceNamespace("something")
             .setServiceVersion("1.0.0")
             .enableRemoteConfig()
             .build();
