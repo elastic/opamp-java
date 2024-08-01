@@ -2,10 +2,9 @@ package co.elastic.opamp.sample;
 
 import co.elastic.opamp.client.CentralConfigurationManager;
 import co.elastic.opamp.client.CentralConfigurationProcessor;
-import java.io.IOException;
 
 public class Main {
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     CentralConfigurationManager centralConfigurationManager =
         CentralConfigurationManager.builder()
             .setServiceName("my-service")
