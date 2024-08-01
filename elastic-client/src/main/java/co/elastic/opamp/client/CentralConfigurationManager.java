@@ -18,12 +18,15 @@
  */
 package co.elastic.opamp.client;
 
+import co.elastic.opamp.client.request.handlers.IntervalHandler;
+import co.elastic.opamp.client.request.impl.OkHttpRequestSender;
 import co.elastic.opamp.client.response.MessageData;
 import com.dslplatform.json.DslJson;
 import com.dslplatform.json.JsonReader;
 import com.dslplatform.json.MapConverter;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
@@ -35,6 +38,10 @@ public final class CentralConfigurationManager implements OpampClient.Callback {
   private final DslJson<Object> dslJson = new DslJson<>(new DslJson.Settings<>());
   private final Logger logger = Logger.getLogger(CentralConfigurationManager.class.getName());
   private CentralConfigurationProcessor processor;
+
+  public static Builder builder() {
+    return new Builder();
+  }
 
   CentralConfigurationManager(OpampClient client) {
     this.client = client;
@@ -101,4 +108,59 @@ public final class CentralConfigurationManager implements OpampClient.Callback {
 
   @Override
   public void onErrorResponse(OpampClient client, Opamp.ServerErrorResponse errorResponse) {}
+
+  public static class Builder {
+    private String serviceName;
+    private String serviceNamespace;
+    private String serviceVersion;
+    private String configurationEndpoint;
+    private Duration pollingInterval;
+
+    private Builder() {}
+
+    public Builder setServiceName(String serviceName) {
+      this.serviceName = serviceName;
+      return this;
+    }
+
+    public Builder setServiceNamespace(String serviceNamespace) {
+      this.serviceNamespace = serviceNamespace;
+      return this;
+    }
+
+    public Builder setServiceVersion(String serviceVersion) {
+      this.serviceVersion = serviceVersion;
+      return this;
+    }
+
+    public Builder setConfigurationEndpoint(String configurationEndpoint) {
+      this.configurationEndpoint = configurationEndpoint;
+      return this;
+    }
+
+    public Builder setPollingInterval(Duration pollingInterval) {
+      this.pollingInterval = pollingInterval;
+      return this;
+    }
+
+    public CentralConfigurationManager build() {
+      OpampClientBuilder builder = OpampClient.builder();
+      if (serviceName != null) {
+        builder.setServiceName(serviceName);
+      }
+      if (serviceNamespace != null) {
+        builder.setServiceNamespace(serviceNamespace);
+      }
+      if (serviceVersion != null) {
+        builder.setServiceVersion(serviceVersion);
+      }
+      if (configurationEndpoint != null) {
+        builder.setRequestSender(OkHttpRequestSender.create(configurationEndpoint));
+      }
+      if (pollingInterval != null) {
+        builder.setPollingIntervalHandler(IntervalHandler.fixed(pollingInterval));
+      }
+      return new CentralConfigurationManager(builder.build());
+    }
+  }
 }
