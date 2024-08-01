@@ -57,7 +57,7 @@ public final class CentralConfigurationManagerImpl
 
   @Override
   public void onMessage(OpampClient client, MessageData messageData) {
-    logger.log(Level.FINEST, "onMessage({}, {})", new Object[] {client, messageData});
+    logger.log(Level.INFO, "onMessage({0}, {1})", new Object[] {client, messageData});
     Opamp.AgentRemoteConfig remoteConfig = messageData.getRemoteConfig();
     if (remoteConfig != null) {
       processRemoteConfig(client, remoteConfig);
@@ -102,17 +102,17 @@ public final class CentralConfigurationManagerImpl
 
   @Override
   public void onConnect(OpampClient client) {
-    logger.log(Level.FINEST, "onConnect({})", client);
+    logger.log(Level.INFO, "onConnect({0})", client);
   }
 
   @Override
   public void onConnectFailed(OpampClient client, Throwable throwable) {
-    logger.log(Level.FINEST, "onConnect({}, {})", new Object[] {client, throwable});
+    logger.log(Level.INFO, "onConnect({0}, {1})", new Object[] {client, throwable});
   }
 
   @Override
   public void onErrorResponse(OpampClient client, Opamp.ServerErrorResponse errorResponse) {
-    logger.log(Level.FINEST, "onErrorResponse({}, {})", new Object[] {client, errorResponse});
+    logger.log(Level.INFO, "onErrorResponse({0}, {1})", new Object[] {client, errorResponse});
   }
 
   public static class Builder {
