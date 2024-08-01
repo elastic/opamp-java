@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":client"))
+    implementation(project(":elastic-client"))
 }
