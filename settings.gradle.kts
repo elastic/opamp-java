@@ -6,4 +6,5 @@ dependencyResolutionManagement {
     }
 }
 include(":client")
+include(":elastic-client")
 include(":sample-app")

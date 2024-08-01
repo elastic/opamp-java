@@ -1,15 +1,6 @@
 plugins {
     id("java-library")
-    alias(libs.plugins.protobuf)
     alias(libs.plugins.spotless)
-}
-
-sourceSets {
-    main {
-        proto {
-            srcDir("../../opamp-spec/proto")
-        }
-    }
 }
 
 spotless {
@@ -26,12 +17,7 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(libs.protobuf)
-    implementation(libs.protobuf.util)
-    implementation(libs.okhttp)
-    implementation(libs.uuidCreator)
-    compileOnly(libs.autoValue.annotations)
-    annotationProcessor(libs.autoValue.processor)
+    implementation(project(":client"))
     testImplementation(libs.jupiter)
     testImplementation(libs.bundles.mockito)
     testImplementation(libs.assertj)
