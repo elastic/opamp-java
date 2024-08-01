@@ -60,7 +60,7 @@ class CentralConfigurationManagerTest {
   }
 
   @Test
-  void verifyConfigProcessing_whenApplied() {
+  void verifyConfigProcessing_onSuccess() {
     CentralConfigurationProcessor processor = mock();
     String centralConfigValue =
         "{\"transaction_max_spans\":\"200\",\"something_else\":\"some value\"}";
@@ -88,7 +88,7 @@ class CentralConfigurationManagerTest {
   }
 
   @Test
-  void verifyConfigProcessing_whenNotApplied() {
+  void verifyConfigProcessing_onFailure() {
     CentralConfigurationProcessor processor = mock();
     String centralConfigValue =
         "{\"transaction_max_spans\":\"200\",\"something_else\":\"some value\"}";
