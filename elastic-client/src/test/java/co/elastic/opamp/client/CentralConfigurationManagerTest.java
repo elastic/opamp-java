@@ -36,13 +36,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class CentralConfigurationManagerTest {
-  private CentralConfigurationManager centralConfigurationManager;
+  private CentralConfigurationManagerImpl centralConfigurationManager;
   private OpampClient client;
 
   @BeforeEach
   void setUp() {
     client = mock();
-    centralConfigurationManager = new CentralConfigurationManager(client);
+    centralConfigurationManager = new CentralConfigurationManagerImpl(client);
   }
 
   @Test

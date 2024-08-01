@@ -11,6 +11,7 @@ public class Main {
             .setServiceVersion("1.0.0")
             .build();
 
-    centralConfigurationManager.start(configuration -> CentralConfigurationProcessor.Result.SUCCESS);
+    centralConfigurationManager.start(
+        configuration -> CentralConfigurationProcessor.Result.SUCCESS);
   }
 }
