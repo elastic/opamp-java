@@ -10,6 +10,7 @@ okhttp = "com.squareup.okhttp3:okhttp:4.12.0"
 uuidCreator = "com.github.f4b6a3:uuid-creator:6.0.0"
 autoValue-processor = { module = "com.google.auto.value:auto-value", version.ref = "autoValue" }
 autoValue-annotations = { module = "com.google.auto.value:auto-value-annotations", version.ref = "autoValue" }
+dslJson = "com.dslplatform:dsl-json-java8:1.10.0"
 
 # Tests
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }

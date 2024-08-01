@@ -18,6 +18,8 @@ afterEvaluate {
 
 dependencies {
     implementation(project(":client"))
+    implementation(libs.protobuf)
+    implementation(libs.dslJson)
     testImplementation(libs.jupiter)
     testImplementation(libs.bundles.mockito)
     testImplementation(libs.assertj)
