@@ -17,7 +17,7 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":client"))
+    api(project(":client"))
     implementation(libs.protobuf)
     implementation(libs.dslJson)
     testImplementation(libs.jupiter)
