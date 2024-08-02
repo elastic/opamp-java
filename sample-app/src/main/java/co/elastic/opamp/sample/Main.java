@@ -2,8 +2,11 @@ package co.elastic.opamp.sample;
 
 import co.elastic.opamp.client.CentralConfigurationManager;
 import co.elastic.opamp.client.CentralConfigurationProcessor;
+import java.util.logging.Logger;
 
 public class Main {
+  private static final Logger logger = Logger.getLogger(Main.class.getName());
+
   public static void main(String[] args) {
     CentralConfigurationManager centralConfigurationManager =
         CentralConfigurationManager.builder()
@@ -12,7 +15,10 @@ public class Main {
             .build();
 
     centralConfigurationManager.start(
-        configuration -> CentralConfigurationProcessor.Result.SUCCESS);
+        configuration -> {
+          logger.info("Received configuration: " + configuration);
+          return CentralConfigurationProcessor.Result.SUCCESS;
+        });
 
     Runtime.getRuntime().addShutdownHook(new Thread(centralConfigurationManager::stop));
   }
