@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request;
+package co.elastic.opamp.client.request.http;
 
+import co.elastic.opamp.client.request.Request;
 import opamp.proto.Opamp;
 
 /** Interface for any HTTP request sender implementation. */

@@ -26,7 +26,7 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.http.RequestSender;
 import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.MessageData;
 import com.google.protobuf.ByteString;
