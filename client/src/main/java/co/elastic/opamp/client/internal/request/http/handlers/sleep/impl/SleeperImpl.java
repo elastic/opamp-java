@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.handlers.sleep.impl;
+package co.elastic.opamp.client.internal.request.http.handlers.sleep.impl;
 
-import co.elastic.opamp.client.internal.request.handlers.sleep.Sleeper;
+import co.elastic.opamp.client.internal.request.http.handlers.sleep.Sleeper;
 
 /** Wrapper for {@link Object#wait()} and {@link Object#notify()} to make them testable. */
 public final class SleeperImpl implements Sleeper {

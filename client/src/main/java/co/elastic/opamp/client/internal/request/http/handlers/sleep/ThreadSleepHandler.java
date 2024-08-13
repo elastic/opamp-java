@@ -16,23 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request;
+package co.elastic.opamp.client.internal.request.http.handlers.sleep;
 
-/**
- * Exception provided inside a {@link co.elastic.opamp.client.request.RequestSender.Response.Error}
- * response from a {@link RequestSender}.
- */
-public class HttpErrorException extends Exception {
-  public final int errorCode;
+/** Utility to lock the polling thread between loops for a period of time. */
+public interface ThreadSleepHandler {
+  /**
+   * If the thread is locked, release it right away. If the thread isn't locked, then ignore the
+   * next call to {@link #sleep()}.
+   */
+  void awakeOrIgnoreNextSleep();
 
   /**
-   * Constructs an HTTP error related exception.
+   * Locks the thread for a period of time or until {@link #awakeOrIgnoreNextSleep()} is called.
    *
-   * @param errorCode The HTTP error code.
-   * @param message The HTTP error message associated with the code.
+   * @throws InterruptedException When the thread is interrupted while locked.
    */
-  public HttpErrorException(int errorCode, String message) {
-    super(message);
-    this.errorCode = errorCode;
-  }
+  void sleep() throws InterruptedException;
 }

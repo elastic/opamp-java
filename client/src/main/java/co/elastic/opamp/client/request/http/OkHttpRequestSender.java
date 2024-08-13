@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request.impl;
+package co.elastic.opamp.client.request.http;
 
-import co.elastic.opamp.client.request.HttpErrorException;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestSender;
 import java.io.IOException;

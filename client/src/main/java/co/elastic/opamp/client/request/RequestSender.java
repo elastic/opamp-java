@@ -31,7 +31,7 @@ public interface RequestSender {
    *     Response.Error} for when there's either an HTTP error code or the connection couldn't be
    *     established due to IO errors. For HTTP errors, the {@link java.lang.Throwable} provided in
    *     {@link Response.Error} should be of type {@link
-   *     co.elastic.opamp.client.request.HttpErrorException}.
+   *     co.elastic.opamp.client.request.http.HttpErrorException}.
    */
   Response send(Request request);
 

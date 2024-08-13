@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client.request.handlers;
 
-import co.elastic.opamp.client.internal.request.handlers.FixedIntervalHandler;
+import co.elastic.opamp.client.internal.request.http.handlers.FixedIntervalHandler;
 import java.time.Duration;
 
 /**

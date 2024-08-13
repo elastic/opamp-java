@@ -16,20 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.handlers.sleep;
+package co.elastic.opamp.client.internal.request.http.handlers.sleep;
 
-/** Utility to lock the polling thread between loops for a period of time. */
-public interface ThreadSleepHandler {
-  /**
-   * If the thread is locked, release it right away. If the thread isn't locked, then ignore the
-   * next call to {@link #sleep()}.
-   */
-  void awakeOrIgnoreNextSleep();
+import co.elastic.opamp.client.internal.request.http.handlers.sleep.impl.SleeperImpl;
 
-  /**
-   * Locks the thread for a period of time or until {@link #awakeOrIgnoreNextSleep()} is called.
-   *
-   * @throws InterruptedException When the thread is interrupted while locked.
-   */
-  void sleep() throws InterruptedException;
+/** Wrapper for {@link Object#wait()} and {@link Object#notify()} to make them testable. */
+public interface Sleeper {
+  static Sleeper create() {
+    return new SleeperImpl();
+  }
+
+  void sleep(long millis) throws InterruptedException;
+
+  void awake();
 }

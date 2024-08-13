@@ -29,8 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import co.elastic.opamp.client.internal.request.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.handlers.sleep.ThreadSleepHandler;
+import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
+import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
