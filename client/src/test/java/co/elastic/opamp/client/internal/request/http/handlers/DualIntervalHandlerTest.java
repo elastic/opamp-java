@@ -21,7 +21,7 @@ package co.elastic.opamp.client.internal.request.http.handlers;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import co.elastic.opamp.client.request.handlers.IntervalHandler;
+import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
