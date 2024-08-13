@@ -33,7 +33,7 @@ import com.google.protobuf.ByteString;
 import java.time.Duration;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl implements OpampClient, Observer, Runnable {
+public final class HttpOpampClient implements OpampClient, Observer, Runnable {
   private final RequestSender sender;
   private final RequestDispatcher dispatcher;
   private final RequestBuilder requestBuilder;
@@ -43,7 +43,7 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
   private boolean isRunning;
   private boolean isStopped;
 
-  public static OpampClientImpl create(
+  public static HttpOpampClient create(
       RequestSender sender,
       OpampClientVisitors visitors,
       OpampClientState state,
@@ -51,10 +51,10 @@ public final class OpampClientImpl implements OpampClient, Observer, Runnable {
       IntervalHandler retryInterval) {
     RequestBuilder requestBuilder = RequestBuilder.create(visitors);
     RequestDispatcher dispatcher = RequestDispatcher.create(pollingInterval, retryInterval);
-    return new OpampClientImpl(sender, dispatcher, requestBuilder, state);
+    return new HttpOpampClient(sender, dispatcher, requestBuilder, state);
   }
 
-  OpampClientImpl(
+  HttpOpampClient(
       RequestSender sender,
       RequestDispatcher dispatcher,
       RequestBuilder requestBuilder,

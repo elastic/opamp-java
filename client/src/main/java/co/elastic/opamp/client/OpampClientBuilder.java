@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.internal.OpampClientImpl;
+import co.elastic.opamp.client.internal.HttpOpampClient;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
 import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
@@ -171,7 +171,7 @@ public final class OpampClientBuilder {
             InstanceUidVisitor.create(state.instanceUidState),
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
-    return OpampClientImpl.create(
+    return HttpOpampClient.create(
         sender, visitors, state, pollingIntervalHandler, retryIntervalHandler);
   }
 
