@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request.http;
+package co.elastic.opamp.client.connectivity.http;
 
 /**
  * Exception provided inside a {@link RequestSender.Response.Error}

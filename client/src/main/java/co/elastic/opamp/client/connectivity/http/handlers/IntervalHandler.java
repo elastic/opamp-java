@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request.http.handlers;
+package co.elastic.opamp.client.connectivity.http.handlers;
 
 import co.elastic.opamp.client.internal.request.http.handlers.FixedIntervalHandler;
 import java.time.Duration;

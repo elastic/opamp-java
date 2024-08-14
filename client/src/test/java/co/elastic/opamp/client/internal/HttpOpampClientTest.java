@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.connectivity.http.RequestSender;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
 import co.elastic.opamp.client.internal.request.RequestDispatcher;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
@@ -39,7 +40,6 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.request.http.RequestSender;
 import co.elastic.opamp.client.response.MessageData;
 import com.google.protobuf.ByteString;
 import java.time.Duration;

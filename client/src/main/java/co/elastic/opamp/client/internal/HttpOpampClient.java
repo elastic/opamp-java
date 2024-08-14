@@ -19,6 +19,8 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.connectivity.http.RequestSender;
+import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.internal.request.RequestBuilder;
 import co.elastic.opamp.client.internal.request.RequestDispatcher;
 import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
@@ -26,8 +28,6 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.request.http.RequestSender;
-import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.MessageData;
 import com.google.protobuf.ByteString;
 import java.time.Duration;

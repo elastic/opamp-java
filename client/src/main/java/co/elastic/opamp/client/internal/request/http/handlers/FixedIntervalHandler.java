@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client.internal.request.http.handlers;
 
-import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
+import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import java.time.Duration;
 import java.util.function.Supplier;
 

@@ -18,8 +18,8 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.request.http.OkHttpRequestSender;
-import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
+import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
+import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.MessageData;
 import com.dslplatform.json.DslJson;
 import com.dslplatform.json.JsonReader;

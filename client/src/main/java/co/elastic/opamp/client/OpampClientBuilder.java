@@ -18,6 +18,9 @@
  */
 package co.elastic.opamp.client;
 
+import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
+import co.elastic.opamp.client.connectivity.http.RequestSender;
+import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.internal.HttpOpampClient;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
@@ -29,9 +32,6 @@ import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
-import co.elastic.opamp.client.request.http.OkHttpRequestSender;
-import co.elastic.opamp.client.request.http.RequestSender;
-import co.elastic.opamp.client.request.http.handlers.IntervalHandler;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;

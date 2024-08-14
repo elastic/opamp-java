@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request.http;
+package co.elastic.opamp.client.connectivity.http;
 
 import co.elastic.opamp.client.request.Request;
 import opamp.proto.Opamp;
@@ -32,7 +32,7 @@ public interface RequestSender {
    *     Response.Error} for when there's either an HTTP error code or the connection couldn't be
    *     established due to IO errors. For HTTP errors, the {@link java.lang.Throwable} provided in
    *     {@link Response.Error} should be of type {@link
-   *     co.elastic.opamp.client.request.http.HttpErrorException}.
+   *     HttpErrorException}.
    */
   Response send(Request request);
 
