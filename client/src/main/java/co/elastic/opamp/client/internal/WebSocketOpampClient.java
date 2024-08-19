@@ -19,18 +19,48 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.connectivity.websocket.WebSocket;
+import co.elastic.opamp.client.connectivity.websocket.WebSocketListener;
 import opamp.proto.Opamp;
 
-public class WebSocketOpampClient implements OpampClient {
-  @Override
-  public void start(Callback callback) {}
+public class WebSocketOpampClient implements OpampClient, WebSocketListener {
+  private final WebSocket webSocket;
+  private Callback callback;
+
+  public WebSocketOpampClient(WebSocket webSocket) {
+    this.webSocket = webSocket;
+  }
 
   @Override
-  public void stop() {}
+  public void start(Callback callback) {
+    this.callback = callback;
+    webSocket.start(this);
+  }
+
+  @Override
+  public void stop() {
+    webSocket.stop();
+  }
 
   @Override
   public void setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus) {}
 
   @Override
   public void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {}
+
+  @Override
+  public void onOpened(WebSocket webSocket) {
+    callback.onConnect(this);
+  }
+
+  @Override
+  public void onMessage(WebSocket webSocket, byte[] data) {}
+
+  @Override
+  public void onClosed(WebSocket webSocket) {}
+
+  @Override
+  public void onFailure(WebSocket webSocket, Throwable t) {
+    callback.onConnectFailed(this, t);
+  }
 }
