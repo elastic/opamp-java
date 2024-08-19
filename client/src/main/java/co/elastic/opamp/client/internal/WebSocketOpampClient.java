@@ -26,6 +26,7 @@ import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import com.google.protobuf.CodedInputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import opamp.proto.Opamp;
 
 public class WebSocketOpampClient implements OpampClient, WebSocketListener {
@@ -33,6 +34,7 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
   private final RequestBuilder requestBuilder;
   private final OpampClientState state;
   private Callback callback;
+  private AtomicBoolean sent = new AtomicBoolean(false);
 
   public static WebSocketOpampClient create(
       WebSocket webSocket, OpampClientVisitors visitors, OpampClientState state) {
@@ -67,6 +69,9 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
   @Override
   public void onOpened(WebSocket webSocket) {
     callback.onConnect(this);
+    if (sent.compareAndSet(false, true)) {
+      webSocket.send(requestBuilder.buildAndReset());
+    }
   }
 
   @Override
