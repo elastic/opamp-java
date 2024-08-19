@@ -36,7 +36,7 @@ import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
 public final class WebSocketOpampClientBuilder {
-  private WebSocket webSocket = OkHttpWebSocket.create("http://localhost:4320/v1/opamp");
+  private WebSocket webSocket = OkHttpWebSocket.create("ws://localhost:4320/v1/opamp");
   private final OpampClientState state = OpampClientState.create();
 
   /**
