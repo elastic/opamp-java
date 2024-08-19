@@ -57,6 +57,7 @@ public class OkHttpWebSocket extends okhttp3.WebSocketListener implements WebSoc
       CodedOutputStream codedOutput = CodedOutputStream.newInstance(outputStream);
       codedOutput.writeUInt64NoTag(0);
       request.getAgentToServer().writeTo(codedOutput);
+      codedOutput.flush();
       webSocket.send(ByteString.of(outputStream.toByteArray()));
     } catch (IOException e) {
       throw new RuntimeException(e);
