@@ -21,6 +21,8 @@ package co.elastic.opamp.client.internal;
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.connectivity.websocket.WebSocket;
 import co.elastic.opamp.client.connectivity.websocket.WebSocketListener;
+import com.google.protobuf.CodedInputStream;
+import java.io.IOException;
 import opamp.proto.Opamp;
 
 public class WebSocketOpampClient implements OpampClient, WebSocketListener {
@@ -54,7 +56,19 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
   }
 
   @Override
-  public void onMessage(WebSocket webSocket, byte[] data) {}
+  public void onMessage(WebSocket webSocket, byte[] data) {
+    try {
+      CodedInputStream codedInputStream = CodedInputStream.newInstance(data);
+      long header = codedInputStream.readRawVarint64();
+      int totalBytesRead = codedInputStream.getTotalBytesRead();
+      int payloadSize = data.length - totalBytesRead;
+      byte[] payload = new byte[payloadSize];
+      System.arraycopy(data, totalBytesRead, payload, 0, payloadSize);
+      Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.parseFrom(payload);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   @Override
   public void onClosed(WebSocket webSocket) {}
