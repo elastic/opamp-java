@@ -18,10 +18,9 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
-import co.elastic.opamp.client.connectivity.http.RequestSender;
-import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
-import co.elastic.opamp.client.internal.HttpOpampClient;
+import co.elastic.opamp.client.connectivity.websocket.OkHttpWebSocket;
+import co.elastic.opamp.client.connectivity.websocket.WebSocket;
+import co.elastic.opamp.client.internal.WebSocketOpampClient;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
 import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
@@ -32,28 +31,13 @@ import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
-import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
-public final class OpampClientBuilder {
-  private RequestSender sender = OkHttpRequestSender.create("http://localhost:4320/v1/opamp");
-  private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
-  private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
+public final class WebSocketOpampClientBuilder {
+  private WebSocket webSocket = OkHttpWebSocket.create("http://localhost:4320/v1/opamp");
   private final OpampClientState state = OpampClientState.create();
-
-  /**
-   * Sets an implementation of a {@link RequestSender} to send HTTP requests. The default
-   * implementation uses {@link okhttp3.OkHttpClient}.
-   *
-   * @param sender The HTTP request sender.
-   * @return this
-   */
-  public OpampClientBuilder setRequestSender(RequestSender sender) {
-    this.sender = sender;
-    return this;
-  }
 
   /**
    * Sets the Agent's <a
@@ -63,8 +47,13 @@ public final class OpampClientBuilder {
    * @param instanceUid The AgentToServer.instance_uid value.
    * @return this
    */
-  public OpampClientBuilder setInstanceUid(byte[] instanceUid) {
+  public WebSocketOpampClientBuilder setInstanceUid(byte[] instanceUid) {
     state.instanceUidState.set(instanceUid);
+    return this;
+  }
+
+  public WebSocketOpampClientBuilder setWebSocket(WebSocket webSocket) {
+    this.webSocket = webSocket;
     return this;
   }
 
@@ -76,7 +65,7 @@ public final class OpampClientBuilder {
    * @param serviceName The service name.
    * @return this
    */
-  public OpampClientBuilder setServiceName(String serviceName) {
+  public WebSocketOpampClientBuilder setServiceName(String serviceName) {
     addIdentifyingAttribute("service.name", serviceName);
     return this;
   }
@@ -89,7 +78,7 @@ public final class OpampClientBuilder {
    * @param serviceNamespace The service namespace.
    * @return this
    */
-  public OpampClientBuilder setServiceNamespace(String serviceNamespace) {
+  public WebSocketOpampClientBuilder setServiceNamespace(String serviceNamespace) {
     addIdentifyingAttribute("service.namespace", serviceNamespace);
     return this;
   }
@@ -102,34 +91,8 @@ public final class OpampClientBuilder {
    * @param serviceVersion The service version.
    * @return this
    */
-  public OpampClientBuilder setServiceVersion(String serviceVersion) {
+  public WebSocketOpampClientBuilder setServiceVersion(String serviceVersion) {
     addIdentifyingAttribute("service.version", serviceVersion);
-    return this;
-  }
-
-  /**
-   * Sets the {@link IntervalHandler} implementation for regular Server polling when using the HTTP
-   * transport. Check out the {@link IntervalHandler} docs for more details. By default, is set to a
-   * fixed duration of 30 seconds each interval.
-   *
-   * @param pollingIntervalHandler The polling interval handler implementation.
-   * @return this
-   */
-  public OpampClientBuilder setPollingIntervalHandler(IntervalHandler pollingIntervalHandler) {
-    this.pollingIntervalHandler = pollingIntervalHandler;
-    return this;
-  }
-
-  /**
-   * Sets the {@link IntervalHandler} implementation for retry operations when polling the Server.
-   * Check out the {@link IntervalHandler} docs for more details. By default, is set to a fixed
-   * duration of 30 seconds each interval.
-   *
-   * @param retryIntervalHandler The retry interval handler implementation.
-   * @return this
-   */
-  public OpampClientBuilder setRetryIntervalHandler(IntervalHandler retryIntervalHandler) {
-    this.retryIntervalHandler = retryIntervalHandler;
     return this;
   }
 
@@ -140,7 +103,7 @@ public final class OpampClientBuilder {
    *
    * @return this
    */
-  public OpampClientBuilder enableRemoteConfig() {
+  public WebSocketOpampClientBuilder enableRemoteConfig() {
     state.capabilitiesState.add(
         Opamp.AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig_VALUE
             | Opamp.AgentCapabilities.AgentCapabilities_ReportsRemoteConfig_VALUE);
@@ -154,7 +117,7 @@ public final class OpampClientBuilder {
    *
    * @return this
    */
-  public OpampClientBuilder enableEffectiveConfigReporting() {
+  public WebSocketOpampClientBuilder enableEffectiveConfigReporting() {
     state.capabilitiesState.add(
         Opamp.AgentCapabilities.AgentCapabilities_ReportsEffectiveConfig_VALUE);
     return this;
@@ -171,8 +134,7 @@ public final class OpampClientBuilder {
             InstanceUidVisitor.create(state.instanceUidState),
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
-    return HttpOpampClient.create(
-        sender, visitors, state, pollingIntervalHandler, retryIntervalHandler);
+    return WebSocketOpampClient.create(webSocket, visitors, state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

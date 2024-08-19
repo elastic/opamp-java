@@ -21,16 +21,30 @@ package co.elastic.opamp.client.internal;
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.connectivity.websocket.WebSocket;
 import co.elastic.opamp.client.connectivity.websocket.WebSocketListener;
+import co.elastic.opamp.client.internal.request.RequestBuilder;
+import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.state.OpampClientState;
 import com.google.protobuf.CodedInputStream;
 import java.io.IOException;
 import opamp.proto.Opamp;
 
 public class WebSocketOpampClient implements OpampClient, WebSocketListener {
   private final WebSocket webSocket;
+  private final RequestBuilder requestBuilder;
+  private final OpampClientState state;
   private Callback callback;
 
-  public WebSocketOpampClient(WebSocket webSocket) {
+  public static WebSocketOpampClient create(
+      WebSocket webSocket, OpampClientVisitors visitors, OpampClientState state) {
+    RequestBuilder requestBuilder = RequestBuilder.create(visitors);
+    return new WebSocketOpampClient(webSocket, requestBuilder, state);
+  }
+
+  public WebSocketOpampClient(
+      WebSocket webSocket, RequestBuilder requestBuilder, OpampClientState state) {
     this.webSocket = webSocket;
+    this.requestBuilder = requestBuilder;
+    this.state = state;
   }
 
   @Override
