@@ -27,14 +27,17 @@ import co.elastic.opamp.client.internal.state.OpampClientState;
 import com.google.protobuf.CodedInputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import opamp.proto.Opamp;
 
 public class WebSocketOpampClient implements OpampClient, WebSocketListener {
   private final WebSocket webSocket;
   private final RequestBuilder requestBuilder;
   private final OpampClientState state;
+  private final AtomicBoolean sent = new AtomicBoolean(false);
+  private static final Logger logger = Logger.getLogger(WebSocketOpampClient.class.getName());
   private Callback callback;
-  private AtomicBoolean sent = new AtomicBoolean(false);
 
   public static WebSocketOpampClient create(
       WebSocket webSocket, OpampClientVisitors visitors, OpampClientState state) {
@@ -68,6 +71,7 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
 
   @Override
   public void onOpened(WebSocket webSocket) {
+    logger.log(Level.INFO, "WebSocket opened");
     callback.onConnect(this);
     if (sent.compareAndSet(false, true)) {
       webSocket.send(requestBuilder.buildAndReset());
@@ -76,6 +80,7 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
 
   @Override
   public void onMessage(WebSocket webSocket, byte[] data) {
+    logger.log(Level.INFO, "Message received");
     try {
       CodedInputStream codedInputStream = CodedInputStream.newInstance(data);
       long header = codedInputStream.readRawVarint64();
@@ -84,16 +89,20 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
       byte[] payload = new byte[payloadSize];
       System.arraycopy(data, totalBytesRead, payload, 0, payloadSize);
       Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.parseFrom(payload);
+      logger.log(Level.INFO, "Message payload {0}", serverToAgent);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public void onClosed(WebSocket webSocket) {}
+  public void onClosed(WebSocket webSocket) {
+    logger.log(Level.INFO, "WebSocket closed");
+  }
 
   @Override
   public void onFailure(WebSocket webSocket, Throwable t) {
+    logger.log(Level.SEVERE, "WebSocket failure", t);
     callback.onConnectFailed(this, t);
   }
 }
