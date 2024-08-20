@@ -19,49 +19,40 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.connectivity.http.RequestSender;
-import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
-import co.elastic.opamp.client.internal.request.RequestBuilder;
 import co.elastic.opamp.client.internal.request.RequestDispatcher;
-import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.RequestListener;
+import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
-import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.response.MessageData;
+import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
 import java.time.Duration;
 import opamp.proto.Opamp;
 
-public final class HttpOpampClient implements OpampClient, Observer, Runnable {
-  private final RequestSender sender;
-  private final RequestDispatcher dispatcher;
-  private final RequestBuilder requestBuilder;
+public final class OpampClientImpl implements OpampClient, Observer, RequestListener {
+  private final RequestDispatcher requestDispatcher;
+  private final RequestProvider requestProvider;
   private final OpampClientState state;
   private final Object runningLock = new Object();
   private Callback callback;
   private boolean isRunning;
   private boolean isStopped;
 
-  public static HttpOpampClient create(
-      RequestSender sender,
-      OpampClientVisitors visitors,
-      OpampClientState state,
-      IntervalHandler pollingInterval,
-      IntervalHandler retryInterval) {
-    RequestBuilder requestBuilder = RequestBuilder.create(visitors);
-    RequestDispatcher dispatcher = RequestDispatcher.create(pollingInterval, retryInterval);
-    return new HttpOpampClient(sender, dispatcher, requestBuilder, state);
+  public static OpampClientImpl create(
+      RequestDispatcher requestDispatcher,
+      RequestProvider requestProvider,
+      OpampClientState state) {
+    return new OpampClientImpl(requestDispatcher, requestProvider, state);
   }
 
-  HttpOpampClient(
-      RequestSender sender,
-      RequestDispatcher dispatcher,
-      RequestBuilder requestBuilder,
+  private OpampClientImpl(
+      RequestDispatcher requestDispatcher,
+      RequestProvider requestProvider,
       OpampClientState state) {
-    this.sender = sender;
-    this.dispatcher = dispatcher;
-    this.requestBuilder = requestBuilder;
+    this.requestDispatcher = requestDispatcher;
+    this.requestProvider = requestProvider;
     this.state = state;
   }
 
@@ -72,7 +63,7 @@ public final class HttpOpampClient implements OpampClient, Observer, Runnable {
         isRunning = true;
         this.callback = callback;
         observeStatusChange();
-        dispatcher.start(this);
+        requestDispatcher.start(this);
       } else {
         throw new IllegalStateException("The client has already been started");
       }
@@ -87,8 +78,8 @@ public final class HttpOpampClient implements OpampClient, Observer, Runnable {
       }
       if (!isStopped) {
         isStopped = true;
-        requestBuilder.stop();
-        dispatcher.stop();
+        requestProvider.stop();
+        requestDispatcher.stop();
       } else {
         throw new IllegalStateException("The client has already been stopped");
       }
@@ -105,18 +96,20 @@ public final class HttpOpampClient implements OpampClient, Observer, Runnable {
     state.effectiveConfigState.set(effectiveConfig);
   }
 
-  private void onConnectionSuccess(Opamp.ServerToAgent response) {
+  @Override
+  public void onSuccessfulRequest(Response response) {
     state.sequenceNumberState.increment();
     callback.onConnect(this);
-    if (dispatcher.isRetryModeEnabled()) dispatcher.disableRetryMode();
+    if (requestDispatcher.isRetryModeEnabled()) requestDispatcher.disableRetryMode();
     if (response == null) return;
 
-    handleResponse(response);
+    handleResponse(response.getServerToAgent());
   }
 
-  private void onConnectionError(Throwable throwable) {
+  @Override
+  public void onFailedRequest(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
-    if (!dispatcher.isRetryModeEnabled()) dispatcher.enableRetryMode(null);
+    if (!requestDispatcher.isRetryModeEnabled()) requestDispatcher.enableRetryMode(null);
   }
 
   private void handleResponse(Opamp.ServerToAgent response) {
@@ -127,7 +120,7 @@ public final class HttpOpampClient implements OpampClient, Observer, Runnable {
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
     if ((response.getFlags() & reportFullState) == reportFullState) {
-      requestBuilder.disableCompression();
+      requestProvider.disableCompression();
     }
     handleAgentIdentification(response);
 
@@ -158,36 +151,17 @@ public final class HttpOpampClient implements OpampClient, Observer, Runnable {
         == Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable) {
       if (errorResponse.hasRetryInfo()) {
         long retryAfterNanoseconds = errorResponse.getRetryInfo().getRetryAfterNanoseconds();
-        dispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
+        requestDispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
       } else {
-        dispatcher.enableRetryMode(null);
+        requestDispatcher.enableRetryMode(null);
       }
-    }
-  }
-
-  @Override
-  public void run() {
-    Request request = requestBuilder.buildAndReset();
-
-    RequestSender.Response response = sender.send(request);
-
-    if (isStopped) {
-      return;
-    }
-
-    if (response instanceof RequestSender.Response.Success) {
-      onConnectionSuccess(((RequestSender.Response.Success) response).data);
-    } else if (response instanceof RequestSender.Response.Error) {
-      onConnectionError(((RequestSender.Response.Error) response).throwable);
-    } else {
-      throw new IllegalStateException("Unexpected response: " + response);
     }
   }
 
   @Override
   public void update(Observable observable) {
     // There was an agent status change.
-    dispatcher.tryDispatchNow();
+    requestDispatcher.tryDispatchNow();
   }
 
   private void observeStatusChange() {

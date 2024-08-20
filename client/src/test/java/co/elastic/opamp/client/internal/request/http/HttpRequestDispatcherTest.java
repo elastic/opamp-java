@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request;
+package co.elastic.opamp.client.internal.request.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -44,29 +44,29 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RequestDispatcherTest {
+class HttpRequestDispatcherTest {
   @Mock private Runnable requestRunner;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
   @Mock private ThreadSleepHandler threadSleepHandler;
-  private RequestDispatcher requestDispatcher;
+  private HttpRequestDispatcher httpRequestDispatcher;
 
   @BeforeEach
   void setUp() {
-    requestDispatcher = new RequestDispatcher(executor, requestInterval, threadSleepHandler);
+    httpRequestDispatcher = new HttpRequestDispatcher(executor, requestInterval, threadSleepHandler, , );
   }
 
   @Test
   void verifyStart() {
-    requestDispatcher.start(requestRunner);
+    httpRequestDispatcher.start(requestRunner);
 
     InOrder inOrder = inOrder(requestInterval, executor);
     inOrder.verify(requestInterval).startNext();
-    inOrder.verify(executor).execute(requestDispatcher);
+    inOrder.verify(executor).execute(httpRequestDispatcher);
 
     // Try starting it again:
     try {
-      requestDispatcher.start(requestRunner);
+      httpRequestDispatcher.start(requestRunner);
       fail();
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("RequestDispatcher is already running");
@@ -75,30 +75,30 @@ class RequestDispatcherTest {
 
   @Test
   void verifyStop() {
-    requestDispatcher.start(requestRunner);
-    requestDispatcher.stop();
+    httpRequestDispatcher.start(requestRunner);
+    httpRequestDispatcher.stop();
 
     verify(threadSleepHandler).awakeOrIgnoreNextSleep();
 
     // Try stopping it again:
     clearInvocations(threadSleepHandler);
-    requestDispatcher.stop();
+    httpRequestDispatcher.stop();
     verifyNoInteractions(threadSleepHandler);
   }
 
   @Test
   void verifyStop_whenNotStarted() {
-    requestDispatcher.stop();
+    httpRequestDispatcher.stop();
 
     verifyNoInteractions(threadSleepHandler, requestRunner, requestInterval);
   }
 
   @Test
   void whenTryingToStartAfterStopHasBeenCalled_throwException() {
-    requestDispatcher.start(requestRunner);
-    requestDispatcher.stop();
+    httpRequestDispatcher.start(requestRunner);
+    httpRequestDispatcher.stop();
     try {
-      requestDispatcher.start(requestRunner);
+      httpRequestDispatcher.start(requestRunner);
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("RequestDispatcher has been stopped");
     }
@@ -106,78 +106,78 @@ class RequestDispatcherTest {
 
   @Test
   void verifyInitialRetryMode() {
-    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isFalse();
   }
 
   @Test
   void verifyEnablingRetryMode() {
-    requestDispatcher.enableRetryMode(null);
+    httpRequestDispatcher.enableRetryMode(null);
 
     InOrder inOrder = inOrder(requestInterval);
     inOrder.verify(requestInterval).switchToSecondary();
     inOrder.verify(requestInterval).reset();
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
     verifyNoMoreInteractions(requestInterval);
   }
 
   @Test
   void verifyEnablingRetryMode_withSuggestedInterval() {
     Duration suggestedInterval = Duration.ofSeconds(1);
-    requestDispatcher.enableRetryMode(suggestedInterval);
+    httpRequestDispatcher.enableRetryMode(suggestedInterval);
 
     InOrder inOrder = inOrder(requestInterval);
     inOrder.verify(requestInterval).switchToSecondary();
     inOrder.verify(requestInterval).reset();
     inOrder.verify(requestInterval).suggestNextInterval(suggestedInterval);
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
     verifyNoMoreInteractions(requestInterval);
   }
 
   @Test
   void verifyEnablingRetryMode_whenItIsAlreadyEnabled() {
-    requestDispatcher.enableRetryMode(null);
+    httpRequestDispatcher.enableRetryMode(null);
     clearInvocations(requestInterval);
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
 
     // Try again:
-    requestDispatcher.enableRetryMode(null);
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    httpRequestDispatcher.enableRetryMode(null);
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
     verifyNoInteractions(requestInterval);
   }
 
   @Test
   void verifyEnablingRetryMode_whenItIsAlreadyEnabled_withSuggestedInterval() {
-    requestDispatcher.enableRetryMode(null);
+    httpRequestDispatcher.enableRetryMode(null);
     clearInvocations(requestInterval);
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
 
     // Try again:
     Duration suggestedInterval = Duration.ofSeconds(1);
-    requestDispatcher.enableRetryMode(suggestedInterval);
-    assertThat(requestDispatcher.isRetryModeEnabled()).isTrue();
+    httpRequestDispatcher.enableRetryMode(suggestedInterval);
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isTrue();
     verify(requestInterval).suggestNextInterval(suggestedInterval);
     verifyNoMoreInteractions(requestInterval);
   }
 
   @Test
   void verifyDisablingRetryMode() {
-    requestDispatcher.enableRetryMode(null);
+    httpRequestDispatcher.enableRetryMode(null);
     clearInvocations(requestInterval);
 
-    requestDispatcher.disableRetryMode();
+    httpRequestDispatcher.disableRetryMode();
 
     InOrder inOrder = inOrder(requestInterval);
     inOrder.verify(requestInterval).switchToMain();
     inOrder.verify(requestInterval).reset();
-    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isFalse();
     verifyNoMoreInteractions(requestInterval);
   }
 
   @Test
   void verifyDisablingRetryMode_whenItIsAlreadyDisabled() {
-    requestDispatcher.disableRetryMode();
+    httpRequestDispatcher.disableRetryMode();
 
-    assertThat(requestDispatcher.isRetryModeEnabled()).isFalse();
+    assertThat(httpRequestDispatcher.isRetryModeEnabled()).isFalse();
     verifyNoInteractions(requestInterval);
   }
 
@@ -226,7 +226,7 @@ class RequestDispatcherTest {
   void verifypatchNow_whenIntervalIsCleared() {
     doReturn(true).when(requestInterval).fastForward();
 
-    requestDispatcher.tryDispatchNow();
+    httpRequestDispatcher.tryDispatchNow();
 
     verify(threadSleepHandler).awakeOrIgnoreNextSleep();
   }
@@ -235,7 +235,7 @@ class RequestDispatcherTest {
   void verifypatchNow_whenIntervalIsNotCleared() {
     doReturn(false).when(requestInterval).fastForward();
 
-    requestDispatcher.tryDispatchNow();
+    httpRequestDispatcher.tryDispatchNow();
 
     verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
   }
@@ -244,19 +244,19 @@ class RequestDispatcherTest {
     TestThreadSleepHandler testThreadSleepHandler = spy(new TestThreadSleepHandler());
     threadSleepHandler = testThreadSleepHandler;
     CountDownLatch dispatchEndLock = new CountDownLatch(1);
-    RequestDispatcher requestDispatcher =
-        new RequestDispatcher(executor, requestInterval, threadSleepHandler);
-    requestDispatcher.start(requestRunner);
+    HttpRequestDispatcher httpRequestDispatcher =
+        new HttpRequestDispatcher(executor, requestInterval, threadSleepHandler, , );
+    httpRequestDispatcher.start(requestRunner);
     clearInvocations(requestInterval, executor);
     Thread thread =
         new Thread(
             () -> {
-              requestDispatcher.run();
+              httpRequestDispatcher.run();
               dispatchEndLock.countDown();
             });
     thread.start();
     testThreadSleepHandler.awaitForDispatcherExecution();
-    testCase.accept(new DispatchTest(requestDispatcher, thread));
+    testCase.accept(new DispatchTest(httpRequestDispatcher, thread));
 
     if (!dispatchEndLock.await(5, TimeUnit.SECONDS)) {
       fail("The dispatcher did not finish.");
@@ -264,11 +264,11 @@ class RequestDispatcherTest {
   }
 
   private static class DispatchTest {
-    public final RequestDispatcher dispatcher;
+    public final HttpRequestDispatcher dispatcher;
     public final Thread thread;
 
-    private DispatchTest(RequestDispatcher requestDispatcher, Thread thread) {
-      this.dispatcher = requestDispatcher;
+    private DispatchTest(HttpRequestDispatcher httpRequestDispatcher, Thread thread) {
+      this.dispatcher = httpRequestDispatcher;
       this.thread = thread;
     }
   }

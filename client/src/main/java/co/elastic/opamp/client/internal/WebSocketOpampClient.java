@@ -74,7 +74,7 @@ public class WebSocketOpampClient implements OpampClient, WebSocketListener {
     logger.log(Level.INFO, "WebSocket opened");
     callback.onConnect(this);
     if (sent.compareAndSet(false, true)) {
-      webSocket.send(requestBuilder.buildAndReset());
+      webSocket.send(requestBuilder.build());
     }
   }
 

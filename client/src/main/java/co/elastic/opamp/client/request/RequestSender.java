@@ -16,23 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.connectivity.http;
+package co.elastic.opamp.client.request;
 
-/**
- * Exception provided inside a {@link co.elastic.opamp.client.request.RequestSender.Response.Error}
- * response from a {@link co.elastic.opamp.client.request.RequestSender}.
- */
-public class HttpErrorException extends Exception {
-  public final int errorCode;
+import co.elastic.opamp.client.response.Response;
+import java.util.concurrent.CompletableFuture;
+
+/** Interface for any HTTP request sender implementation. */
+public interface RequestSender {
 
   /**
-   * Constructs an HTTP error related exception.
+   * Sends a request synchronously.
    *
-   * @param errorCode The HTTP error code.
-   * @param message The HTTP error message associated with the code.
+   * @param request The request to be sent.
    */
-  public HttpErrorException(int errorCode, String message) {
-    super(message);
-    this.errorCode = errorCode;
-  }
+  CompletableFuture<Response> send(Request request);
 }

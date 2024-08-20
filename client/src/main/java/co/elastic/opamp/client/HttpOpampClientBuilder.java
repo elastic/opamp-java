@@ -19,9 +19,10 @@
 package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
-import co.elastic.opamp.client.connectivity.http.RequestSender;
 import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
-import co.elastic.opamp.client.internal.HttpOpampClient;
+import co.elastic.opamp.client.internal.OpampClientImpl;
+import co.elastic.opamp.client.internal.request.RequestProvider;
+import co.elastic.opamp.client.internal.request.http.HttpRequestDispatcher;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
 import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
@@ -32,6 +33,7 @@ import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.request.RequestSender;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
@@ -171,8 +173,11 @@ public final class HttpOpampClientBuilder {
             InstanceUidVisitor.create(state.instanceUidState),
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
-    return HttpOpampClient.create(
-        sender, visitors, state, pollingIntervalHandler, retryIntervalHandler);
+    RequestProvider provider = RequestProvider.create(visitors);
+    HttpRequestDispatcher dispatcher =
+        HttpRequestDispatcher.create(
+            sender, provider, pollingIntervalHandler, retryIntervalHandler);
+    return OpampClientImpl.create(dispatcher, provider, state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

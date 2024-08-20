@@ -16,23 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.connectivity.http;
+package co.elastic.opamp.client.response;
 
-/**
- * Exception provided inside a {@link co.elastic.opamp.client.request.RequestSender.Response.Error}
- * response from a {@link co.elastic.opamp.client.request.RequestSender}.
- */
-public class HttpErrorException extends Exception {
-  public final int errorCode;
+import com.google.auto.value.AutoValue;
+import opamp.proto.Opamp;
 
-  /**
-   * Constructs an HTTP error related exception.
-   *
-   * @param errorCode The HTTP error code.
-   * @param message The HTTP error message associated with the code.
-   */
-  public HttpErrorException(int errorCode, String message) {
-    super(message);
-    this.errorCode = errorCode;
+@AutoValue
+public abstract class Response {
+  public abstract Opamp.ServerToAgent getServerToAgent();
+
+  public static Response create(Opamp.ServerToAgent serverToAgent) {
+    return new AutoValue_Response(serverToAgent);
   }
 }

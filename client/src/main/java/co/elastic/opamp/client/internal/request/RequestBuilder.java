@@ -20,38 +20,35 @@ package co.elastic.opamp.client.internal.request;
 
 import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.request.Request;
-import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class RequestBuilder {
   private final OpampClientVisitors visitors;
-  private final Supplier<RequestContext.Builder> contextBuilderSupplier;
-  private RequestContext.Builder contextBuilder;
+  private boolean stop = false;
+  private boolean disableCompression = false;
 
   public static RequestBuilder create(OpampClientVisitors visitors) {
-    return new RequestBuilder(visitors, RequestContext::newBuilder);
+    return new RequestBuilder(visitors);
   }
 
-  RequestBuilder(
-      OpampClientVisitors visitors, Supplier<RequestContext.Builder> contextBuilderSupplier) {
+  RequestBuilder(OpampClientVisitors visitors) {
     this.visitors = visitors;
-    this.contextBuilderSupplier = contextBuilderSupplier;
-    contextBuilder = contextBuilderSupplier.get();
   }
 
-  public Request buildAndReset() {
+  public RequestBuilder stop() {
+    this.stop = true;
+    return this;
+  }
+
+  public RequestBuilder disableCompression() {
+    this.disableCompression = true;
+    return this;
+  }
+
+  public Request build() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    RequestContext requestContext = contextBuilder.build();
-    visitors.asList().forEach(visitor -> visitor.visit(requestContext, builder));
-    contextBuilder = contextBuilderSupplier.get();
+    RequestContext context = new RequestContext(stop, disableCompression);
+    visitors.asList().forEach(visitor -> visitor.visit(context, builder));
     return Request.create(builder.build());
-  }
-
-  public void stop() {
-    contextBuilder.stop();
-  }
-
-  public void disableCompression() {
-    contextBuilder.disableCompression();
   }
 }

@@ -57,7 +57,7 @@ class RequestBuilderTest {
     doReturn(List.of(mockVisitor1, mockVisitor2)).when(visitors).asList();
     clearInvocations(contextBuilderSupplier);
 
-    requestBuilder.buildAndReset();
+    requestBuilder.build();
 
     InOrder inOrder = inOrder(contextBuilder, mockVisitor1, mockVisitor2, contextBuilderSupplier);
     inOrder.verify(contextBuilder).build();

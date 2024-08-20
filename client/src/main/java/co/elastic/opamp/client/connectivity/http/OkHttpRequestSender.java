@@ -19,14 +19,18 @@
 package co.elastic.opamp.client.connectivity.http;
 
 import co.elastic.opamp.client.request.Request;
+import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.response.Response;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import opamp.proto.Opamp;
 
 /**
- * {@link RequestSender} implementation that uses {@link okhttp3.OkHttpClient} to send the request.
+ * {@link co.elastic.opamp.client.request.RequestSender} implementation that uses {@link
+ * okhttp3.OkHttpClient} to send the request.
  */
 public class OkHttpRequestSender implements RequestSender {
   private final OkHttpClient client;
@@ -46,7 +50,8 @@ public class OkHttpRequestSender implements RequestSender {
   }
 
   @Override
-  public Response send(Request request) {
+  public CompletableFuture<Response> send(Request request) {
+    CompletableFuture<Response> future = new CompletableFuture<>();
     okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
@@ -60,15 +65,17 @@ public class OkHttpRequestSender implements RequestSender {
         if (response.body() != null) {
           Opamp.ServerToAgent serverToAgent =
               Opamp.ServerToAgent.parseFrom(response.body().byteStream());
-          return Response.success(serverToAgent);
+          future.complete(Response.create(serverToAgent));
         }
       } else {
-        return Response.error(new HttpErrorException(response.code(), response.message()));
+        future.completeExceptionally(new HttpErrorException(response.code(), response.message()));
       }
     } catch (IOException e) {
-      return Response.error(e);
+      future.completeExceptionally(e);
     }
 
-    return Response.error(new IllegalStateException());
+    future.completeExceptionally(new IllegalStateException());
+
+    return future;
   }
 }
