@@ -16,20 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request;
+package co.elastic.opamp.client.request;
 
-import java.time.Duration;
+import co.elastic.opamp.client.response.Response;
+import java.util.concurrent.CompletableFuture;
 
-public interface RequestDispatcher {
-  void start(RequestListener listener);
-
-  void stop();
-
-  boolean isRetryModeEnabled();
-
-  void disableRetryMode();
-
-  void enableRetryMode(Duration suggestedInterval);
-
-  void tryDispatchNow();
+public interface HttpRequestSender {
+  CompletableFuture<Response> send(Request request);
 }

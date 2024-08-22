@@ -37,8 +37,31 @@ public final class RequestContext {
    */
   public final boolean disableCompression;
 
-  public RequestContext(boolean stop, boolean disableCompression) {
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  private RequestContext(boolean stop, boolean disableCompression) {
     this.stop = stop;
     this.disableCompression = disableCompression;
+  }
+
+  public static class Builder {
+    private boolean stop;
+    private boolean disableCompression;
+
+    public Builder setStop(boolean stop) {
+      this.stop = stop;
+      return this;
+    }
+
+    public Builder setDisableCompression(boolean disableCompression) {
+      this.disableCompression = disableCompression;
+      return this;
+    }
+
+    public RequestContext build() {
+      return new RequestContext(stop, disableCompression);
+    }
   }
 }

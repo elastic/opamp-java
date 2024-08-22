@@ -47,7 +47,8 @@ public final class RequestBuilder {
 
   public Request build() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    RequestContext context = new RequestContext(stop, disableCompression);
+    RequestContext context =
+        RequestContext.builder().setStop(stop).setDisableCompression(disableCompression).build();
     visitors.asList().forEach(visitor -> visitor.visit(context, builder));
     return Request.create(builder.build());
   }

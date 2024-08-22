@@ -18,8 +18,8 @@
  */
 package co.elastic.opamp.client.connectivity.http;
 
+import co.elastic.opamp.client.request.HttpRequestSender;
 import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.request.RequestSender;
 import co.elastic.opamp.client.response.Response;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -29,10 +29,10 @@ import okhttp3.RequestBody;
 import opamp.proto.Opamp;
 
 /**
- * {@link co.elastic.opamp.client.request.RequestSender} implementation that uses {@link
+ * {@link co.elastic.opamp.client.request.RequestService} implementation that uses {@link
  * okhttp3.OkHttpClient} to send the request.
  */
-public class OkHttpRequestSender implements RequestSender {
+public class OkHttpRequestSender implements HttpRequestSender {
   private final OkHttpClient client;
   private final String url;
 

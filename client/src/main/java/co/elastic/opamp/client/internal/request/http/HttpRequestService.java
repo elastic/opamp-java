@@ -19,59 +19,55 @@
 package co.elastic.opamp.client.internal.request.http;
 
 import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
-import co.elastic.opamp.client.internal.request.RequestDispatcher;
-import co.elastic.opamp.client.internal.request.RequestListener;
-import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.impl.FixedThreadSleepHandler;
-import co.elastic.opamp.client.request.RequestSender;
+import co.elastic.opamp.client.request.HttpRequestSender;
+import co.elastic.opamp.client.request.Request;
+import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.Response;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
-public final class HttpRequestDispatcher implements RequestDispatcher, Runnable {
+public final class HttpRequestService implements RequestService, Runnable {
+  private final HttpRequestSender requestSender;
   private final ExecutorService executor;
   private final DualIntervalHandler requestInterval;
   private final ThreadSleepHandler threadSleepHandler;
-  private final RequestSender requestSender;
-  private final RequestProvider requestProvider;
   private final Object runningLock = new Object();
-  private RequestListener requestListener;
+  private Callback callback;
+  private Supplier<Request> requestSupplier;
   private boolean retryModeEnabled = false;
   private boolean isRunning = false;
   private boolean isStopped = false;
 
-  HttpRequestDispatcher(
+  HttpRequestService(
+      HttpRequestSender requestSender,
       ExecutorService executor,
       DualIntervalHandler requestInterval,
-      ThreadSleepHandler threadSleepHandler,
-      RequestSender requestSender,
-      RequestProvider requestProvider) {
+      ThreadSleepHandler threadSleepHandler) {
+    this.requestSender = requestSender;
     this.executor = executor;
     this.requestInterval = requestInterval;
     this.threadSleepHandler = threadSleepHandler;
-    this.requestSender = requestSender;
-    this.requestProvider = requestProvider;
   }
 
-  public static HttpRequestDispatcher create(
-      RequestSender requestSender,
-      RequestProvider requestProvider,
+  public static HttpRequestService create(
+      HttpRequestSender requestSender,
       IntervalHandler pollingInterval,
       IntervalHandler retryInterval) {
-    return new HttpRequestDispatcher(
+    return new HttpRequestService(
+        requestSender,
         Executors.newSingleThreadExecutor(),
         DualIntervalHandler.of(pollingInterval, retryInterval),
-        FixedThreadSleepHandler.of(Duration.ofSeconds(1)),
-        requestSender,
-        requestProvider);
+        FixedThreadSleepHandler.of(Duration.ofSeconds(1)));
   }
 
   @Override
-  public void start(RequestListener listener) {
+  public void start(Callback callback, Supplier<Request> requestSupplier) {
     synchronized (runningLock) {
       if (isStopped) {
         throw new IllegalStateException("RequestDispatcher has been stopped");
@@ -79,7 +75,8 @@ public final class HttpRequestDispatcher implements RequestDispatcher, Runnable 
       if (isRunning) {
         throw new IllegalStateException("RequestDispatcher is already running");
       }
-      this.requestListener = listener;
+      this.callback = callback;
+      this.requestSupplier = requestSupplier;
       requestInterval.startNext();
       executor.execute(this);
       isRunning = true;
@@ -97,13 +94,7 @@ public final class HttpRequestDispatcher implements RequestDispatcher, Runnable 
     }
   }
 
-  @Override
-  public boolean isRetryModeEnabled() {
-    return retryModeEnabled;
-  }
-
-  @Override
-  public void enableRetryMode(Duration suggestedInterval) {
+  private void enableRetryMode(Duration suggestedInterval) {
     if (!retryModeEnabled) {
       retryModeEnabled = true;
       requestInterval.switchToSecondary();
@@ -114,8 +105,7 @@ public final class HttpRequestDispatcher implements RequestDispatcher, Runnable 
     }
   }
 
-  @Override
-  public void disableRetryMode() {
+  private void disableRetryMode() {
     if (retryModeEnabled) {
       retryModeEnabled = false;
       requestInterval.switchToMain();
@@ -123,8 +113,7 @@ public final class HttpRequestDispatcher implements RequestDispatcher, Runnable 
     }
   }
 
-  @Override
-  public void tryDispatchNow() {
+  private void tryDispatchNow() {
     if (requestInterval.fastForward()) {
       threadSleepHandler.awakeOrIgnoreNextSleep();
     }
@@ -163,12 +152,13 @@ public final class HttpRequestDispatcher implements RequestDispatcher, Runnable 
     }
   }
 
-  private void sendRequest() {
+  @Override
+  public void sendRequest() {
     try {
-      Response response = requestSender.send(requestProvider.getRequest()).get();
-      requestListener.onSuccessfulRequest(response);
+      Response response = requestSender.send(requestSupplier.get()).get();
+      callback.onRequestSuccess(response);
     } catch (InterruptedException | ExecutionException e) {
-      requestListener.onFailedRequest(e);
+      callback.onRequestFailed(e);
     }
   }
 }

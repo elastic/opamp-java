@@ -16,12 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request;
+package co.elastic.opamp.client.request;
 
 import co.elastic.opamp.client.response.Response;
+import java.util.function.Supplier;
 
-public interface RequestListener {
-  void onSuccessfulRequest(Response response);
+public interface RequestService {
 
-  void onFailedRequest(Throwable throwable);
+  void start(Callback callback, Supplier<Request> requestSupplier);
+
+  void sendRequest();
+
+  void stop();
+
+  interface Callback {
+    void onConnectionSuccess();
+
+    void onConnectionFailed(Throwable throwable);
+
+    void onRequestSuccess(Response response);
+
+    void onRequestFailed(Throwable throwable);
+  }
 }

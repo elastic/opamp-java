@@ -67,7 +67,7 @@ class CompressableAgentToServerVisitorTest {
   void verifyDoVisitWhenServerRequiresIt() {
     verifyVisit();
 
-    verifyVisit(RequestContext.newBuilder().disableCompression().build());
+    verifyVisit(RequestContext.builder().setDisableCompression(true).build());
   }
 
   private void verifyVisit() {

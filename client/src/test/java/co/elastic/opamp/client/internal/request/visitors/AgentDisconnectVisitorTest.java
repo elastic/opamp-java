@@ -41,7 +41,7 @@ class AgentDisconnectVisitorTest {
   void whenStopEnabled_sendDisconnectMessage() {
     Opamp.AgentToServer.Builder builder = mock();
 
-    agentDisconnectVisitor.visit(RequestContext.newBuilder().stop().build(), builder);
+    agentDisconnectVisitor.visit(RequestContext.builder().setStop(true).build(), builder);
 
     verify(builder).setAgentDisconnect((Opamp.AgentDisconnect) notNull());
   }
@@ -50,7 +50,7 @@ class AgentDisconnectVisitorTest {
   void whenStopNotEnabled_doNotSendDisconnectMessage() {
     Opamp.AgentToServer.Builder builder = mock();
 
-    agentDisconnectVisitor.visit(RequestContext.newBuilder().build(), builder);
+    agentDisconnectVisitor.visit(RequestContext.builder().build(), builder);
 
     verify(builder, never()).setAgentDisconnect((Opamp.AgentDisconnect) any());
   }

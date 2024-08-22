@@ -19,20 +19,18 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.request.RequestDispatcher;
-import co.elastic.opamp.client.internal.request.RequestListener;
 import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
+import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
-import java.time.Duration;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl implements OpampClient, Observer, RequestListener {
-  private final RequestDispatcher requestDispatcher;
+public final class OpampClientImpl implements OpampClient, Observer, RequestService.Callback {
+  private final RequestService requestService;
   private final RequestProvider requestProvider;
   private final OpampClientState state;
   private final Object runningLock = new Object();
@@ -41,17 +39,13 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestList
   private boolean isStopped;
 
   public static OpampClientImpl create(
-      RequestDispatcher requestDispatcher,
-      RequestProvider requestProvider,
-      OpampClientState state) {
-    return new OpampClientImpl(requestDispatcher, requestProvider, state);
+      RequestService requestService, RequestProvider requestProvider, OpampClientState state) {
+    return new OpampClientImpl(requestService, requestProvider, state);
   }
 
   private OpampClientImpl(
-      RequestDispatcher requestDispatcher,
-      RequestProvider requestProvider,
-      OpampClientState state) {
-    this.requestDispatcher = requestDispatcher;
+      RequestService requestService, RequestProvider requestProvider, OpampClientState state) {
+    this.requestService = requestService;
     this.requestProvider = requestProvider;
     this.state = state;
   }
@@ -63,7 +57,8 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestList
         isRunning = true;
         this.callback = callback;
         observeStatusChange();
-        requestDispatcher.start(this);
+        requestService.start(this, requestProvider);
+        requestService.sendRequest();
       } else {
         throw new IllegalStateException("The client has already been started");
       }
@@ -79,7 +74,7 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestList
       if (!isStopped) {
         isStopped = true;
         requestProvider.stop();
-        requestDispatcher.stop();
+        requestService.stop();
       } else {
         throw new IllegalStateException("The client has already been stopped");
       }
@@ -97,25 +92,29 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestList
   }
 
   @Override
-  public void onSuccessfulRequest(Response response) {
-    state.sequenceNumberState.increment();
+  public void onConnectionSuccess() {
     callback.onConnect(this);
-    if (requestDispatcher.isRetryModeEnabled()) requestDispatcher.disableRetryMode();
-    if (response == null) return;
-
-    handleResponse(response.getServerToAgent());
   }
 
   @Override
-  public void onFailedRequest(Throwable throwable) {
+  public void onConnectionFailed(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
-    if (!requestDispatcher.isRetryModeEnabled()) requestDispatcher.enableRetryMode(null);
   }
 
-  private void handleResponse(Opamp.ServerToAgent response) {
+  @Override
+  public void onRequestSuccess(Response response) {
+    state.sequenceNumberState.increment();
+    if (response == null) return;
+
+    handleResponsePayload(response.getServerToAgent());
+  }
+
+  @Override
+  public void onRequestFailed(Throwable throwable) {}
+
+  private void handleResponsePayload(Opamp.ServerToAgent response) {
     if (response.hasErrorResponse()) {
       Opamp.ServerErrorResponse errorResponse = response.getErrorResponse();
-      handleErrorResponse(errorResponse);
       callback.onErrorResponse(this, errorResponse);
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
@@ -146,22 +145,10 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestList
     }
   }
 
-  private void handleErrorResponse(Opamp.ServerErrorResponse errorResponse) {
-    if (errorResponse.getType()
-        == Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable) {
-      if (errorResponse.hasRetryInfo()) {
-        long retryAfterNanoseconds = errorResponse.getRetryInfo().getRetryAfterNanoseconds();
-        requestDispatcher.enableRetryMode(Duration.ofNanos(retryAfterNanoseconds));
-      } else {
-        requestDispatcher.enableRetryMode(null);
-      }
-    }
-  }
-
   @Override
   public void update(Observable observable) {
     // There was an agent status change.
-    requestDispatcher.tryDispatchNow();
+    requestService.sendRequest();
   }
 
   private void observeStatusChange() {

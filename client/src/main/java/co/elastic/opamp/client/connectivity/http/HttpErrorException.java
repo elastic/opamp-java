@@ -19,8 +19,8 @@
 package co.elastic.opamp.client.connectivity.http;
 
 /**
- * Exception provided inside a {@link co.elastic.opamp.client.request.RequestSender.Response.Error}
- * response from a {@link co.elastic.opamp.client.request.RequestSender}.
+ * Exception provided inside a {@link co.elastic.opamp.client.request.RequestService.Response.Error}
+ * response from a {@link co.elastic.opamp.client.request.RequestService}.
  */
 public class HttpErrorException extends Exception {
   public final int errorCode;
