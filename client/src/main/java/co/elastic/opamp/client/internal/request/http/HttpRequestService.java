@@ -113,7 +113,8 @@ public final class HttpRequestService implements RequestService, Runnable {
     }
   }
 
-  private void tryDispatchNow() {
+  @Override
+  public void sendRequest() {
     if (requestInterval.fastForward()) {
       threadSleepHandler.awakeOrIgnoreNextSleep();
     }
@@ -134,7 +135,7 @@ public final class HttpRequestService implements RequestService, Runnable {
       }
       try {
         if (requestInterval.isDue() || stopped) {
-          sendRequest();
+          doSendRequest();
           requestInterval.startNext();
         }
         if (!stopped) {
@@ -152,8 +153,7 @@ public final class HttpRequestService implements RequestService, Runnable {
     }
   }
 
-  @Override
-  public void sendRequest() {
+  private void doSendRequest() {
     try {
       Response response = requestSender.send(requestSupplier.get()).get();
       callback.onRequestSuccess(response);

@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,8 @@ import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepH
 import co.elastic.opamp.client.request.HttpRequestSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.response.Response;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +62,6 @@ class HttpRequestServiceTest {
 
   @BeforeEach
   void setUp() {
-    doReturn(request).when(requestSupplier).get();
     httpRequestService =
         new HttpRequestService(requestSender, executor, requestInterval, threadSleepHandler);
   }
@@ -114,9 +116,13 @@ class HttpRequestServiceTest {
 
   @Test
   void verifySendingRequestWhenIsDue() throws InterruptedException {
+    doReturn(request).when(requestSupplier).get();
+    doReturn(CompletableFuture.completedFuture(mock(Response.class)))
+        .when(requestSender)
+        .send(request);
     doReturn(true).when(requestInterval).isDue();
 
-    startAndSendRequestRequestRequest(
+    startAndSendRequest(
         dispatchTest -> {
           dispatchTest.thread.interrupt();
           threadSleepHandler.awakeOrIgnoreNextSleep();
@@ -129,7 +135,7 @@ class HttpRequestServiceTest {
   void verifyNotSendingRequestWhenIsNotDue() throws InterruptedException {
     doReturn(false).when(requestInterval).isDue();
 
-    startAndSendRequestRequestRequest(
+    startAndSendRequest(
         dispatchTest -> {
           dispatchTest.thread.interrupt();
           threadSleepHandler.awakeOrIgnoreNextSleep();
@@ -140,9 +146,13 @@ class HttpRequestServiceTest {
 
   @Test
   void whenStopped_ensureFinalMessageIsSentImmediatelyPriorShutdown() throws InterruptedException {
+    doReturn(request).when(requestSupplier).get();
+    doReturn(CompletableFuture.completedFuture(mock(Response.class)))
+        .when(requestSender)
+        .send(request);
     doReturn(false).when(requestInterval).isDue();
 
-    startAndSendRequestRequestRequest(
+    startAndSendRequest(
         dispatchTest -> {
           dispatchTest.dispatcher.stop();
           InOrder inOrder = inOrder(executor, requestSender, requestInterval, threadSleepHandler);
@@ -248,8 +258,7 @@ class HttpRequestServiceTest {
   //    verifyNoInteractions(requestInterval);
   //  }
   //
-  private void startAndSendRequestRequestRequest(Consumer<DispatchTest> testCase)
-      throws InterruptedException {
+  private void startAndSendRequest(Consumer<DispatchTest> testCase) throws InterruptedException {
     TestThreadSleepHandler testThreadSleepHandler = spy(new TestThreadSleepHandler());
     threadSleepHandler = testThreadSleepHandler;
     CountDownLatch dispatchEndLock = new CountDownLatch(1);
