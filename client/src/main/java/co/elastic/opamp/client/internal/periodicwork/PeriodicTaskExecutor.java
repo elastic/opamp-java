@@ -19,9 +19,9 @@ public final class PeriodicTaskExecutor {
         Executors.newSingleThreadScheduledExecutor(), initialScheduleTimer);
   }
 
-  PeriodicTaskExecutor(ScheduledExecutorService executorService, PeriodicDelay scheduleTimer1) {
+  PeriodicTaskExecutor(ScheduledExecutorService executorService, PeriodicDelay initialPeriodicDelay) {
     this.executorService = executorService;
-    this.periodicDelay = scheduleTimer1;
+    this.periodicDelay = initialPeriodicDelay;
   }
 
   public void start(Runnable periodicTask) {
