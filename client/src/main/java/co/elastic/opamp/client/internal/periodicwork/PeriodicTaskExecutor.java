@@ -14,9 +14,9 @@ public final class PeriodicTaskExecutor {
   private ScheduledFuture<?> scheduledFuture;
   private Runnable periodicTask;
 
-  public static PeriodicTaskExecutor create(PeriodicDelay initialScheduleTimer) {
+  public static PeriodicTaskExecutor create(PeriodicDelay initialPeriodicDelay) {
     return new PeriodicTaskExecutor(
-        Executors.newSingleThreadScheduledExecutor(), initialScheduleTimer);
+        Executors.newSingleThreadScheduledExecutor(), initialPeriodicDelay);
   }
 
   PeriodicTaskExecutor(
