@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.periodicwork;
+package co.elastic.opamp.client.internal.periodictask;
 
 import java.time.Duration;
 
