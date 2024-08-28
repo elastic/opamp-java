@@ -18,29 +18,26 @@
  */
 package co.elastic.opamp.client.internal.request.http;
 
-import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
-import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
-import co.elastic.opamp.client.internal.request.http.handlers.sleep.impl.FixedThreadSleepHandler;
+import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.HttpSender.Response;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class HttpRequestService implements RequestService, Runnable {
   private final HttpSender requestSender;
-  private final ExecutorService executor;
-  private final DualIntervalHandler requestInterval;
-  private final ThreadSleepHandler threadSleepHandler;
+  private final PeriodicTaskExecutor executor;
+  private final PeriodicDelay periodicRequestDelay;
+  private final PeriodicDelay periodicRetryDelay;
   private final Object runningLock = new Object();
   private Callback callback;
   private Supplier<Request> requestSupplier;
@@ -50,22 +47,24 @@ public final class HttpRequestService implements RequestService, Runnable {
 
   HttpRequestService(
       HttpSender requestSender,
-      ExecutorService executor,
-      DualIntervalHandler requestInterval,
-      ThreadSleepHandler threadSleepHandler) {
+      PeriodicTaskExecutor executor,
+      PeriodicDelay periodicRequestDelay,
+      PeriodicDelay periodicRetryDelay) {
     this.requestSender = requestSender;
     this.executor = executor;
-    this.requestInterval = requestInterval;
-    this.threadSleepHandler = threadSleepHandler;
+    this.periodicRequestDelay = periodicRequestDelay;
+    this.periodicRetryDelay = periodicRetryDelay;
   }
 
   public static HttpRequestService create(
-      HttpSender requestSender, IntervalHandler pollingInterval, IntervalHandler retryInterval) {
+      HttpSender requestSender,
+      PeriodicDelay periodicRequestDelay,
+      PeriodicDelay periodicRetryDelay) {
     return new HttpRequestService(
         requestSender,
-        Executors.newSingleThreadExecutor(),
-        DualIntervalHandler.of(pollingInterval, retryInterval),
-        FixedThreadSleepHandler.of(Duration.ofSeconds(1)));
+        PeriodicTaskExecutor.create(periodicRequestDelay),
+        periodicRequestDelay,
+        periodicRetryDelay);
   }
 
   @Override
@@ -79,8 +78,7 @@ public final class HttpRequestService implements RequestService, Runnable {
       }
       this.callback = callback;
       this.requestSupplier = requestSupplier;
-      requestInterval.startNext();
-      executor.execute(this);
+      executor.start(this);
       isRunning = true;
     }
   }
@@ -92,67 +90,36 @@ public final class HttpRequestService implements RequestService, Runnable {
         return;
       }
       isStopped = true;
-      threadSleepHandler.awakeOrIgnoreNextSleep();
+      executor.executeNow();
+      executor.stop();
     }
   }
 
-  private void enableRetryMode(Duration suggestedInterval) {
+  private void enableRetryMode(Duration suggestedDelay) {
     if (!retryModeEnabled) {
       retryModeEnabled = true;
-      requestInterval.switchToSecondary();
-      requestInterval.reset();
-    }
-    if (suggestedInterval != null) {
-      requestInterval.suggestNextInterval(suggestedInterval);
+      if (suggestedDelay != null && periodicRequestDelay instanceof AcceptsDelaySuggestion) {
+        ((AcceptsDelaySuggestion) periodicRequestDelay).suggestDelay(suggestedDelay);
+      }
+      executor.setPeriodicDelay(periodicRetryDelay);
     }
   }
 
   private void disableRetryMode() {
     if (retryModeEnabled) {
       retryModeEnabled = false;
-      requestInterval.switchToMain();
-      requestInterval.reset();
+      executor.setPeriodicDelay(periodicRequestDelay);
     }
   }
 
   @Override
   public void sendRequest() {
-    if (requestInterval.fastForward()) {
-      threadSleepHandler.awakeOrIgnoreNextSleep();
-    }
+    executor.executeNow();
   }
 
   @Override
   public void run() {
-    while (true) {
-      boolean stopped;
-      synchronized (runningLock) {
-        if (!isRunning) {
-          break;
-        } else if (Thread.currentThread().isInterrupted()) {
-          isRunning = false;
-          break;
-        }
-        stopped = isStopped;
-      }
-      try {
-        if (requestInterval.isDue() || stopped) {
-          doSendRequest();
-          requestInterval.startNext();
-        }
-        if (!stopped) {
-          threadSleepHandler.sleep();
-        } else {
-          synchronized (runningLock) {
-            isRunning = false;
-            executor.shutdown();
-          }
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        break;
-      }
-    }
+    doSendRequest();
   }
 
   private void doSendRequest() {
@@ -166,7 +133,8 @@ public final class HttpRequestService implements RequestService, Runnable {
                   agentToServer.getSerializedSize())
               .get()) {
         callback.onRequestSuccess(
-            co.elastic.opamp.client.response.Response.create(Opamp.ServerToAgent.parseFrom(response.bodyInputStream())));
+            co.elastic.opamp.client.response.Response.create(
+                Opamp.ServerToAgent.parseFrom(response.bodyInputStream())));
       } catch (IOException e) {
         callback.onRequestFailed(e);
       }

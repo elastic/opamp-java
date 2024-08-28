@@ -19,7 +19,6 @@
 package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.connectivity.http.OkHttpSender;
-import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.request.http.HttpRequestService;
@@ -34,6 +33,7 @@ import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisit
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.HttpSender;
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
@@ -41,8 +41,9 @@ import opamp.proto.Opamp;
 /** Builds an {@link OpampClient} instance. */
 public final class HttpOpampClientBuilder {
   private HttpSender sender = OkHttpSender.create("http://localhost:4320/v1/opamp");
-  private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
-  private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
+  private PeriodicDelay pollingIntervalDelay =
+      PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
+  private PeriodicDelay retryIntervalDelay = PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
 
   /**
@@ -110,28 +111,28 @@ public final class HttpOpampClientBuilder {
   }
 
   /**
-   * Sets the {@link IntervalHandler} implementation for regular Server polling when using the HTTP
-   * transport. Check out the {@link IntervalHandler} docs for more details. By default, is set to a
+   * Sets the {@link PeriodicDelay} implementation for regular Server polling when using the HTTP
+   * transport. Check out the {@link PeriodicDelay} docs for more details. By default, is set to a
    * fixed duration of 30 seconds each interval.
    *
-   * @param pollingIntervalHandler The polling interval handler implementation.
+   * @param pollingIntervalDelay The polling interval handler implementation.
    * @return this
    */
-  public HttpOpampClientBuilder setPollingIntervalHandler(IntervalHandler pollingIntervalHandler) {
-    this.pollingIntervalHandler = pollingIntervalHandler;
+  public HttpOpampClientBuilder setPollingIntervalDelay(PeriodicDelay pollingIntervalDelay) {
+    this.pollingIntervalDelay = pollingIntervalDelay;
     return this;
   }
 
   /**
-   * Sets the {@link IntervalHandler} implementation for retry operations when polling the Server.
-   * Check out the {@link IntervalHandler} docs for more details. By default, is set to a fixed
+   * Sets the {@link PeriodicDelay} implementation for retry operations when polling the Server.
+   * Check out the {@link PeriodicDelay} docs for more details. By default, is set to a fixed
    * duration of 30 seconds each interval.
    *
-   * @param retryIntervalHandler The retry interval handler implementation.
+   * @param retryIntervalDelay The retry interval handler implementation.
    * @return this
    */
-  public HttpOpampClientBuilder setRetryIntervalHandler(IntervalHandler retryIntervalHandler) {
-    this.retryIntervalHandler = retryIntervalHandler;
+  public HttpOpampClientBuilder setRetryIntervalDelay(PeriodicDelay retryIntervalDelay) {
+    this.retryIntervalDelay = retryIntervalDelay;
     return this;
   }
 
@@ -174,7 +175,7 @@ public final class HttpOpampClientBuilder {
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
     HttpRequestService dispatcher =
-        HttpRequestService.create(sender, pollingIntervalHandler, retryIntervalHandler);
+        HttpRequestService.create(sender, pollingIntervalDelay, retryIntervalDelay);
     return OpampClientImpl.create(dispatcher, RequestProvider.create(visitors), state);
   }
 

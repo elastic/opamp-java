@@ -16,12 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.periodictask;
+package co.elastic.opamp.client.request.delay;
 
 import java.time.Duration;
 
-public interface PeriodicDelay {
-  Duration getNextDelay();
+final class FixedPeriodicDelay implements PeriodicDelay {
+  private final Duration duration;
 
-  void reset();
+  public FixedPeriodicDelay(Duration duration) {
+    this.duration = duration;
+  }
+
+  @Override
+  public Duration getNextDelay() {
+    return duration;
+  }
+
+  @Override
+  public void reset() {}
 }

@@ -18,6 +18,7 @@
  */
 package co.elastic.opamp.client.internal.periodictask;
 
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;

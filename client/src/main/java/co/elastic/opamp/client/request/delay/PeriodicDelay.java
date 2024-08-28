@@ -16,19 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.http.handlers.sleep.impl;
+package co.elastic.opamp.client.request.delay;
 
-import co.elastic.opamp.client.internal.request.http.handlers.sleep.Sleeper;
+import java.time.Duration;
 
-/** Wrapper for {@link Object#wait()} and {@link Object#notify()} to make them testable. */
-public final class SleeperImpl implements Sleeper {
-  @Override
-  public synchronized void sleep(long millis) throws InterruptedException {
-    wait(millis);
+public interface PeriodicDelay {
+  static PeriodicDelay ofFixedDuration(Duration duration) {
+    return new FixedPeriodicDelay(duration);
   }
 
-  @Override
-  public synchronized void awake() {
-    notify();
-  }
+  Duration getNextDelay();
+
+  void reset();
 }

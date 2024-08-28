@@ -22,26 +22,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
-import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
+import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,9 +47,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class HttpRequestServiceTest {
   @Mock private HttpSender requestSender;
-  @Mock private DualIntervalHandler requestInterval;
-  @Mock private ExecutorService executor;
-  @Mock private ThreadSleepHandler threadSleepHandler;
+  @Mock private PeriodicDelay periodicRequestDelay;
+  @Mock private PeriodicDelay periodicRetryDelay;
+  @Mock private PeriodicTaskExecutor executor;
   @Mock private RequestService.Callback callback;
   @Mock private Supplier<Request> requestSupplier;
   @Mock private Request request;
@@ -66,16 +59,15 @@ class HttpRequestServiceTest {
   @BeforeEach
   void setUp() {
     httpRequestService =
-        new HttpRequestService(requestSender, executor, requestInterval, threadSleepHandler);
+        new HttpRequestService(requestSender, executor, periodicRequestDelay, periodicRetryDelay);
   }
 
   @Test
   void verifyStart() {
     httpRequestService.start(callback, requestSupplier);
 
-    InOrder inOrder = inOrder(requestInterval, executor);
-    inOrder.verify(requestInterval).startNext();
-    inOrder.verify(executor).execute(httpRequestService);
+    InOrder inOrder = inOrder(periodicRequestDelay, executor);
+    inOrder.verify(executor).start(httpRequestService);
 
     // Try starting it again:
     try {
@@ -91,19 +83,19 @@ class HttpRequestServiceTest {
     httpRequestService.start(callback, requestSupplier);
     httpRequestService.stop();
 
-    verify(threadSleepHandler).awakeOrIgnoreNextSleep();
+    verify(executor).stop();
 
     // Try stopping it again:
-    clearInvocations(threadSleepHandler);
+    clearInvocations(executor);
     httpRequestService.stop();
-    verifyNoInteractions(threadSleepHandler);
+    verifyNoInteractions(executor);
   }
 
   @Test
   void verifyStop_whenNotStarted() {
     httpRequestService.stop();
 
-    verifyNoInteractions(threadSleepHandler, requestSender, requestInterval);
+    verifyNoInteractions(executor, requestSender, periodicRequestDelay);
   }
 
   @Test
@@ -115,67 +107,6 @@ class HttpRequestServiceTest {
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("RequestDispatcher has been stopped");
     }
-  }
-
-  @Test
-  void verifySendingRequestWhenIsDue() throws InterruptedException {
-    prepareRequest();
-    doReturn(true).when(requestInterval).isDue();
-
-    startAndSendRequest(
-        dispatchTest -> {
-          dispatchTest.thread.interrupt();
-          threadSleepHandler.awakeOrIgnoreNextSleep();
-          verify(requestSender).send(any(), eq(REQUEST_SIZE));
-          verify(requestInterval).startNext();
-        });
-  }
-
-  @Test
-  void verifyNotSendingRequestWhenIsNotDue() throws InterruptedException {
-    doReturn(false).when(requestInterval).isDue();
-
-    startAndSendRequest(
-        dispatchTest -> {
-          dispatchTest.thread.interrupt();
-          threadSleepHandler.awakeOrIgnoreNextSleep();
-          verify(requestSender, never()).send(any(), anyInt());
-          verify(requestInterval, never()).startNext();
-        });
-  }
-
-  @Test
-  void whenStopped_ensureFinalMessageIsSentImmediatelyPriorShutdown() throws InterruptedException {
-    prepareRequest();
-    doReturn(false).when(requestInterval).isDue();
-
-    startAndSendRequest(
-        dispatchTest -> {
-          dispatchTest.dispatcher.stop();
-          InOrder inOrder = inOrder(executor, requestSender, requestInterval, threadSleepHandler);
-          inOrder.verify(threadSleepHandler).awakeOrIgnoreNextSleep();
-          inOrder.verify(requestSender).send(any(), eq(REQUEST_SIZE));
-          inOrder.verify(requestInterval).startNext();
-          inOrder.verify(executor).shutdown();
-        });
-  }
-
-  @Test
-  void verifySendRequest_whenIntervalIsCleared() {
-    doReturn(true).when(requestInterval).fastForward();
-
-    httpRequestService.sendRequest();
-
-    verify(threadSleepHandler).awakeOrIgnoreNextSleep();
-  }
-
-  @Test
-  void verifySendRequest_whenIntervalIsNotCleared() {
-    doReturn(false).when(requestInterval).fastForward();
-
-    httpRequestService.sendRequest();
-
-    verify(threadSleepHandler, never()).awakeOrIgnoreNextSleep();
   }
 
   //  @Test
@@ -255,28 +186,6 @@ class HttpRequestServiceTest {
   //    verifyNoInteractions(requestInterval);
   //  }
   //
-  private void startAndSendRequest(Consumer<DispatchTest> testCase) throws InterruptedException {
-    TestThreadSleepHandler testThreadSleepHandler = spy(new TestThreadSleepHandler());
-    threadSleepHandler = testThreadSleepHandler;
-    CountDownLatch dispatchEndLock = new CountDownLatch(1);
-    HttpRequestService httpRequestDispatcher =
-        new HttpRequestService(requestSender, executor, requestInterval, threadSleepHandler);
-    httpRequestDispatcher.start(callback, requestSupplier);
-    clearInvocations(requestInterval, executor);
-    Thread thread =
-        new Thread(
-            () -> {
-              httpRequestDispatcher.run();
-              dispatchEndLock.countDown();
-            });
-    thread.start();
-    testThreadSleepHandler.awaitForDispatcherExecution();
-    testCase.accept(new DispatchTest(httpRequestDispatcher, thread));
-
-    if (!dispatchEndLock.await(5, TimeUnit.SECONDS)) {
-      fail("The dispatcher did not finish.");
-    }
-  }
 
   private void prepareRequest() {
     Opamp.AgentToServer agentToServer = mock(Opamp.AgentToServer.class);
@@ -295,31 +204,6 @@ class HttpRequestServiceTest {
     private DispatchTest(HttpRequestService httpRequestDispatcher, Thread thread) {
       this.dispatcher = httpRequestDispatcher;
       this.thread = thread;
-    }
-  }
-
-  private static class TestThreadSleepHandler implements ThreadSleepHandler {
-    private final CountDownLatch testLatch;
-    private CountDownLatch dispatcherLatch;
-
-    public TestThreadSleepHandler() {
-      testLatch = new CountDownLatch(1);
-    }
-
-    @Override
-    public void awakeOrIgnoreNextSleep() {
-      dispatcherLatch.countDown();
-    }
-
-    @Override
-    public void sleep() throws InterruptedException {
-      testLatch.countDown();
-      dispatcherLatch = new CountDownLatch(1);
-      dispatcherLatch.await();
-    }
-
-    public void awaitForDispatcherExecution() throws InterruptedException {
-      testLatch.await();
     }
   }
 }
