@@ -18,54 +18,51 @@
  */
 package co.elastic.opamp.client.connectivity.http;
 
-import co.elastic.opamp.client.request.HttpRequestSender;
-import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.response.Response;
+import co.elastic.opamp.client.request.HttpSender;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import opamp.proto.Opamp;
 
 /**
  * {@link co.elastic.opamp.client.request.RequestService} implementation that uses {@link
  * okhttp3.OkHttpClient} to send the request.
  */
-public class OkHttpRequestSender implements HttpRequestSender {
+public class OkHttpSender implements HttpSender {
   private final OkHttpClient client;
   private final String url;
 
-  public static OkHttpRequestSender create(String url) {
+  public static OkHttpSender create(String url) {
     return create(new OkHttpClient(), url);
   }
 
-  public static OkHttpRequestSender create(OkHttpClient client, String url) {
-    return new OkHttpRequestSender(client, url);
+  public static OkHttpSender create(OkHttpClient client, String url) {
+    return new OkHttpSender(client, url);
   }
 
-  private OkHttpRequestSender(OkHttpClient client, String url) {
+  private OkHttpSender(OkHttpClient client, String url) {
     this.client = client;
     this.url = url;
   }
 
   @Override
-  public CompletableFuture<Response> send(Request request) {
-    CompletableFuture<Response> future = new CompletableFuture<>();
+  public CompletableFuture<HttpResponse> send(byte[] payload) {
+    CompletableFuture<HttpResponse> future = new CompletableFuture<>();
     okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
 
-    RequestBody body =
-        RequestBody.create(request.getAgentToServer().toByteArray(), MediaType.parse(contentType));
+    RequestBody body = RequestBody.create(payload, MediaType.parse(contentType));
     builder.post(body);
 
     try (okhttp3.Response response = client.newCall(builder.build()).execute()) {
       if (response.isSuccessful()) {
         if (response.body() != null) {
-          Opamp.ServerToAgent serverToAgent =
-              Opamp.ServerToAgent.parseFrom(response.body().byteStream());
-          future.complete(Response.create(serverToAgent));
+          future.complete(new OkHttpResponse(response));
         }
       } else {
         future.completeExceptionally(new HttpErrorException(response.code(), response.message()));
@@ -77,5 +74,41 @@ public class OkHttpRequestSender implements HttpRequestSender {
     future.completeExceptionally(new IllegalStateException());
 
     return future;
+  }
+
+  private static class OkHttpResponse implements HttpResponse {
+    private final okhttp3.Response response;
+
+    private OkHttpResponse(okhttp3.Response response) {
+      this.response = response;
+    }
+
+    @Override
+    public int statusCode() {
+      return response.code();
+    }
+
+    @Override
+    public String statusMessage() {
+      return response.message();
+    }
+
+    @Override
+    public InputStream bodyInputStream() {
+      if (response.body() != null) {
+        return response.body().byteStream();
+      }
+      return null;
+    }
+
+    @Override
+    public Map<String, List<String>> headers() {
+      return response.headers().toMultimap();
+    }
+
+    @Override
+    public void close() {
+      response.close();
+    }
   }
 }

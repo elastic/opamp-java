@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
+import co.elastic.opamp.client.connectivity.http.OkHttpSender;
 import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.response.MessageData;
 import com.dslplatform.json.DslJson;
@@ -161,7 +161,7 @@ public final class CentralConfigurationManagerImpl
         builder.setServiceVersion(serviceVersion);
       }
       if (configurationEndpoint != null) {
-        builder.setRequestSender(OkHttpRequestSender.create(configurationEndpoint));
+        builder.setRequestSender(OkHttpSender.create(configurationEndpoint));
       }
       if (pollingInterval != null) {
         builder.setPollingIntervalHandler(IntervalHandler.fixed(pollingInterval));

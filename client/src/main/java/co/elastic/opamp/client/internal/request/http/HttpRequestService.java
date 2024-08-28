@@ -22,7 +22,7 @@ import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.impl.FixedThreadSleepHandler;
-import co.elastic.opamp.client.request.HttpRequestSender;
+import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.Response;
@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 public final class HttpRequestService implements RequestService, Runnable {
-  private final HttpRequestSender requestSender;
+  private final HttpSender requestSender;
   private final ExecutorService executor;
   private final DualIntervalHandler requestInterval;
   private final ThreadSleepHandler threadSleepHandler;
@@ -45,7 +45,7 @@ public final class HttpRequestService implements RequestService, Runnable {
   private boolean isStopped = false;
 
   HttpRequestService(
-      HttpRequestSender requestSender,
+      HttpSender requestSender,
       ExecutorService executor,
       DualIntervalHandler requestInterval,
       ThreadSleepHandler threadSleepHandler) {
@@ -56,7 +56,7 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   public static HttpRequestService create(
-      HttpRequestSender requestSender,
+      HttpSender requestSender,
       IntervalHandler pollingInterval,
       IntervalHandler retryInterval) {
     return new HttpRequestService(

@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.connectivity.http.OkHttpRequestSender;
+import co.elastic.opamp.client.connectivity.http.OkHttpSender;
 import co.elastic.opamp.client.connectivity.http.handlers.IntervalHandler;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.request.RequestProvider;
@@ -33,14 +33,14 @@ import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
-import co.elastic.opamp.client.request.HttpRequestSender;
+import co.elastic.opamp.client.request.HttpSender;
 import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
 public final class HttpOpampClientBuilder {
-  private HttpRequestSender sender = OkHttpRequestSender.create("http://localhost:4320/v1/opamp");
+  private HttpSender sender = OkHttpSender.create("http://localhost:4320/v1/opamp");
   private IntervalHandler pollingIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private IntervalHandler retryIntervalHandler = IntervalHandler.fixed(Duration.ofSeconds(30));
   private final OpampClientState state = OpampClientState.create();
@@ -52,7 +52,7 @@ public final class HttpOpampClientBuilder {
    * @param sender The HTTP request sender.
    * @return this
    */
-  public HttpOpampClientBuilder setRequestSender(HttpRequestSender sender) {
+  public HttpOpampClientBuilder setRequestSender(HttpSender sender) {
     this.sender = sender;
     return this;
   }

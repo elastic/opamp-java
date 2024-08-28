@@ -18,9 +18,23 @@
  */
 package co.elastic.opamp.client.request;
 
-import co.elastic.opamp.client.response.Response;
+import java.io.Closeable;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public interface HttpRequestSender {
-  CompletableFuture<Response> send(Request request);
+public interface HttpSender {
+
+  CompletableFuture<HttpResponse> send(byte[] payload);
+
+  interface HttpResponse extends Closeable {
+    int statusCode();
+
+    String statusMessage();
+
+    InputStream bodyInputStream();
+
+    Map<String, List<String>> headers();
+  }
 }

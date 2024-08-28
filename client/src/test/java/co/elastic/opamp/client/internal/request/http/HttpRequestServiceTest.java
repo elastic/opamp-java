@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
-import co.elastic.opamp.client.request.HttpRequestSender;
+import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.Response;
@@ -51,7 +51,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class HttpRequestServiceTest {
-  @Mock private HttpRequestSender requestSender;
+  @Mock private HttpSender requestSender;
   @Mock private DualIntervalHandler requestInterval;
   @Mock private ExecutorService executor;
   @Mock private ThreadSleepHandler threadSleepHandler;
