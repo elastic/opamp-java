@@ -196,14 +196,4 @@ class HttpRequestServiceTest {
         .when(requestSender)
         .send(any(), anyInt());
   }
-
-  private static class DispatchTest {
-    public final HttpRequestService dispatcher;
-    public final Thread thread;
-
-    private DispatchTest(HttpRequestService httpRequestDispatcher, Thread thread) {
-      this.dispatcher = httpRequestDispatcher;
-      this.thread = thread;
-    }
-  }
 }
