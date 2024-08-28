@@ -151,7 +151,7 @@ class PeriodicTaskExecutorTest {
 
     InOrder inOrder = inOrder(delayChange);
     inOrder.verify(delayChange).reset();
-    inOrder.verify(delayChange).getNextDelayInNanos();
+    inOrder.verify(delayChange).getNextDelay();
   }
 
   @Test

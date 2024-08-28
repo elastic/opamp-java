@@ -24,8 +24,4 @@ public interface PeriodicDelay {
   Duration getNextDelay();
 
   void reset();
-
-  default long getNextDelayInNanos() {
-    return getNextDelay().toNanos();
-  }
 }

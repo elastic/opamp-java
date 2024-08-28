@@ -75,7 +75,7 @@ public final class PeriodicTaskExecutor {
     try {
       scheduledFuture =
           executorService.schedule(
-              new PeriodicRunner(), periodicDelay.getNextDelayInNanos(), TimeUnit.NANOSECONDS);
+              new PeriodicRunner(), periodicDelay.getNextDelay().toNanos(), TimeUnit.NANOSECONDS);
     } finally {
       delaySetLock.unlock();
     }
