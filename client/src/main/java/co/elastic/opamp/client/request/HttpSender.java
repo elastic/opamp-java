@@ -20,15 +20,17 @@ package co.elastic.opamp.client.request;
 
 import java.io.Closeable;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface HttpSender {
 
-  CompletableFuture<HttpResponse> send(byte[] payload);
+  CompletableFuture<Response> send(Consumer<OutputStream> writer, int contentLength);
 
-  interface HttpResponse extends Closeable {
+  interface Response extends Closeable {
     int statusCode();
 
     String statusMessage();

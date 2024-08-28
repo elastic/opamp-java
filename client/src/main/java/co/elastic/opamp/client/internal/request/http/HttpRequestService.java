@@ -23,14 +23,18 @@ import co.elastic.opamp.client.internal.request.http.handlers.DualIntervalHandle
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepHandler;
 import co.elastic.opamp.client.internal.request.http.handlers.sleep.impl.FixedThreadSleepHandler;
 import co.elastic.opamp.client.request.HttpSender;
+import co.elastic.opamp.client.request.HttpSender.Response;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
-import co.elastic.opamp.client.response.Response;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import opamp.proto.Opamp;
 
 public final class HttpRequestService implements RequestService, Runnable {
   private final HttpSender requestSender;
@@ -56,9 +60,7 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   public static HttpRequestService create(
-      HttpSender requestSender,
-      IntervalHandler pollingInterval,
-      IntervalHandler retryInterval) {
+      HttpSender requestSender, IntervalHandler pollingInterval, IntervalHandler retryInterval) {
     return new HttpRequestService(
         requestSender,
         Executors.newSingleThreadExecutor(),
@@ -155,10 +157,41 @@ public final class HttpRequestService implements RequestService, Runnable {
 
   private void doSendRequest() {
     try {
-      Response response = requestSender.send(requestSupplier.get()).get();
-      callback.onRequestSuccess(response);
-    } catch (InterruptedException | ExecutionException e) {
+      Opamp.AgentToServer agentToServer = requestSupplier.get().getAgentToServer();
+
+      try (Response response =
+          requestSender
+              .send(
+                  new ByteArrayWriter(agentToServer.toByteArray()),
+                  agentToServer.getSerializedSize())
+              .get()) {
+        callback.onRequestSuccess(
+            co.elastic.opamp.client.response.Response.create(Opamp.ServerToAgent.parseFrom(response.bodyInputStream())));
+      } catch (IOException e) {
+        callback.onRequestFailed(e);
+      }
+
+    } catch (InterruptedException e) {
       callback.onRequestFailed(e);
+    } catch (ExecutionException e) {
+      callback.onRequestFailed(e.getCause());
+    }
+  }
+
+  private static class ByteArrayWriter implements Consumer<OutputStream> {
+    private final byte[] data;
+
+    private ByteArrayWriter(byte[] data) {
+      this.data = data;
+    }
+
+    @Override
+    public void accept(OutputStream outputStream) {
+      try {
+        outputStream.write(data);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

@@ -21,12 +21,17 @@ package co.elastic.opamp.client.connectivity.http;
 import co.elastic.opamp.client.request.HttpSender;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okio.BufferedSink;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link co.elastic.opamp.client.request.RequestService} implementation that uses {@link
@@ -50,13 +55,13 @@ public class OkHttpSender implements HttpSender {
   }
 
   @Override
-  public CompletableFuture<HttpResponse> send(byte[] payload) {
-    CompletableFuture<HttpResponse> future = new CompletableFuture<>();
+  public CompletableFuture<Response> send(Consumer<OutputStream> writer, int contentLength) {
+    CompletableFuture<Response> future = new CompletableFuture<>();
     okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
     String contentType = "application/x-protobuf";
     builder.addHeader("Content-Type", contentType);
 
-    RequestBody body = RequestBody.create(payload, MediaType.parse(contentType));
+    RequestBody body = new RawRequestBody(writer, contentLength, MediaType.parse(contentType));
     builder.post(body);
 
     try (okhttp3.Response response = client.newCall(builder.build()).execute()) {
@@ -76,7 +81,7 @@ public class OkHttpSender implements HttpSender {
     return future;
   }
 
-  private static class OkHttpResponse implements HttpResponse {
+  private static class OkHttpResponse implements Response {
     private final okhttp3.Response response;
 
     private OkHttpResponse(okhttp3.Response response) {
@@ -109,6 +114,35 @@ public class OkHttpSender implements HttpSender {
     @Override
     public void close() {
       response.close();
+    }
+  }
+
+  private static class RawRequestBody extends RequestBody {
+    private final Consumer<OutputStream> writer;
+    private final int contentLength;
+    private final MediaType contentType;
+
+    private RawRequestBody(
+        Consumer<OutputStream> writer, int contentLength, MediaType contentType) {
+      this.writer = writer;
+      this.contentLength = contentLength;
+      this.contentType = contentType;
+    }
+
+    @Nullable
+    @Override
+    public MediaType contentType() {
+      return contentType;
+    }
+
+    @Override
+    public long contentLength() {
+      return contentLength;
+    }
+
+    @Override
+    public void writeTo(@NotNull BufferedSink bufferedSink) {
+      writer.accept(bufferedSink.outputStream());
     }
   }
 }

@@ -21,6 +21,8 @@ package co.elastic.opamp.client.internal.request.http;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
@@ -35,13 +37,13 @@ import co.elastic.opamp.client.internal.request.http.handlers.sleep.ThreadSleepH
 import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
-import co.elastic.opamp.client.response.Response;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +60,7 @@ class HttpRequestServiceTest {
   @Mock private RequestService.Callback callback;
   @Mock private Supplier<Request> requestSupplier;
   @Mock private Request request;
+  private static final int REQUEST_SIZE = 100;
   private HttpRequestService httpRequestService;
 
   @BeforeEach
@@ -116,17 +119,14 @@ class HttpRequestServiceTest {
 
   @Test
   void verifySendingRequestWhenIsDue() throws InterruptedException {
-    doReturn(request).when(requestSupplier).get();
-    doReturn(CompletableFuture.completedFuture(mock(Response.class)))
-        .when(requestSender)
-        .send(request);
+    prepareRequest();
     doReturn(true).when(requestInterval).isDue();
 
     startAndSendRequest(
         dispatchTest -> {
           dispatchTest.thread.interrupt();
           threadSleepHandler.awakeOrIgnoreNextSleep();
-          verify(requestSender).send(request);
+          verify(requestSender).send(any(), eq(REQUEST_SIZE));
           verify(requestInterval).startNext();
         });
   }
@@ -139,17 +139,14 @@ class HttpRequestServiceTest {
         dispatchTest -> {
           dispatchTest.thread.interrupt();
           threadSleepHandler.awakeOrIgnoreNextSleep();
-          verify(requestSender, never()).send(any());
+          verify(requestSender, never()).send(any(), anyInt());
           verify(requestInterval, never()).startNext();
         });
   }
 
   @Test
   void whenStopped_ensureFinalMessageIsSentImmediatelyPriorShutdown() throws InterruptedException {
-    doReturn(request).when(requestSupplier).get();
-    doReturn(CompletableFuture.completedFuture(mock(Response.class)))
-        .when(requestSender)
-        .send(request);
+    prepareRequest();
     doReturn(false).when(requestInterval).isDue();
 
     startAndSendRequest(
@@ -157,7 +154,7 @@ class HttpRequestServiceTest {
           dispatchTest.dispatcher.stop();
           InOrder inOrder = inOrder(executor, requestSender, requestInterval, threadSleepHandler);
           inOrder.verify(threadSleepHandler).awakeOrIgnoreNextSleep();
-          inOrder.verify(requestSender).send(request);
+          inOrder.verify(requestSender).send(any(), eq(REQUEST_SIZE));
           inOrder.verify(requestInterval).startNext();
           inOrder.verify(executor).shutdown();
         });
@@ -279,6 +276,16 @@ class HttpRequestServiceTest {
     if (!dispatchEndLock.await(5, TimeUnit.SECONDS)) {
       fail("The dispatcher did not finish.");
     }
+  }
+
+  private void prepareRequest() {
+    Opamp.AgentToServer agentToServer = mock(Opamp.AgentToServer.class);
+    doReturn(REQUEST_SIZE).when(agentToServer).getSerializedSize();
+    doReturn(agentToServer).when(request).getAgentToServer();
+    doReturn(request).when(requestSupplier).get();
+    doReturn(CompletableFuture.completedFuture(mock(HttpSender.Response.class)))
+        .when(requestSender)
+        .send(any(), anyInt());
   }
 
   private static class DispatchTest {
