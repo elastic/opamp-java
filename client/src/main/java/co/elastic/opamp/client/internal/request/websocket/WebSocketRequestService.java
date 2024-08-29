@@ -92,6 +92,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
 
   @Override
   public void onOpened(WebSocket webSocket) {
+    disableRetryMode();
     websocketRunning.set(true);
     callback.onConnectionSuccess();
     if (retryModeEnabled.get()) {
@@ -101,7 +102,6 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
 
   @Override
   public void onMessage(WebSocket webSocket, byte[] data) {
-    disableRetryMode();
     try {
       Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.parseFrom(data);
 
@@ -159,6 +159,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   @Override
   public void onFailure(WebSocket webSocket, Throwable t) {
     callback.onConnectionFailed(t);
+    enableRetryMode(null);
   }
 
   @Override
