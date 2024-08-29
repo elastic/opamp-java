@@ -169,6 +169,9 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   private void handleResponse(Response response) {
+    if (retryModeEnabled) {
+      disableRetryMode();
+    }
     Opamp.ServerToAgent serverToAgent = response.getServerToAgent();
 
     if (serverToAgent.hasErrorResponse()) {
