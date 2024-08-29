@@ -9,7 +9,7 @@ public class MainWebsocket {
   private static final Logger logger = Logger.getLogger(MainWebsocket.class.getName());
 
   public static void main(String[] args) {
-    OpampClient client = OpampClient.httpBuilder().enableRemoteConfig().build();
+    OpampClient client = OpampClient.webSocketBuilder().enableRemoteConfig().build();
 
     client.start(
         new OpampClient.Callback() {
