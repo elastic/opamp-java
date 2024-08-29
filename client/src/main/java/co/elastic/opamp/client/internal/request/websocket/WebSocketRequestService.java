@@ -40,6 +40,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   private final PeriodicDelay periodicRetryDelay;
   private final AtomicBoolean retryConnectionModeEnabled = new AtomicBoolean(false);
   private final AtomicBoolean websocketRunning = new AtomicBoolean(false);
+  private final AtomicBoolean hasPendingRequest = new AtomicBoolean(false);
   private PeriodicTaskExecutor executor;
   private Callback callback;
   private Supplier<Request> requestSupplier;
@@ -58,7 +59,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   public void start(Callback callback, Supplier<Request> requestSupplier) {
     this.callback = callback;
     this.requestSupplier = requestSupplier;
-    if (websocketRunning.compareAndSet(false, true)) {
+    if (!websocketRunning.get()) {
       webSocket.start(this);
     }
   }
@@ -67,6 +68,8 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   public void sendRequest() {
     if (websocketRunning.get()) {
       doSendRequest();
+    } else {
+      hasPendingRequest.set(true);
     }
   }
 
@@ -93,7 +96,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
     disableRetryMode();
     websocketRunning.set(true);
     callback.onConnectionSuccess();
-    if (retryConnectionModeEnabled.get()) {
+    if (hasPendingRequest.compareAndSet(true, false)) {
       sendRequest();
     }
   }
@@ -167,6 +170,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
 
   private void retry() {
     if (retryConnectionModeEnabled.get()) {
+      hasPendingRequest.set(true);
       webSocket.start(this);
     }
   }
