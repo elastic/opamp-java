@@ -18,13 +18,14 @@
  */
 package co.elastic.opamp.client.internal.request.http;
 
+import co.elastic.opamp.client.connectivity.http.HttpErrorException;
 import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.HttpSender;
-import co.elastic.opamp.client.request.HttpSender.Response;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
+import co.elastic.opamp.client.response.Response;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
@@ -126,15 +127,18 @@ public final class HttpRequestService implements RequestService, Runnable {
     try {
       Opamp.AgentToServer agentToServer = requestSupplier.get().getAgentToServer();
 
-      try (Response response =
+      try (HttpSender.Response response =
           requestSender
               .send(
                   new ByteArrayWriter(agentToServer.toByteArray()),
                   agentToServer.getSerializedSize())
               .get()) {
-        callback.onRequestSuccess(
-            co.elastic.opamp.client.response.Response.create(
-                Opamp.ServerToAgent.parseFrom(response.bodyInputStream())));
+        if (isSuccessful(response)) {
+          handleResponse(
+              Response.create(Opamp.ServerToAgent.parseFrom(response.bodyInputStream())));
+        } else {
+          handleHttpError(response);
+        }
       } catch (IOException e) {
         callback.onRequestFailed(e);
       }
@@ -143,6 +147,40 @@ public final class HttpRequestService implements RequestService, Runnable {
       callback.onRequestFailed(e);
     } catch (ExecutionException e) {
       callback.onRequestFailed(e.getCause());
+    }
+  }
+
+  private void handleHttpError(HttpSender.Response response) {
+    int errorCode = response.statusCode();
+    callback.onRequestFailed(new HttpErrorException(errorCode, response.statusMessage()));
+
+    if (errorCode == 503 || errorCode == 429) {
+      String retryAfterHeader = response.getHeader("Retry-After");
+      Duration retryAfter = null;
+      if (retryAfterHeader != null) {
+        // retryAfter = TODO parse header to duration
+      }
+      enableRetryMode(retryAfter);
+    }
+  }
+
+  private boolean isSuccessful(HttpSender.Response response) {
+    return response.statusCode() >= 200 && response.statusCode() < 300;
+  }
+
+  private void handleResponse(Response response) {
+    Opamp.ServerToAgent serverToAgent = response.getServerToAgent();
+
+    if (serverToAgent.hasErrorResponse()) {
+      handleErrorResponse(serverToAgent.getErrorResponse());
+    }
+
+    callback.onRequestSuccess(response);
+  }
+
+  private void handleErrorResponse(Opamp.ServerErrorResponse errorResponse) {
+    if (errorResponse.hasRetryInfo()) {
+      enableRetryMode(Duration.ofNanos(errorResponse.getRetryInfo().getRetryAfterNanoseconds()));
     }
   }
 

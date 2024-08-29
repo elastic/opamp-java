@@ -22,8 +22,6 @@ import co.elastic.opamp.client.request.HttpSender;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import okhttp3.MediaType;
@@ -107,8 +105,8 @@ public class OkHttpSender implements HttpSender {
     }
 
     @Override
-    public Map<String, List<String>> headers() {
-      return response.headers().toMultimap();
+    public String getHeader(String name) {
+      return response.headers().get(name);
     }
 
     @Override

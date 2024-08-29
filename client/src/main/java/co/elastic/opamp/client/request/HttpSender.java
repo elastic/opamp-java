@@ -21,8 +21,6 @@ package co.elastic.opamp.client.request;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -37,6 +35,6 @@ public interface HttpSender {
 
     InputStream bodyInputStream();
 
-    Map<String, List<String>> headers();
+    String getHeader(String name);
   }
 }
