@@ -84,7 +84,10 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
 
   @Override
   public void stop() {
-    webSocket.stop();
+    if (websocketRunning.get()) {
+      doSendRequest();
+      webSocket.stop();
+    }
   }
 
   @Override
