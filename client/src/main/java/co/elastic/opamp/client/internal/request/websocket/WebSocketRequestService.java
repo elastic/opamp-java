@@ -38,7 +38,7 @@ import opamp.proto.Opamp;
 public final class WebSocketRequestService implements RequestService, WebSocketListener, Runnable {
   private final WebSocket webSocket;
   private final PeriodicDelay periodicRetryDelay;
-  private final AtomicBoolean retryModeEnabled = new AtomicBoolean(false);
+  private final AtomicBoolean retryConnectionModeEnabled = new AtomicBoolean(false);
   private final AtomicBoolean websocketRunning = new AtomicBoolean(false);
   private PeriodicTaskExecutor executor;
   private Callback callback;
@@ -84,10 +84,8 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
 
   @Override
   public void stop() {
-    if (websocketRunning.get()) {
-      doSendRequest();
-      webSocket.stop();
-    }
+    sendRequest();
+    stopWebSocket();
   }
 
   @Override
@@ -95,7 +93,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
     disableRetryMode();
     websocketRunning.set(true);
     callback.onConnectionSuccess();
-    if (retryModeEnabled.get()) {
+    if (retryConnectionModeEnabled.get()) {
       sendRequest();
     }
   }
@@ -134,8 +132,8 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   }
 
   private void enableRetryMode(Duration retryAfter) {
-    if (retryModeEnabled.compareAndSet(false, true)) {
-      webSocket.stop();
+    if (retryConnectionModeEnabled.compareAndSet(false, true)) {
+      stopWebSocket();
       if (retryAfter != null && periodicRetryDelay instanceof AcceptsDelaySuggestion) {
         ((AcceptsDelaySuggestion) periodicRetryDelay).suggestDelay(retryAfter);
       }
@@ -145,7 +143,7 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   }
 
   private void disableRetryMode() {
-    if (retryModeEnabled.compareAndSet(true, false)) {
+    if (retryConnectionModeEnabled.compareAndSet(true, false)) {
       executor.stop();
       executor = null;
     }
@@ -168,8 +166,14 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   }
 
   private void retry() {
-    if (retryModeEnabled.get()) {
+    if (retryConnectionModeEnabled.get()) {
       webSocket.start(this);
+    }
+  }
+
+  private void stopWebSocket() {
+    if (websocketRunning.get()) {
+      webSocket.stop();
     }
   }
 }
