@@ -26,8 +26,8 @@ import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import co.elastic.opamp.client.response.Response;
+import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
-import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
@@ -104,16 +104,26 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   @Override
   public void onMessage(WebSocket webSocket, byte[] data) {
     try {
-      Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.parseFrom(data);
+      Opamp.ServerToAgent serverToAgent = readServerToAgent(data);
 
       if (serverToAgent.hasErrorResponse()) {
         handleServerError(serverToAgent.getErrorResponse());
       }
 
       callback.onRequestSuccess(Response.create(serverToAgent));
-    } catch (InvalidProtocolBufferException e) {
+    } catch (IOException e) {
       callback.onRequestFailed(e);
     }
+  }
+
+  private static Opamp.ServerToAgent readServerToAgent(byte[] data) throws IOException {
+    CodedInputStream codedInputStream = CodedInputStream.newInstance(data);
+    long header = codedInputStream.readRawVarint64();
+    int totalBytesRead = codedInputStream.getTotalBytesRead();
+    int payloadSize = data.length - totalBytesRead;
+    byte[] payload = new byte[payloadSize];
+    System.arraycopy(data, totalBytesRead, payload, 0, payloadSize);
+    return Opamp.ServerToAgent.parseFrom(payload);
   }
 
   private void handleServerError(Opamp.ServerErrorResponse errorResponse) {
