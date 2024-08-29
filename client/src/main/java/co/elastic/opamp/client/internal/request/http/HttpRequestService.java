@@ -19,8 +19,8 @@
 package co.elastic.opamp.client.internal.request.http;
 
 import co.elastic.opamp.client.connectivity.http.HttpErrorException;
+import co.elastic.opamp.client.connectivity.http.HttpSender;
 import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
-import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;

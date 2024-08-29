@@ -29,8 +29,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import co.elastic.opamp.client.connectivity.http.HttpSender;
 import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
-import co.elastic.opamp.client.request.HttpSender;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;

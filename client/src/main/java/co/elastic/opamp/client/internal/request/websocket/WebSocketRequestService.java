@@ -1,0 +1,150 @@
+package co.elastic.opamp.client.internal.request.websocket;
+
+import co.elastic.opamp.client.connectivity.websocket.WebSocket;
+import co.elastic.opamp.client.connectivity.websocket.WebSocketListener;
+import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
+import co.elastic.opamp.client.request.Request;
+import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
+import co.elastic.opamp.client.response.Response;
+import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+import opamp.proto.Opamp;
+
+public class WebSocketRequestService implements RequestService, WebSocketListener, Runnable {
+  private final WebSocket webSocket;
+  private final PeriodicDelay periodicRetryDelay;
+  private final AtomicBoolean retryModeEnabled = new AtomicBoolean(false);
+  private final AtomicBoolean websocketRunning = new AtomicBoolean(false);
+  private PeriodicTaskExecutor executor;
+  private Callback callback;
+  private Supplier<Request> requestSupplier;
+
+  public WebSocketRequestService(
+      WebSocket webSocket, PeriodicDelay periodicRetryDelay, PeriodicTaskExecutor executor) {
+    this.webSocket = webSocket;
+    this.periodicRetryDelay = periodicRetryDelay;
+    this.executor = executor;
+  }
+
+  @Override
+  public void start(Callback callback, Supplier<Request> requestSupplier) {
+    this.callback = callback;
+    this.requestSupplier = requestSupplier;
+    if (websocketRunning.compareAndSet(false, true)) {
+      webSocket.start(this);
+    }
+  }
+
+  @Override
+  public void sendRequest() {
+    if (websocketRunning.get()) {
+      doSendRequest();
+    }
+  }
+
+  private void doSendRequest() {
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+      CodedOutputStream codedOutput = CodedOutputStream.newInstance(outputStream);
+      codedOutput.writeUInt64NoTag(0);
+      requestSupplier.get().getAgentToServer().writeTo(codedOutput);
+      codedOutput.flush();
+      webSocket.send(outputStream.toByteArray());
+    } catch (IOException e) {
+      callback.onRequestFailed(e);
+    }
+  }
+
+  @Override
+  public void stop() {
+    webSocket.stop();
+  }
+
+  @Override
+  public void onOpened(WebSocket webSocket) {
+    websocketRunning.set(true);
+    callback.onConnectionSuccess();
+    if (retryModeEnabled.get()) {
+      sendRequest();
+    }
+  }
+
+  @Override
+  public void onMessage(WebSocket webSocket, byte[] data) {
+    disableRetryMode();
+    try {
+      Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.parseFrom(data);
+
+      if (serverToAgent.hasErrorResponse()) {
+        handleServerError(serverToAgent.getErrorResponse());
+      }
+
+      callback.onRequestSuccess(Response.create(serverToAgent));
+    } catch (InvalidProtocolBufferException e) {
+      callback.onRequestFailed(e);
+    }
+  }
+
+  private void handleServerError(Opamp.ServerErrorResponse errorResponse) {
+    if (shouldRetry(errorResponse)) {
+      Duration retryAfter = null;
+
+      if (errorResponse.hasRetryInfo()) {
+        retryAfter = Duration.ofNanos(errorResponse.getRetryInfo().getRetryAfterNanoseconds());
+      }
+
+      enableRetryMode(retryAfter);
+    }
+  }
+
+  private static boolean shouldRetry(Opamp.ServerErrorResponse errorResponse) {
+    return errorResponse
+        .getType()
+        .equals(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable);
+  }
+
+  private void enableRetryMode(Duration retryAfter) {
+    if (retryModeEnabled.compareAndSet(false, true)) {
+      webSocket.stop();
+      if (retryAfter != null && periodicRetryDelay instanceof AcceptsDelaySuggestion) {
+        ((AcceptsDelaySuggestion) periodicRetryDelay).suggestDelay(retryAfter);
+      }
+      executor = PeriodicTaskExecutor.create(periodicRetryDelay);
+      executor.start(this);
+    }
+  }
+
+  private void disableRetryMode() {
+    if (retryModeEnabled.compareAndSet(true, false)) {
+      executor.stop();
+      executor = null;
+    }
+  }
+
+  @Override
+  public void onClosed(WebSocket webSocket) {
+    websocketRunning.set(false);
+  }
+
+  @Override
+  public void onFailure(WebSocket webSocket, Throwable t) {
+    callback.onConnectionFailed(t);
+  }
+
+  @Override
+  public void run() {
+    retry();
+  }
+
+  private void retry() {
+    if (retryModeEnabled.get()) {
+      webSocket.start(this);
+    }
+  }
+}

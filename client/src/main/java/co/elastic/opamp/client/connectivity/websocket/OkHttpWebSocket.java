@@ -18,10 +18,6 @@
  */
 package co.elastic.opamp.client.connectivity.websocket;
 
-import co.elastic.opamp.client.request.Request;
-import com.google.protobuf.CodedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okio.ByteString;
@@ -52,16 +48,8 @@ public class OkHttpWebSocket extends okhttp3.WebSocketListener implements WebSoc
   }
 
   @Override
-  public void send(Request request) {
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      CodedOutputStream codedOutput = CodedOutputStream.newInstance(outputStream);
-      codedOutput.writeUInt64NoTag(0);
-      request.getAgentToServer().writeTo(codedOutput);
-      codedOutput.flush();
-      webSocket.send(ByteString.of(outputStream.toByteArray()));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void send(byte[] request) {
+    webSocket.send(ByteString.of(request));
   }
 
   @Override

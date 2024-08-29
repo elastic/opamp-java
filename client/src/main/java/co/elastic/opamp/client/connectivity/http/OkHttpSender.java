@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.connectivity.http;
 
-import co.elastic.opamp.client.request.HttpSender;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
