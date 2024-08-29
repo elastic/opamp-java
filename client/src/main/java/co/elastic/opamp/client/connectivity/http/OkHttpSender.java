@@ -61,7 +61,8 @@ public class OkHttpSender implements HttpSender {
     RequestBody body = new RawRequestBody(writer, contentLength, MediaType.parse(contentType));
     builder.post(body);
 
-    try (okhttp3.Response response = client.newCall(builder.build()).execute()) {
+    try {
+      okhttp3.Response response = client.newCall(builder.build()).execute();
       if (response.isSuccessful()) {
         if (response.body() != null) {
           future.complete(new OkHttpResponse(response));
