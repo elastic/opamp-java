@@ -20,7 +20,8 @@ package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.connectivity.websocket.OkHttpWebSocket;
 import co.elastic.opamp.client.connectivity.websocket.WebSocket;
-import co.elastic.opamp.client.internal.WebSocketOpampClient;
+import co.elastic.opamp.client.internal.OpampClientImpl;
+import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
 import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
 import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
@@ -30,14 +31,18 @@ import co.elastic.opamp.client.internal.request.visitors.InstanceUidVisitor;
 import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
 import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
 import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
+import co.elastic.opamp.client.internal.request.websocket.WebSocketRequestService;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.request.delay.PeriodicDelay;
+import java.time.Duration;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
 public final class WebSocketOpampClientBuilder {
-  private WebSocket webSocket = OkHttpWebSocket.create("ws://localhost:4320/v1/opamp");
   private final OpampClientState state = OpampClientState.create();
+  private WebSocket webSocket = OkHttpWebSocket.create("ws://localhost:4320/v1/opamp");
+  private PeriodicDelay retryIntervalDelay = PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
 
   /**
    * Sets the Agent's <a
@@ -54,6 +59,19 @@ public final class WebSocketOpampClientBuilder {
 
   public WebSocketOpampClientBuilder setWebSocket(WebSocket webSocket) {
     this.webSocket = webSocket;
+    return this;
+  }
+
+  /**
+   * Sets the {@link PeriodicDelay} implementation for retry operations when connecting to the
+   * Server. Check out the {@link PeriodicDelay} docs for more details. By default, is set to a
+   * fixed duration of 30 seconds each interval.
+   *
+   * @param retryIntervalDelay The retry interval handler implementation.
+   * @return this
+   */
+  public WebSocketOpampClientBuilder setRetryIntervalDelay(PeriodicDelay retryIntervalDelay) {
+    this.retryIntervalDelay = retryIntervalDelay;
     return this;
   }
 
@@ -134,7 +152,11 @@ public final class WebSocketOpampClientBuilder {
             InstanceUidVisitor.create(state.instanceUidState),
             FlagsVisitor.create(),
             AgentDisconnectVisitor.create());
-    return WebSocketOpampClient.create(webSocket, visitors, state);
+
+    return OpampClientImpl.create(
+        WebSocketRequestService.create(webSocket, retryIntervalDelay),
+        RequestProvider.create(visitors),
+        state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

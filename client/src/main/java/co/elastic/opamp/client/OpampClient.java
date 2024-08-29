@@ -23,7 +23,7 @@ import opamp.proto.Opamp;
 
 public interface OpampClient {
 
-  static HttpOpampClientBuilder builder() {
+  static HttpOpampClientBuilder httpBuilder() {
     return new HttpOpampClientBuilder();
   }
 

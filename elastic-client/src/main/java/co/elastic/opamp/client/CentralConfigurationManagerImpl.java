@@ -150,7 +150,7 @@ public final class CentralConfigurationManagerImpl
     }
 
     public CentralConfigurationManagerImpl build() {
-      HttpOpampClientBuilder builder = OpampClient.builder();
+      HttpOpampClientBuilder builder = OpampClient.httpBuilder();
       if (serviceName != null) {
         builder.setServiceName(serviceName);
       }
