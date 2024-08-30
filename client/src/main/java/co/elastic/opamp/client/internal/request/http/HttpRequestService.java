@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
@@ -40,9 +41,9 @@ public final class HttpRequestService implements RequestService, Runnable {
   private final PeriodicDelay periodicRequestDelay;
   private final PeriodicDelay periodicRetryDelay;
   private final Object runningLock = new Object();
+  private final AtomicBoolean retryModeEnabled = new AtomicBoolean(false);
   private Callback callback;
   private Supplier<Request> requestSupplier;
-  private boolean retryModeEnabled = false;
   private boolean isRunning = false;
   private boolean isStopped = false;
 
@@ -97,25 +98,25 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   private void enableRetryMode(Duration suggestedDelay) {
-    if (!retryModeEnabled) {
-      retryModeEnabled = true;
-      if (suggestedDelay != null && periodicRequestDelay instanceof AcceptsDelaySuggestion) {
-        ((AcceptsDelaySuggestion) periodicRequestDelay).suggestDelay(suggestedDelay);
+    if (retryModeEnabled.compareAndSet(false, true)) {
+      if (suggestedDelay != null && periodicRetryDelay instanceof AcceptsDelaySuggestion) {
+        ((AcceptsDelaySuggestion) periodicRetryDelay).suggestDelay(suggestedDelay);
       }
       executor.setPeriodicDelay(periodicRetryDelay);
     }
   }
 
   private void disableRetryMode() {
-    if (retryModeEnabled) {
-      retryModeEnabled = false;
+    if (retryModeEnabled.compareAndSet(true, false)) {
       executor.setPeriodicDelay(periodicRequestDelay);
     }
   }
 
   @Override
   public void sendRequest() {
-    executor.executeNow();
+    if (!retryModeEnabled.get()) {
+      executor.executeNow();
+    }
   }
 
   @Override
@@ -169,7 +170,7 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   private void handleResponse(Response response) {
-    if (retryModeEnabled) {
+    if (retryModeEnabled.get()) {
       disableRetryMode();
     }
     Opamp.ServerToAgent serverToAgent = response.getServerToAgent();
@@ -182,8 +183,14 @@ public final class HttpRequestService implements RequestService, Runnable {
   }
 
   private void handleErrorResponse(Opamp.ServerErrorResponse errorResponse) {
-    if (errorResponse.hasRetryInfo()) {
-      enableRetryMode(Duration.ofNanos(errorResponse.getRetryInfo().getRetryAfterNanoseconds()));
+    if (errorResponse
+        .getType()
+        .equals(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)) {
+      Duration retryAfter = null;
+      if (errorResponse.hasRetryInfo()) {
+        retryAfter = Duration.ofNanos(errorResponse.getRetryInfo().getRetryAfterNanoseconds());
+      }
+      enableRetryMode(retryAfter);
     }
   }
 

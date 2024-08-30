@@ -22,19 +22,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import co.elastic.opamp.client.connectivity.http.HttpErrorException;
 import co.elastic.opamp.client.connectivity.http.HttpSender;
 import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
+import co.elastic.opamp.client.response.Response;
+import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HttpRequestServiceTest {
   @Mock private HttpSender requestSender;
   @Mock private PeriodicDelay periodicRequestDelay;
-  @Mock private PeriodicDelay periodicRetryDelay;
+  @Mock private TestPeriodicRetryDelay periodicRetryDelay;
   @Mock private PeriodicTaskExecutor executor;
   @Mock private RequestService.Callback callback;
   @Mock private Supplier<Request> requestSupplier;
@@ -109,13 +118,221 @@ class HttpRequestServiceTest {
     }
   }
 
+  @Test
+  void verifySendingRequest_happyPath() {
+    HttpSender.Response httpResponse = mock();
+    Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.getDefaultInstance();
+    attachServerToAgentMessage(serverToAgent.toByteArray(), httpResponse);
+    prepareRequest();
+    enqueueResponse(httpResponse);
+
+    httpRequestService.run();
+
+    verify(requestSender).send(any(), eq(REQUEST_SIZE));
+    verify(callback).onRequestSuccess(Response.create(serverToAgent));
+  }
+
+  @Test
+  void verifySendingRequest_whenTheresAParsingError() {
+    HttpSender.Response httpResponse = mock();
+    attachServerToAgentMessage(new byte[] {1, 2, 3}, httpResponse);
+    prepareRequest();
+    enqueueResponse(httpResponse);
+
+    httpRequestService.run();
+
+    verify(requestSender).send(any(), eq(REQUEST_SIZE));
+    verify(callback).onRequestFailed(any());
+  }
+
+  @Test
+  void verifySendingRequest_whenThereIsAnExecutionError()
+      throws ExecutionException, InterruptedException {
+    prepareRequest();
+    CompletableFuture<HttpSender.Response> future = mock();
+    doReturn(future).when(requestSender).send(any(), anyInt());
+    Exception myException = mock();
+    doThrow(new ExecutionException(myException)).when(future).get();
+
+    httpRequestService.run();
+
+    verify(requestSender).send(any(), eq(REQUEST_SIZE));
+    verify(callback).onRequestFailed(myException);
+  }
+
+  @Test
+  void verifySendingRequest_whenThereIsAnInterruptedException()
+      throws ExecutionException, InterruptedException {
+    prepareRequest();
+    CompletableFuture<HttpSender.Response> future = mock();
+    doReturn(future).when(requestSender).send(any(), anyInt());
+    InterruptedException myException = mock();
+    doThrow(myException).when(future).get();
+
+    httpRequestService.run();
+
+    verify(requestSender).send(any(), eq(REQUEST_SIZE));
+    verify(callback).onRequestFailed(myException);
+  }
+
+  @Test
+  void verifySendingRequest_whenThereIsAGenericHttpError() {
+    HttpSender.Response response = mock();
+    doReturn(500).when(response).statusCode();
+    doReturn("Error message").when(response).statusMessage();
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(callback).onRequestFailed(new HttpErrorException(500, "Error message"));
+    verifyNoInteractions(executor);
+  }
+
+  @Test
+  void verifySendingRequest_whenThereIsATooManyRequestsError() {
+    HttpSender.Response response = mock();
+    doReturn(429).when(response).statusCode();
+    doReturn("Error message").when(response).statusMessage();
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(callback).onRequestFailed(new HttpErrorException(429, "Error message"));
+    verify(executor).setPeriodicDelay(periodicRetryDelay);
+  }
+
+  @Test
+  void verifySendingRequest_whenServerProvidesRetryInfo_usingTheProvidedInfo() {
+    HttpSender.Response response = mock();
+    long nanosecondsToWaitForRetry = 1000;
+    Opamp.ServerErrorResponse errorResponse =
+        Opamp.ServerErrorResponse.newBuilder()
+            .setType(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)
+            .setRetryInfo(
+                Opamp.RetryInfo.newBuilder()
+                    .setRetryAfterNanoseconds(nanosecondsToWaitForRetry)
+                    .build())
+            .build();
+    Opamp.ServerToAgent serverToAgent =
+        Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build();
+    attachServerToAgentMessage(serverToAgent.toByteArray(), response);
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(callback).onRequestSuccess(Response.create(serverToAgent));
+    verify(periodicRetryDelay).suggestDelay(Duration.ofNanos(nanosecondsToWaitForRetry));
+    verify(executor).setPeriodicDelay(periodicRetryDelay);
+  }
+
+  @Test
+  void verifySendingRequest_whenServerIsUnavailable() {
+    HttpSender.Response response = mock();
+    Opamp.ServerErrorResponse errorResponse =
+        Opamp.ServerErrorResponse.newBuilder()
+            .setType(Opamp.ServerErrorResponseType.ServerErrorResponseType_Unavailable)
+            .build();
+    Opamp.ServerToAgent serverToAgent =
+        Opamp.ServerToAgent.newBuilder().setErrorResponse(errorResponse).build();
+    attachServerToAgentMessage(serverToAgent.toByteArray(), response);
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(callback).onRequestSuccess(Response.create(serverToAgent));
+    verify(periodicRetryDelay, never()).suggestDelay(any());
+    verify(executor).setPeriodicDelay(periodicRetryDelay);
+  }
+
+  @Test
+  void verifySendingRequest_whenThereIsAServiceUnavailableError() {
+    HttpSender.Response response = mock();
+    doReturn(503).when(response).statusCode();
+    doReturn("Error message").when(response).statusMessage();
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(callback).onRequestFailed(new HttpErrorException(503, "Error message"));
+    verify(executor).setPeriodicDelay(periodicRetryDelay);
+  }
+
+  @Test
+  void verifySendingRequest_duringRegularMode() {
+    httpRequestService.sendRequest();
+
+    verify(executor).executeNow();
+  }
+
+  @Test
+  void verifySendingRequest_duringRetryMode() {
+    enableRetryMode();
+
+    httpRequestService.sendRequest();
+
+    verify(executor, never()).executeNow();
+  }
+
+  @Test
+  void verifySuccessfulSendingRequest_duringRetryMode() {
+    enableRetryMode();
+    HttpSender.Response response = mock();
+    doReturn(200).when(response).statusCode();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+
+    verify(executor).setPeriodicDelay(periodicRequestDelay);
+  }
+
+  private void enableRetryMode() {
+    HttpSender.Response response = mock();
+    doReturn(503).when(response).statusCode();
+    doReturn("Error message").when(response).statusMessage();
+    prepareRequest();
+    enqueueResponse(response);
+
+    httpRequestService.run();
+  }
+
   private void prepareRequest() {
+    httpRequestService.start(callback, requestSupplier);
+    clearInvocations(executor);
     Opamp.AgentToServer agentToServer = mock(Opamp.AgentToServer.class);
     doReturn(REQUEST_SIZE).when(agentToServer).getSerializedSize();
     doReturn(agentToServer).when(request).getAgentToServer();
     doReturn(request).when(requestSupplier).get();
-    doReturn(CompletableFuture.completedFuture(mock(HttpSender.Response.class)))
+  }
+
+  private void enqueueResponse(HttpSender.Response httpResponse) {
+    doReturn(CompletableFuture.completedFuture(httpResponse))
         .when(requestSender)
         .send(any(), anyInt());
+  }
+
+  private static void attachServerToAgentMessage(
+      byte[] serverToAgent, HttpSender.Response httpResponse) {
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serverToAgent);
+    doReturn(200).when(httpResponse).statusCode();
+    doReturn(byteArrayInputStream).when(httpResponse).bodyInputStream();
+  }
+
+  private static class TestPeriodicRetryDelay implements PeriodicDelay, AcceptsDelaySuggestion {
+
+    @Override
+    public void suggestDelay(Duration delay) {}
+
+    @Override
+    public Duration getNextDelay() {
+      return null;
+    }
+
+    @Override
+    public void reset() {}
   }
 }

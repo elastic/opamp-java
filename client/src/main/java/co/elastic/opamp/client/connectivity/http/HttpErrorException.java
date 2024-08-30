@@ -18,12 +18,27 @@
  */
 package co.elastic.opamp.client.connectivity.http;
 
+import java.util.Objects;
+
 /**
  * Exception provided inside a {@link co.elastic.opamp.client.request.RequestService.Response.Error}
  * response from a {@link co.elastic.opamp.client.request.RequestService}.
  */
 public class HttpErrorException extends Exception {
   public final int errorCode;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HttpErrorException that = (HttpErrorException) o;
+    return errorCode == that.errorCode && Objects.equals(getMessage(), that.getMessage());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(errorCode, getMessage());
+  }
 
   /**
    * Constructs an HTTP error related exception.
