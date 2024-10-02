@@ -22,16 +22,16 @@ import co.elastic.opamp.client.connectivity.http.HttpSender;
 import co.elastic.opamp.client.connectivity.http.OkHttpSender;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.request.RequestProvider;
+import co.elastic.opamp.client.internal.request.appenders.AgentDescriptionAppender;
+import co.elastic.opamp.client.internal.request.appenders.AgentDisconnectAppender;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.appenders.CapabilitiesAppender;
+import co.elastic.opamp.client.internal.request.appenders.EffectiveConfigAppender;
+import co.elastic.opamp.client.internal.request.appenders.FlagsAppender;
+import co.elastic.opamp.client.internal.request.appenders.InstanceUidAppender;
+import co.elastic.opamp.client.internal.request.appenders.RemoteConfigStatusAppender;
+import co.elastic.opamp.client.internal.request.appenders.SequenceNumberAppender;
 import co.elastic.opamp.client.internal.request.http.HttpRequestService;
-import co.elastic.opamp.client.internal.request.visitors.AgentDescriptionVisitor;
-import co.elastic.opamp.client.internal.request.visitors.AgentDisconnectVisitor;
-import co.elastic.opamp.client.internal.request.visitors.CapabilitiesVisitor;
-import co.elastic.opamp.client.internal.request.visitors.EffectiveConfigVisitor;
-import co.elastic.opamp.client.internal.request.visitors.FlagsVisitor;
-import co.elastic.opamp.client.internal.request.visitors.InstanceUidVisitor;
-import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
-import co.elastic.opamp.client.internal.request.visitors.RemoteConfigStatusVisitor;
-import co.elastic.opamp.client.internal.request.visitors.SequenceNumberVisitor;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.time.Duration;
@@ -164,19 +164,19 @@ public final class HttpOpampClientBuilder {
   }
 
   public OpampClient build() {
-    OpampClientVisitors visitors =
-        new OpampClientVisitors(
-            AgentDescriptionVisitor.create(state.agentDescriptionState),
-            EffectiveConfigVisitor.create(state.effectiveConfigState),
-            RemoteConfigStatusVisitor.create(state.remoteConfigStatusState),
-            SequenceNumberVisitor.create(state.sequenceNumberState),
-            CapabilitiesVisitor.create(state.capabilitiesState),
-            InstanceUidVisitor.create(state.instanceUidState),
-            FlagsVisitor.create(),
-            AgentDisconnectVisitor.create());
+    AgentToServerAppenders appenders =
+        new AgentToServerAppenders(
+            AgentDescriptionAppender.create(state.agentDescriptionState),
+            EffectiveConfigAppender.create(state.effectiveConfigState),
+            RemoteConfigStatusAppender.create(state.remoteConfigStatusState),
+            SequenceNumberAppender.create(state.sequenceNumberState),
+            CapabilitiesAppender.create(state.capabilitiesState),
+            InstanceUidAppender.create(state.instanceUidState),
+            FlagsAppender.create(),
+            AgentDisconnectAppender.create());
     HttpRequestService dispatcher =
         HttpRequestService.create(sender, pollingIntervalDelay, retryIntervalDelay);
-    return OpampClientImpl.create(dispatcher, RequestProvider.create(visitors), state);
+    return OpampClientImpl.create(dispatcher, RequestProvider.create(appenders), state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

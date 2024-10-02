@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,32 +30,32 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class OpampClientVisitorsTest {
-  @Mock private AgentDescriptionVisitor agentDescriptionVisitor;
-  @Mock private EffectiveConfigVisitor effectiveConfigVisitor;
-  @Mock private RemoteConfigStatusVisitor remoteConfigStatusVisitor;
-  @Mock private SequenceNumberVisitor sequenceNumberVisitor;
-  @Mock private CapabilitiesVisitor capabilitiesVisitor;
-  @Mock private FlagsVisitor flagsVisitor;
-  @Mock private InstanceUidVisitor instanceUidVisitor;
-  @Mock private AgentDisconnectVisitor agentDisconnectVisitor;
-  @InjectMocks private OpampClientVisitors visitors;
+class AgentToServerAppendersTest {
+  @Mock private AgentDescriptionAppender agentDescriptionAppender;
+  @Mock private EffectiveConfigAppender effectiveConfigAppender;
+  @Mock private RemoteConfigStatusAppender remoteConfigStatusAppender;
+  @Mock private SequenceNumberAppender sequenceNumberAppender;
+  @Mock private CapabilitiesAppender capabilitiesAppender;
+  @Mock private FlagsAppender flagsAppender;
+  @Mock private InstanceUidAppender instanceUidAppender;
+  @Mock private AgentDisconnectAppender agentDisconnectAppender;
+  @InjectMocks private AgentToServerAppenders appenders;
 
   @Test
-  void verifyVisitorList() {
-    assertThat(visitors.asList())
+  void verifyAppenderList() {
+    assertThat(appenders.asList())
         .extracting("class")
-        .containsExactlyInAnyOrderElementsOf(getVisitorsFromParams());
+        .containsExactlyInAnyOrderElementsOf(getAppendersFromParams());
   }
 
   @SuppressWarnings("unchecked")
-  private List<Class<? extends AgentToServerVisitor>> getVisitorsFromParams() {
-    List<Class<? extends AgentToServerVisitor>> visitorTypes = new ArrayList<>();
-    for (Parameter parameter : OpampClientVisitors.class.getConstructors()[0].getParameters()) {
-      if (AgentToServerVisitor.class.isAssignableFrom(parameter.getType())) {
-        visitorTypes.add((Class<? extends AgentToServerVisitor>) parameter.getType());
+  private List<Class<? extends AgentToServerAppender>> getAppendersFromParams() {
+    List<Class<? extends AgentToServerAppender>> appenderTypes = new ArrayList<>();
+    for (Parameter parameter : AgentToServerAppenders.class.getConstructors()[0].getParameters()) {
+      if (AgentToServerAppender.class.isAssignableFrom(parameter.getType())) {
+        appenderTypes.add((Class<? extends AgentToServerAppender>) parameter.getType());
       }
     }
-    return visitorTypes;
+    return appenderTypes;
   }
 }

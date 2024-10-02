@@ -16,27 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import opamp.proto.Opamp;
 
-public final class RemoteConfigStatusVisitor extends CompressableAgentToServerVisitor {
-  private final RemoteConfigStatusState remoteConfigStatusState;
-
-  public static RemoteConfigStatusVisitor create(RemoteConfigStatusState remoteConfigStatusState) {
-    RemoteConfigStatusVisitor visitor = new RemoteConfigStatusVisitor(remoteConfigStatusState);
-    remoteConfigStatusState.addObserver(visitor);
-    return visitor;
-  }
-
-  private RemoteConfigStatusVisitor(RemoteConfigStatusState remoteConfigStatusState) {
-    this.remoteConfigStatusState = remoteConfigStatusState;
-  }
-
-  @Override
-  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setRemoteConfigStatus(remoteConfigStatusState.get());
-  }
+/**
+ * AgentToServer request builder appender. Each implementation should match one of the AgentToServer
+ * fields and ensure the field is added to a request when necessary.
+ */
+public interface AgentToServerAppender {
+  /**
+   * Visits a request builder.
+   *
+   * @param requestContext The context of the request being build. Check {@link RequestContext} for
+   *     more details.
+   * @param builder The AgentToServer message builder.
+   */
+  void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder);
 }

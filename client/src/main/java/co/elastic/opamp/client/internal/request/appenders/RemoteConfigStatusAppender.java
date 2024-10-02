@@ -16,21 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
 import opamp.proto.Opamp;
 
-public final class AgentDisconnectVisitor implements AgentToServerVisitor {
+public final class RemoteConfigStatusAppender extends CompressableAgentToServerAppender {
+  private final RemoteConfigStatusState remoteConfigStatusState;
 
-  public static AgentDisconnectVisitor create() {
-    return new AgentDisconnectVisitor();
+  public static RemoteConfigStatusAppender create(RemoteConfigStatusState remoteConfigStatusState) {
+    RemoteConfigStatusAppender appender = new RemoteConfigStatusAppender(remoteConfigStatusState);
+    remoteConfigStatusState.addObserver(appender);
+    return appender;
   }
 
-  private AgentDisconnectVisitor() {}
+  private RemoteConfigStatusAppender(RemoteConfigStatusState remoteConfigStatusState) {
+    this.remoteConfigStatusState = remoteConfigStatusState;
+  }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    if (requestContext.stop) builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
+  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setRemoteConfigStatus(remoteConfigStatusState.get());
   }
 }

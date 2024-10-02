@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.observer.Observable;
@@ -25,10 +25,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import opamp.proto.Opamp;
 
 /**
- * Utility for {@link AgentToServerVisitor} implementations of fields that can be omitted once
+ * Utility for {@link AgentToServerAppender} implementations of fields that can be omitted once
  * they've been previously sent.
  */
-public abstract class CompressableAgentToServerVisitor implements AgentToServerVisitor, Observer {
+public abstract class CompressableAgentToServerAppender implements AgentToServerAppender, Observer {
   private final AtomicBoolean alreadySent = new AtomicBoolean(false);
 
   /**

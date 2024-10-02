@@ -16,20 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.CapabilitiesState;
 import opamp.proto.Opamp;
 
-public final class CapabilitiesVisitor implements AgentToServerVisitor {
+public final class CapabilitiesAppender implements AgentToServerAppender {
   private final CapabilitiesState capabilitiesState;
 
-  public static CapabilitiesVisitor create(CapabilitiesState capabilitiesState) {
-    return new CapabilitiesVisitor(capabilitiesState);
+  public static CapabilitiesAppender create(CapabilitiesState capabilitiesState) {
+    return new CapabilitiesAppender(capabilitiesState);
   }
 
-  private CapabilitiesVisitor(CapabilitiesState capabilitiesState) {
+  private CapabilitiesAppender(CapabilitiesState capabilitiesState) {
     this.capabilitiesState = capabilitiesState;
   }
 

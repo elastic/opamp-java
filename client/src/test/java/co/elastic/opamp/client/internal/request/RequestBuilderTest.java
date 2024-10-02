@@ -24,8 +24,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
-import co.elastic.opamp.client.internal.request.visitors.AgentToServerVisitor;
-import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppender;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,27 +33,27 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 class RequestBuilderTest {
-  private OpampClientVisitors visitors;
+  private AgentToServerAppenders appenders;
   private RequestBuilder requestBuilder;
 
   @BeforeEach
   void setUp() {
-    visitors = mock();
-    requestBuilder = new RequestBuilder(visitors);
+    appenders = mock();
+    requestBuilder = new RequestBuilder(appenders);
   }
 
   @Test
   void verifyRequestBuilding() {
-    AgentToServerVisitor mockVisitor1 = mock();
-    AgentToServerVisitor mockVisitor2 = mock();
+    AgentToServerAppender mockAppender1 = mock();
+    AgentToServerAppender mockAppender2 = mock();
     ArgumentCaptor<RequestContext> contextCaptor = ArgumentCaptor.forClass(RequestContext.class);
-    doReturn(List.of(mockVisitor1, mockVisitor2)).when(visitors).asList();
+    doReturn(List.of(mockAppender1, mockAppender2)).when(appenders).asList();
 
     requestBuilder.build();
 
-    InOrder inOrder = inOrder(mockVisitor1, mockVisitor2);
-    inOrder.verify(mockVisitor1).visit(contextCaptor.capture(), notNull());
-    inOrder.verify(mockVisitor2).visit(contextCaptor.capture(), notNull());
+    InOrder inOrder = inOrder(mockAppender1, mockAppender2);
+    inOrder.verify(mockAppender1).visit(contextCaptor.capture(), notNull());
+    inOrder.verify(mockAppender2).visit(contextCaptor.capture(), notNull());
     List<RequestContext> capturedContexts = contextCaptor.getAllValues();
     assertThat(capturedContexts).hasSize(2);
     assertThat(capturedContexts.get(0)).isEqualTo(capturedContexts.get(1));

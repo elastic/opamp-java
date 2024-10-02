@@ -16,25 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.SequenceNumberState;
+import co.elastic.opamp.client.internal.state.InstanceUidState;
+import com.google.protobuf.ByteString;
 import opamp.proto.Opamp;
 
-public final class SequenceNumberVisitor implements AgentToServerVisitor {
-  private final SequenceNumberState sequenceNumberState;
+public final class InstanceUidAppender implements AgentToServerAppender {
+  private final InstanceUidState instanceUidState;
 
-  public static SequenceNumberVisitor create(SequenceNumberState sequenceNumberState) {
-    return new SequenceNumberVisitor(sequenceNumberState);
+  public static InstanceUidAppender create(InstanceUidState instanceUidState) {
+    return new InstanceUidAppender(instanceUidState);
   }
 
-  private SequenceNumberVisitor(SequenceNumberState sequenceNumberState) {
-    this.sequenceNumberState = sequenceNumberState;
+  private InstanceUidAppender(InstanceUidState instanceUidState) {
+    this.instanceUidState = instanceUidState;
   }
 
   @Override
   public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setSequenceNum(sequenceNumberState.get());
+    builder.setInstanceUid(ByteString.copyFrom(instanceUidState.get()));
   }
 }

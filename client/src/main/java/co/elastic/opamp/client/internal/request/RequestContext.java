@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.request;
 
 /**
  * Information that affects how a request is built. Used by implementations of {@link
- * co.elastic.opamp.client.internal.request.visitors.AgentToServerVisitor}.
+ * co.elastic.opamp.client.internal.request.appenders.AgentToServerAppender}.
  */
 public final class RequestContext {
   /**

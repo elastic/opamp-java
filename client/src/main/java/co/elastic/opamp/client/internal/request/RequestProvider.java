@@ -18,16 +18,16 @@
  */
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.request.Request;
 import java.util.function.Supplier;
 
 public final class RequestProvider implements Supplier<Request> {
-  private final OpampClientVisitors visitors;
+  private final AgentToServerAppenders appenders;
   private RequestBuilder requestBuilder;
 
-  public static RequestProvider create(OpampClientVisitors visitors) {
-    RequestProvider requestProvider = new RequestProvider(visitors);
+  public static RequestProvider create(AgentToServerAppenders appenders) {
+    RequestProvider requestProvider = new RequestProvider(appenders);
     requestProvider.resetBuilder();
     return requestProvider;
   }
@@ -47,11 +47,11 @@ public final class RequestProvider implements Supplier<Request> {
     return request;
   }
 
-  private RequestProvider(OpampClientVisitors visitors) {
-    this.visitors = visitors;
+  private RequestProvider(AgentToServerAppenders appenders) {
+    this.appenders = appenders;
   }
 
   private void resetBuilder() {
-    requestBuilder = RequestBuilder.create(visitors);
+    requestBuilder = RequestBuilder.create(appenders);
   }
 }

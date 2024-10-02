@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,13 +29,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.verification.VerificationMode;
 
-class CompressableAgentToServerVisitorTest {
-  private CompressableAgentToServerVisitor visitor;
+class CompressableAgentToServerAppenderTest {
+  private CompressableAgentToServerAppender appender;
 
   @BeforeEach
   void setUp() {
-    visitor =
-        new CompressableAgentToServerVisitor() {
+    appender =
+        new CompressableAgentToServerAppender() {
           @Override
           protected void doVisit(
               RequestContext requestContext, Opamp.AgentToServer.Builder builder) {}
@@ -58,7 +58,7 @@ class CompressableAgentToServerVisitorTest {
   void verifyDoVisitAfterUpdate() {
     verifyVisit();
 
-    visitor.update(null);
+    appender.update(null);
 
     verifyVisit();
   }
@@ -80,7 +80,7 @@ class CompressableAgentToServerVisitorTest {
 
   private void verifyVisit(RequestContext context, VerificationMode verificationMode) {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
-    CompressableAgentToServerVisitor spy = spy(visitor);
+    CompressableAgentToServerAppender spy = spy(appender);
 
     spy.visit(context, builder);
 

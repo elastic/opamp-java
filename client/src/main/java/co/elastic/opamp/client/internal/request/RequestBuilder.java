@@ -18,21 +18,21 @@
  */
 package co.elastic.opamp.client.internal.request;
 
-import co.elastic.opamp.client.internal.request.visitors.OpampClientVisitors;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.request.Request;
 import opamp.proto.Opamp;
 
 public final class RequestBuilder {
-  private final OpampClientVisitors visitors;
+  private final AgentToServerAppenders appenders;
   private boolean stop = false;
   private boolean disableCompression = false;
 
-  public static RequestBuilder create(OpampClientVisitors visitors) {
-    return new RequestBuilder(visitors);
+  public static RequestBuilder create(AgentToServerAppenders appenders) {
+    return new RequestBuilder(appenders);
   }
 
-  RequestBuilder(OpampClientVisitors visitors) {
-    this.visitors = visitors;
+  RequestBuilder(AgentToServerAppenders appenders) {
+    this.appenders = appenders;
   }
 
   public RequestBuilder stop() {
@@ -49,7 +49,7 @@ public final class RequestBuilder {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
     RequestContext context =
         RequestContext.builder().setStop(stop).setDisableCompression(disableCompression).build();
-    visitors.asList().forEach(visitor -> visitor.visit(context, builder));
+    appenders.asList().forEach(appender -> appender.visit(context, builder));
     return Request.create(builder.build());
   }
 }

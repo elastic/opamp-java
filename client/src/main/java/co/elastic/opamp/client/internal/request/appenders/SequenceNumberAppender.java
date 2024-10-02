@@ -16,27 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.EffectiveConfigState;
+import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import opamp.proto.Opamp;
 
-public final class EffectiveConfigVisitor extends CompressableAgentToServerVisitor {
-  private final EffectiveConfigState effectiveConfig;
+public final class SequenceNumberAppender implements AgentToServerAppender {
+  private final SequenceNumberState sequenceNumberState;
 
-  public static EffectiveConfigVisitor create(EffectiveConfigState effectiveConfig) {
-    EffectiveConfigVisitor visitor = new EffectiveConfigVisitor(effectiveConfig);
-    effectiveConfig.addObserver(visitor);
-    return visitor;
+  public static SequenceNumberAppender create(SequenceNumberState sequenceNumberState) {
+    return new SequenceNumberAppender(sequenceNumberState);
   }
 
-  private EffectiveConfigVisitor(EffectiveConfigState effectiveConfig) {
-    this.effectiveConfig = effectiveConfig;
+  private SequenceNumberAppender(SequenceNumberState sequenceNumberState) {
+    this.sequenceNumberState = sequenceNumberState;
   }
 
   @Override
-  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setEffectiveConfig(effectiveConfig.get());
+  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setSequenceNum(sequenceNumberState.get());
   }
 }

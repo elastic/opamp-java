@@ -16,22 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import opamp.proto.Opamp;
 
-public final class AgentDescriptionVisitor extends CompressableAgentToServerVisitor {
+public final class AgentDescriptionAppender extends CompressableAgentToServerAppender {
   private final AgentDescriptionState agentDescriptionState;
 
-  public static AgentDescriptionVisitor create(AgentDescriptionState agentDescriptionState) {
-    AgentDescriptionVisitor visitor = new AgentDescriptionVisitor(agentDescriptionState);
-    agentDescriptionState.addObserver(visitor);
-    return visitor;
+  public static AgentDescriptionAppender create(AgentDescriptionState agentDescriptionState) {
+    AgentDescriptionAppender appender = new AgentDescriptionAppender(agentDescriptionState);
+    agentDescriptionState.addObserver(appender);
+    return appender;
   }
 
-  private AgentDescriptionVisitor(AgentDescriptionState agentDescriptionState) {
+  private AgentDescriptionAppender(AgentDescriptionState agentDescriptionState) {
     this.agentDescriptionState = agentDescriptionState;
   }
 

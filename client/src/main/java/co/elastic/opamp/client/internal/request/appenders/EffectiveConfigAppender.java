@@ -16,22 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.internal.state.EffectiveConfigState;
 import opamp.proto.Opamp;
 
-/**
- * AgentToServer request builder visitor. Each implementation should match one of the AgentToServer
- * fields and ensure the field is added to a request when necessary.
- */
-public interface AgentToServerVisitor {
-  /**
-   * Visits a request builder.
-   *
-   * @param requestContext The context of the request being build. Check {@link RequestContext} for
-   *     more details.
-   * @param builder The AgentToServer message builder.
-   */
-  void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder);
+public final class EffectiveConfigAppender extends CompressableAgentToServerAppender {
+  private final EffectiveConfigState effectiveConfig;
+
+  public static EffectiveConfigAppender create(EffectiveConfigState effectiveConfig) {
+    EffectiveConfigAppender appender = new EffectiveConfigAppender(effectiveConfig);
+    effectiveConfig.addObserver(appender);
+    return appender;
+  }
+
+  private EffectiveConfigAppender(EffectiveConfigState effectiveConfig) {
+    this.effectiveConfig = effectiveConfig;
+  }
+
+  @Override
+  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+    builder.setEffectiveConfig(effectiveConfig.get());
+  }
 }

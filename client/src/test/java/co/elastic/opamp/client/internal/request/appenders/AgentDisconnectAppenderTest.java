@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -29,19 +29,19 @@ import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AgentDisconnectVisitorTest {
-  private AgentDisconnectVisitor agentDisconnectVisitor;
+class AgentDisconnectAppenderTest {
+  private AgentDisconnectAppender agentDisconnectAppender;
 
   @BeforeEach
   void setUp() {
-    agentDisconnectVisitor = AgentDisconnectVisitor.create();
+    agentDisconnectAppender = AgentDisconnectAppender.create();
   }
 
   @Test
   void whenStopEnabled_sendDisconnectMessage() {
     Opamp.AgentToServer.Builder builder = mock();
 
-    agentDisconnectVisitor.visit(RequestContext.builder().setStop(true).build(), builder);
+    agentDisconnectAppender.visit(RequestContext.builder().setStop(true).build(), builder);
 
     verify(builder).setAgentDisconnect((Opamp.AgentDisconnect) notNull());
   }
@@ -50,7 +50,7 @@ class AgentDisconnectVisitorTest {
   void whenStopNotEnabled_doNotSendDisconnectMessage() {
     Opamp.AgentToServer.Builder builder = mock();
 
-    agentDisconnectVisitor.visit(RequestContext.builder().build(), builder);
+    agentDisconnectAppender.visit(RequestContext.builder().build(), builder);
 
     verify(builder, never()).setAgentDisconnect((Opamp.AgentDisconnect) any());
   }

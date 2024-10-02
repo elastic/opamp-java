@@ -16,21 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.visitors;
+package co.elastic.opamp.client.internal.request.appenders;
 
 import co.elastic.opamp.client.internal.request.RequestContext;
 import opamp.proto.Opamp;
 
-public final class FlagsVisitor implements AgentToServerVisitor {
+public final class AgentDisconnectAppender implements AgentToServerAppender {
 
-  public static FlagsVisitor create() {
-    return new FlagsVisitor();
+  public static AgentDisconnectAppender create() {
+    return new AgentDisconnectAppender();
   }
 
-  private FlagsVisitor() {}
+  private AgentDisconnectAppender() {}
 
   @Override
   public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setFlags(Opamp.AgentToServerFlags.AgentToServerFlags_Unspecified_VALUE);
+    if (requestContext.stop) builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
   }
 }
