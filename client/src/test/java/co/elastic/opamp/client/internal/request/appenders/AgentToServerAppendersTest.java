@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.lang.reflect.Parameter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -51,9 +51,9 @@ class AgentToServerAppendersTest {
   @SuppressWarnings("unchecked")
   private List<Class<? extends AgentToServerAppender>> getAppendersFromParams() {
     List<Class<? extends AgentToServerAppender>> appenderTypes = new ArrayList<>();
-    for (Parameter parameter : AgentToServerAppenders.class.getConstructors()[0].getParameters()) {
-      if (AgentToServerAppender.class.isAssignableFrom(parameter.getType())) {
-        appenderTypes.add((Class<? extends AgentToServerAppender>) parameter.getType());
+    for (Field field : AgentToServerAppenders.class.getFields()) {
+      if (AgentToServerAppender.class.isAssignableFrom(field.getType())) {
+        appenderTypes.add((Class<? extends AgentToServerAppender>) field.getType());
       }
     }
     return appenderTypes;

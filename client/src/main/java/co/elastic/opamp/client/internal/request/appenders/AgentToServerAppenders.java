@@ -23,6 +23,14 @@ import java.util.Collections;
 import java.util.List;
 
 public final class AgentToServerAppenders {
+  public final AgentDescriptionAppender agentDescriptionAppender;
+  public final EffectiveConfigAppender effectiveConfigAppender;
+  public final RemoteConfigStatusAppender remoteConfigStatusAppender;
+  public final SequenceNumberAppender sequenceNumberAppender;
+  public final CapabilitiesAppender capabilitiesAppender;
+  public final InstanceUidAppender instanceUidAppender;
+  public final FlagsAppender flagsAppender;
+  public final AgentDisconnectAppender agentDisconnectAppender;
   private final List<AgentToServerAppender> allAppenders;
 
   public AgentToServerAppenders(
@@ -34,6 +42,15 @@ public final class AgentToServerAppenders {
       InstanceUidAppender instanceUidAppender,
       FlagsAppender flagsAppender,
       AgentDisconnectAppender agentDisconnectAppender) {
+    this.agentDescriptionAppender = agentDescriptionAppender;
+    this.effectiveConfigAppender = effectiveConfigAppender;
+    this.remoteConfigStatusAppender = remoteConfigStatusAppender;
+    this.sequenceNumberAppender = sequenceNumberAppender;
+    this.capabilitiesAppender = capabilitiesAppender;
+    this.instanceUidAppender = instanceUidAppender;
+    this.flagsAppender = flagsAppender;
+    this.agentDisconnectAppender = agentDisconnectAppender;
+
     List<AgentToServerAppender> appenders = new ArrayList<>();
     appenders.add(agentDescriptionAppender);
     appenders.add(effectiveConfigAppender);
