@@ -23,7 +23,7 @@ import opamp.proto.Opamp;
 
 /**
  * AgentToServer request builder appender. Each implementation should match one of the AgentToServer
- * fields and ensure the field is added to a request when necessary.
+ * fields and ensure the field is added to a request.
  */
 public interface AgentToServerAppender {
   /**
