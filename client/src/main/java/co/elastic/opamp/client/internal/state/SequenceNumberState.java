@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-public final class SequenceNumberState extends StateHolder<Integer> {
+public final class SequenceNumberState extends State<Integer> {
 
   static SequenceNumberState create() {
     return new SequenceNumberState(1);

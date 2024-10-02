@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.state;
 
 import opamp.proto.Opamp;
 
-public final class CapabilitiesState extends StateHolder<Long> {
+public final class CapabilitiesState extends State<Long> {
 
   static CapabilitiesState create() {
     return new CapabilitiesState(Opamp.AgentCapabilities.AgentCapabilities_ReportsStatus_VALUE);

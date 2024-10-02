@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.state;
 
 import opamp.proto.Opamp;
 
-public final class EffectiveConfigState extends StateHolder<Opamp.EffectiveConfig> {
+public final class EffectiveConfigState extends State<Opamp.EffectiveConfig> {
 
   static EffectiveConfigState create() {
     return new EffectiveConfigState(Opamp.EffectiveConfig.newBuilder().build());

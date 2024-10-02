@@ -21,10 +21,10 @@ package co.elastic.opamp.client.internal.state;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import java.util.function.Supplier;
 
-public class StateHolder<T> extends Observable implements Supplier<T> {
+public class State<T> extends Observable implements Supplier<T> {
   private T state;
 
-  public StateHolder(T initialState) {
+  public State(T initialState) {
     this.state = initialState;
   }
 

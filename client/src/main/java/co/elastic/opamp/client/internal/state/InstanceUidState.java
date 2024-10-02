@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
-public final class InstanceUidState extends StateHolder<byte[]> {
+public final class InstanceUidState extends State<byte[]> {
 
   public static InstanceUidState createRandom() {
     UUID uuid = UuidCreator.getTimeOrderedEpoch();

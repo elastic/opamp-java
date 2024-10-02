@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.state;
 
 import opamp.proto.Opamp;
 
-public final class AgentDescriptionState extends StateHolder<Opamp.AgentDescription> {
+public final class AgentDescriptionState extends State<Opamp.AgentDescription> {
 
   static AgentDescriptionState create() {
     return new AgentDescriptionState(Opamp.AgentDescription.newBuilder().build());

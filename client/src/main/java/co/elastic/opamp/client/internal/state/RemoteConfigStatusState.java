@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.state;
 
 import opamp.proto.Opamp;
 
-public final class RemoteConfigStatusState extends StateHolder<Opamp.RemoteConfigStatus> {
+public final class RemoteConfigStatusState extends State<Opamp.RemoteConfigStatus> {
 
   static RemoteConfigStatusState create() {
     return new RemoteConfigStatusState(
