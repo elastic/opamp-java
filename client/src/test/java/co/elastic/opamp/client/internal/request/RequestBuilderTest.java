@@ -24,8 +24,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
-import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppender;
-import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -19,7 +19,7 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;

@@ -20,6 +20,16 @@ package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.fields.appenders.CapabilitiesAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.EffectiveConfigAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;

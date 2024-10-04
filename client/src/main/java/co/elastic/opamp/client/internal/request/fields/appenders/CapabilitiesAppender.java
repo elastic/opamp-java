@@ -16,31 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class RemoteConfigStatusAppender implements AgentToServerAppender {
-  private final Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus;
+public final class CapabilitiesAppender implements AgentToServerAppender {
+  private final Supplier<Long> capabilities;
 
-  public static RemoteConfigStatusAppender create(
-      Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus) {
-    return new RemoteConfigStatusAppender(remoteConfigStatus);
+  public static CapabilitiesAppender create(Supplier<Long> capabilities) {
+    return new CapabilitiesAppender(capabilities);
   }
 
-  private RemoteConfigStatusAppender(Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus) {
-    this.remoteConfigStatus = remoteConfigStatus;
+  private CapabilitiesAppender(Supplier<Long> capabilities) {
+    this.capabilities = capabilities;
   }
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
-    builder.setRemoteConfigStatus(remoteConfigStatus.get());
+    builder.setCapabilities(capabilities.get());
   }
 
   @Override
   public FieldType getFieldType() {
-    return FieldType.REMOTE_CONFIG_STATUS;
+    return FieldType.CAPABILITIES;
   }
 }

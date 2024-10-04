@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
 import opamp.proto.Opamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

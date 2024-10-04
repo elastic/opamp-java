@@ -16,30 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class CapabilitiesAppender implements AgentToServerAppender {
-  private final Supplier<Long> capabilities;
+public final class EffectiveConfigAppender implements AgentToServerAppender {
+  private final Supplier<Opamp.EffectiveConfig> effectiveConfig;
 
-  public static CapabilitiesAppender create(Supplier<Long> capabilities) {
-    return new CapabilitiesAppender(capabilities);
+  public static EffectiveConfigAppender create(Supplier<Opamp.EffectiveConfig> effectiveConfig) {
+    return new EffectiveConfigAppender(effectiveConfig);
   }
 
-  private CapabilitiesAppender(Supplier<Long> capabilities) {
-    this.capabilities = capabilities;
+  private EffectiveConfigAppender(Supplier<Opamp.EffectiveConfig> effectiveConfig) {
+    this.effectiveConfig = effectiveConfig;
   }
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
-    builder.setCapabilities(capabilities.get());
+    builder.setEffectiveConfig(effectiveConfig.get());
   }
 
   @Override
   public FieldType getFieldType() {
-    return FieldType.CAPABILITIES;
+    return FieldType.EFFECTIVE_CONFIG;
   }
 }

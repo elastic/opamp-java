@@ -16,26 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class AgentDisconnectAppender implements AgentToServerAppender {
+public final class AgentDescriptionAppender implements AgentToServerAppender {
+  private final Supplier<Opamp.AgentDescription> data;
 
-  public static AgentDisconnectAppender create() {
-    return new AgentDisconnectAppender();
+  public static AgentDescriptionAppender create(Supplier<Opamp.AgentDescription> data) {
+    return new AgentDescriptionAppender(data);
   }
 
-  private AgentDisconnectAppender() {}
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.AGENT_DISCONNECT;
+  private AgentDescriptionAppender(Supplier<Opamp.AgentDescription> data) {
+    this.data = data;
   }
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
-    builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
+    builder.setAgentDescription(data.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.AGENT_DESCRIPTION;
   }
 }

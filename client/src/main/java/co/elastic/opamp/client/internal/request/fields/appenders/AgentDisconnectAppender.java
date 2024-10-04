@@ -16,31 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
-import com.google.protobuf.ByteString;
-import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class InstanceUidAppender implements AgentToServerAppender {
-  private final Supplier<byte[]> instanceUid;
+public final class AgentDisconnectAppender implements AgentToServerAppender {
 
-  public static InstanceUidAppender create(Supplier<byte[]> instanceUid) {
-    return new InstanceUidAppender(instanceUid);
+  public static AgentDisconnectAppender create() {
+    return new AgentDisconnectAppender();
   }
 
-  private InstanceUidAppender(Supplier<byte[]> instanceUid) {
-    this.instanceUid = instanceUid;
+  private AgentDisconnectAppender() {}
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.AGENT_DISCONNECT;
   }
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
-    builder.setInstanceUid(ByteString.copyFrom(instanceUid.get()));
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.INSTANCE_UID;
+    builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
   }
 }

@@ -16,30 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
-import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class SequenceNumberAppender implements AgentToServerAppender {
-  private final Supplier<Integer> sequenceNumber;
+public final class FlagsAppender implements AgentToServerAppender {
 
-  public static SequenceNumberAppender create(Supplier<Integer> sequenceNumber) {
-    return new SequenceNumberAppender(sequenceNumber);
+  public static FlagsAppender create() {
+    return new FlagsAppender();
   }
 
-  private SequenceNumberAppender(Supplier<Integer> sequenceNumber) {
-    this.sequenceNumber = sequenceNumber;
-  }
+  private FlagsAppender() {}
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
-    builder.setSequenceNum(sequenceNumber.get());
+    builder.setFlags(Opamp.AgentToServerFlags.AgentToServerFlags_Unspecified_VALUE);
   }
 
   @Override
   public FieldType getFieldType() {
-    return FieldType.SEQUENCE_NUM;
+    return FieldType.FLAGS;
   }
 }
