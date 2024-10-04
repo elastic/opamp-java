@@ -24,17 +24,17 @@ import java.util.List;
 public class Observable {
   private final List<Observer> observers = new ArrayList<>();
 
-  public synchronized void addObserver(Observer observer) {
+  public final synchronized void addObserver(Observer observer) {
     if (!observers.contains(observer)) {
       observers.add(observer);
     }
   }
 
-  public synchronized void removeObserver(Observer observer) {
+  public final synchronized void removeObserver(Observer observer) {
     observers.remove(observer);
   }
 
-  protected synchronized void notifyObservers() {
+  protected final synchronized void notifyObservers() {
     for (Observer observer : observers) {
       observer.update(this);
     }
