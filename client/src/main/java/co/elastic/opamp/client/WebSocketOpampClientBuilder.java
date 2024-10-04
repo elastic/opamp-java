@@ -30,7 +30,7 @@ import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
-import co.elastic.opamp.client.internal.request.websocket.WebSocketRequestService;
+import co.elastic.opamp.client.internal.request.service.WebSocketRequestService;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.time.Duration;

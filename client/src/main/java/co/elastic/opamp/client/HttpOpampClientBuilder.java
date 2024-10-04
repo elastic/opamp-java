@@ -30,7 +30,7 @@ import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
-import co.elastic.opamp.client.internal.request.http.HttpRequestService;
+import co.elastic.opamp.client.internal.request.service.HttpRequestService;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
 import java.time.Duration;
@@ -46,7 +46,7 @@ public final class HttpOpampClientBuilder {
   private final OpampClientState state = OpampClientState.create();
 
   /**
-   * Sets an implementation of a {@link co.elastic.opamp.client.request.RequestService} to send HTTP
+   * Sets an implementation of a {@link co.elastic.opamp.client.request.service.RequestService} to send HTTP
    * requests. The default implementation uses {@link okhttp3.OkHttpClient}.
    *
    * @param sender The HTTP request sender.

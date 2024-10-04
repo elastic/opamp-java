@@ -21,8 +21,8 @@ package co.elastic.opamp.client.connectivity.http;
 import java.util.Objects;
 
 /**
- * Exception provided inside a {@link co.elastic.opamp.client.request.RequestService.Response.Error}
- * response from a {@link co.elastic.opamp.client.request.RequestService}.
+ * Exception provided inside a {@link co.elastic.opamp.client.request.service.RequestService.Response.Error}
+ * response from a {@link co.elastic.opamp.client.request.service.RequestService}.
  */
 public class HttpErrorException extends Exception {
   public final int errorCode;

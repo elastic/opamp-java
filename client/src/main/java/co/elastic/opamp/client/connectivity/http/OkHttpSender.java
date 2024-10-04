@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * {@link co.elastic.opamp.client.request.RequestService} implementation that uses {@link
+ * {@link co.elastic.opamp.client.request.service.RequestService} implementation that uses {@link
  * okhttp3.OkHttpClient} to send the request.
  */
 public class OkHttpSender implements HttpSender {

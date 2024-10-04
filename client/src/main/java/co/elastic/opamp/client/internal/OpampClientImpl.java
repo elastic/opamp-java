@@ -26,7 +26,7 @@ import co.elastic.opamp.client.internal.request.fields.FieldStateChangeListener;
 import co.elastic.opamp.client.internal.request.fields.FieldStateObserver;
 import co.elastic.opamp.client.state.observer.Observable;
 import co.elastic.opamp.client.request.Request;
-import co.elastic.opamp.client.request.RequestService;
+import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;

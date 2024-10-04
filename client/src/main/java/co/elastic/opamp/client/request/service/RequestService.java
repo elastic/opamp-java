@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.request;
+package co.elastic.opamp.client.request.service;
 
+import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.response.Response;
 import java.util.function.Supplier;
 
