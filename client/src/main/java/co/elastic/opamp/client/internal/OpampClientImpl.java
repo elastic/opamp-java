@@ -19,10 +19,12 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.internal.request.fields.FieldStateChangeListener;
+import co.elastic.opamp.client.internal.request.fields.FieldStateObserver;
 import co.elastic.opamp.client.state.observer.Observable;
-import co.elastic.opamp.client.state.observer.Observer;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.MessageData;
@@ -32,7 +34,7 @@ import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl
-    implements OpampClient, Observer, RequestService.Callback, Supplier<Request> {
+    implements OpampClient, FieldStateChangeListener, RequestService.Callback, Supplier<Request>{
   private final RequestService requestService;
   private final AgentToServerAppenders appenders;
   private final OpampClientState state;
@@ -59,7 +61,7 @@ public final class OpampClientImpl
       if (!isRunning) {
         isRunning = true;
         this.callback = callback;
-        observeStatusChange();
+        observeStateChange();
         requestService.start(this, this);
         requestService.sendRequest();
       } else {
@@ -157,17 +159,8 @@ public final class OpampClientImpl
   }
 
   @Override
-  public void update(Observable observable) {
-    // There was an agent status change.
+  public void onStateForFieldChanged(FieldType fieldType) {
     requestService.sendRequest();
-  }
-
-  private void observeStatusChange() {
-    state.agentDescriptionState.addObserver(this);
-    state.effectiveConfigState.addObserver(this);
-    state.remoteConfigStatusState.addObserver(this);
-    state.capabilitiesState.addObserver(this);
-    state.instanceUidState.addObserver(this);
   }
 
   @Override
@@ -175,5 +168,17 @@ public final class OpampClientImpl
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
     appenders.asList().forEach(appender -> appender.appendTo(builder));
     return Request.create(builder.build());
+  }
+
+  private void observeStateChange() {
+    addStateForFieldObserver(state.agentDescriptionState, FieldType.AGENT_DESCRIPTION);
+    addStateForFieldObserver(state.effectiveConfigState, FieldType.EFFECTIVE_CONFIG);
+    addStateForFieldObserver(state.remoteConfigStatusState, FieldType.REMOTE_CONFIG_STATUS);
+    addStateForFieldObserver(state.capabilitiesState, FieldType.CAPABILITIES);
+    addStateForFieldObserver(state.instanceUidState, FieldType.INSTANCE_UID);
+  }
+
+  private void addStateForFieldObserver(Observable observable, FieldType fieldType) {
+    observable.addObserver(new FieldStateObserver(this, fieldType));
   }
 }
