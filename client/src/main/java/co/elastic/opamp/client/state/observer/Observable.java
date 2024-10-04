@@ -16,9 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.state;
+package co.elastic.opamp.client.state.observer;
 
-import co.elastic.opamp.client.internal.state.observer.Observable;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class State<T> extends Observable implements Supplier<T> {}
+public class Observable {
+  private final List<Observer> observers = new ArrayList<>();
+
+  public final synchronized void addObserver(Observer observer) {
+    if (!observers.contains(observer)) {
+      observers.add(observer);
+    }
+  }
+
+  public final synchronized void removeObserver(Observer observer) {
+    observers.remove(observer);
+  }
+
+  protected final synchronized void notifyObservers() {
+    for (Observer observer : observers) {
+      observer.update(this);
+    }
+  }
+}

@@ -1,6 +1,8 @@
 package co.elastic.opamp.client.internal.state;
 
-public abstract class InMemoryState<T> extends State<T> {
+import co.elastic.opamp.client.state.State;
+
+public class InMemoryState<T> extends State<T> {
   private T state;
 
   public InMemoryState(T initialState) {

@@ -16,8 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.state.observer;
+package co.elastic.opamp.client.state;
 
-public interface Observer {
-  void update(Observable observable);
+import co.elastic.opamp.client.internal.state.InMemoryState;
+import co.elastic.opamp.client.state.observer.Observable;
+import java.util.function.Supplier;
+
+public abstract class State<T> extends Observable implements Supplier<T> {
+  public static <T> State<T> createInMemory(T initialValue) {
+    return new InMemoryState<>(initialValue);
+  }
 }
