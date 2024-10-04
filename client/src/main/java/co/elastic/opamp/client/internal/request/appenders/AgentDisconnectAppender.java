@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 public final class AgentDisconnectAppender implements AgentToServerAppender {
@@ -30,7 +30,12 @@ public final class AgentDisconnectAppender implements AgentToServerAppender {
   private AgentDisconnectAppender() {}
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    if (requestContext.stop) builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
+  public FieldType getFieldType() {
+    return FieldType.AGENT_DISCONNECT;
+  }
+
+  @Override
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setAgentDisconnect(Opamp.AgentDisconnect.newBuilder().build());
   }
 }

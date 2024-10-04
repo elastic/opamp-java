@@ -18,7 +18,7 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 public final class FlagsAppender implements AgentToServerAppender {
@@ -30,7 +30,12 @@ public final class FlagsAppender implements AgentToServerAppender {
   private FlagsAppender() {}
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
     builder.setFlags(Opamp.AgentToServerFlags.AgentToServerFlags_Unspecified_VALUE);
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.FLAGS;
   }
 }

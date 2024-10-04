@@ -18,24 +18,29 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.InstanceUidState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import com.google.protobuf.ByteString;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class InstanceUidAppender implements AgentToServerAppender {
-  private final InstanceUidState instanceUidState;
+  private final Supplier<byte[]> instanceUid;
 
-  public static InstanceUidAppender create(InstanceUidState instanceUidState) {
-    return new InstanceUidAppender(instanceUidState);
+  public static InstanceUidAppender create(Supplier<byte[]> instanceUid) {
+    return new InstanceUidAppender(instanceUid);
   }
 
-  private InstanceUidAppender(InstanceUidState instanceUidState) {
-    this.instanceUidState = instanceUidState;
+  private InstanceUidAppender(Supplier<byte[]> instanceUid) {
+    this.instanceUid = instanceUid;
   }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setInstanceUid(ByteString.copyFrom(instanceUidState.get()));
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setInstanceUid(ByteString.copyFrom(instanceUid.get()));
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.INSTANCE_UID;
   }
 }

@@ -19,19 +19,22 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.request.RequestProvider;
+import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import co.elastic.opamp.client.internal.state.observer.Observer;
+import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.RequestService;
 import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class OpampClientImpl implements OpampClient, Observer, RequestService.Callback {
+public final class OpampClientImpl
+    implements OpampClient, Observer, RequestService.Callback, Supplier<Request> {
   private final RequestService requestService;
-  private final RequestProvider requestProvider;
+  private final AgentToServerAppenders appenders;
   private final OpampClientState state;
   private final Object runningLock = new Object();
   private Callback callback;
@@ -39,14 +42,14 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
   private boolean isStopped;
 
   public static OpampClientImpl create(
-      RequestService requestService, RequestProvider requestProvider, OpampClientState state) {
-    return new OpampClientImpl(requestService, requestProvider, state);
+      RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
+    return new OpampClientImpl(requestService, appenders, state);
   }
 
   private OpampClientImpl(
-      RequestService requestService, RequestProvider requestProvider, OpampClientState state) {
+      RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
     this.requestService = requestService;
-    this.requestProvider = requestProvider;
+    this.appenders = appenders;
     this.state = state;
   }
 
@@ -57,7 +60,7 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
         isRunning = true;
         this.callback = callback;
         observeStatusChange();
-        requestService.start(this, requestProvider);
+        requestService.start(this, this);
         requestService.sendRequest();
       } else {
         throw new IllegalStateException("The client has already been started");
@@ -73,7 +76,7 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
       }
       if (!isStopped) {
         isStopped = true;
-        requestProvider.stop();
+        prepareDisconnectRequest();
         requestService.stop();
       } else {
         throw new IllegalStateException("The client has already been stopped");
@@ -119,7 +122,7 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
     }
     long reportFullState = Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE;
     if ((response.getFlags() & reportFullState) == reportFullState) {
-      requestProvider.disableCompression();
+      disableCompression();
     }
     handleAgentIdentification(response);
 
@@ -134,6 +137,14 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
     if (notifyOnMessage) {
       callback.onMessage(this, messageBuilder.build());
     }
+  }
+
+  private void disableCompression() {
+    appenders.asList().
+  }
+
+  private void prepareDisconnectRequest() {
+    appenders.agentDisconnectAppender.enable();
   }
 
   private void handleAgentIdentification(Opamp.ServerToAgent response) {
@@ -157,5 +168,12 @@ public final class OpampClientImpl implements OpampClient, Observer, RequestServ
     state.remoteConfigStatusState.addObserver(this);
     state.capabilitiesState.addObserver(this);
     state.instanceUidState.addObserver(this);
+  }
+
+  @Override
+  public Request get() {
+    Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
+    appenders.asList().forEach(appender -> appender.appendTo(builder));
+    return Request.create(builder.build());
   }
 }

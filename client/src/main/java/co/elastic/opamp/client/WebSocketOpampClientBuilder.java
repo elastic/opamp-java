@@ -21,7 +21,6 @@ package co.elastic.opamp.client;
 import co.elastic.opamp.client.connectivity.websocket.OkHttpWebSocket;
 import co.elastic.opamp.client.connectivity.websocket.WebSocket;
 import co.elastic.opamp.client.internal.OpampClientImpl;
-import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.request.appenders.AgentDescriptionAppender;
 import co.elastic.opamp.client.internal.request.appenders.AgentDisconnectAppender;
 import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
@@ -155,7 +154,7 @@ public final class WebSocketOpampClientBuilder {
 
     return OpampClientImpl.create(
         WebSocketRequestService.create(webSocket, retryIntervalDelay),
-        RequestProvider.create(appenders),
+        appenders,
         state);
   }
 

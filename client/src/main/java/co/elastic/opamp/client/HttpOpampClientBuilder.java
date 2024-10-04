@@ -21,7 +21,6 @@ package co.elastic.opamp.client;
 import co.elastic.opamp.client.connectivity.http.HttpSender;
 import co.elastic.opamp.client.connectivity.http.OkHttpSender;
 import co.elastic.opamp.client.internal.OpampClientImpl;
-import co.elastic.opamp.client.internal.request.RequestProvider;
 import co.elastic.opamp.client.internal.request.appenders.AgentDescriptionAppender;
 import co.elastic.opamp.client.internal.request.appenders.AgentDisconnectAppender;
 import co.elastic.opamp.client.internal.request.appenders.AgentToServerAppenders;
@@ -176,7 +175,7 @@ public final class HttpOpampClientBuilder {
             AgentDisconnectAppender.create());
     HttpRequestService dispatcher =
         HttpRequestService.create(sender, pollingIntervalDelay, retryIntervalDelay);
-    return OpampClientImpl.create(dispatcher, RequestProvider.create(appenders), state);
+    return OpampClientImpl.create(dispatcher, appenders, state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

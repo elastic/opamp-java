@@ -18,25 +18,29 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class RemoteConfigStatusAppender extends CompressableAgentToServerAppender {
-  private final RemoteConfigStatusState remoteConfigStatusState;
+public final class RemoteConfigStatusAppender implements AgentToServerAppender {
+  private final Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus;
 
-  public static RemoteConfigStatusAppender create(RemoteConfigStatusState remoteConfigStatusState) {
-    RemoteConfigStatusAppender appender = new RemoteConfigStatusAppender(remoteConfigStatusState);
-    remoteConfigStatusState.addObserver(appender);
-    return appender;
+  public static RemoteConfigStatusAppender create(
+      Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus) {
+    return new RemoteConfigStatusAppender(remoteConfigStatus);
   }
 
-  private RemoteConfigStatusAppender(RemoteConfigStatusState remoteConfigStatusState) {
-    this.remoteConfigStatusState = remoteConfigStatusState;
+  private RemoteConfigStatusAppender(Supplier<Opamp.RemoteConfigStatus> remoteConfigStatus) {
+    this.remoteConfigStatus = remoteConfigStatus;
   }
 
   @Override
-  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setRemoteConfigStatus(remoteConfigStatusState.get());
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setRemoteConfigStatus(remoteConfigStatus.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.REMOTE_CONFIG_STATUS;
   }
 }

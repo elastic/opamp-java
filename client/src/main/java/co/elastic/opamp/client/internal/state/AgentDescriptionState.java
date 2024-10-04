@@ -18,9 +18,10 @@
  */
 package co.elastic.opamp.client.internal.state;
 
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
-public final class AgentDescriptionState extends State<Opamp.AgentDescription> {
+public final class AgentDescriptionState extends InMemoryState<Opamp.AgentDescription> {
 
   static AgentDescriptionState create() {
     return new AgentDescriptionState(Opamp.AgentDescription.newBuilder().build());
@@ -28,5 +29,10 @@ public final class AgentDescriptionState extends State<Opamp.AgentDescription> {
 
   private AgentDescriptionState(Opamp.AgentDescription initialState) {
     super(initialState);
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.AGENT_DESCRIPTION;
   }
 }

@@ -18,23 +18,28 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.SequenceNumberState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class SequenceNumberAppender implements AgentToServerAppender {
-  private final SequenceNumberState sequenceNumberState;
+  private final Supplier<Integer> sequenceNumber;
 
-  public static SequenceNumberAppender create(SequenceNumberState sequenceNumberState) {
-    return new SequenceNumberAppender(sequenceNumberState);
+  public static SequenceNumberAppender create(Supplier<Integer> sequenceNumber) {
+    return new SequenceNumberAppender(sequenceNumber);
   }
 
-  private SequenceNumberAppender(SequenceNumberState sequenceNumberState) {
-    this.sequenceNumberState = sequenceNumberState;
+  private SequenceNumberAppender(Supplier<Integer> sequenceNumber) {
+    this.sequenceNumber = sequenceNumber;
   }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setSequenceNum(sequenceNumberState.get());
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setSequenceNum(sequenceNumber.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.SEQUENCE_NUM;
   }
 }

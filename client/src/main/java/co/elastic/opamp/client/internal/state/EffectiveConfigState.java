@@ -18,9 +18,10 @@
  */
 package co.elastic.opamp.client.internal.state;
 
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
-public final class EffectiveConfigState extends State<Opamp.EffectiveConfig> {
+public final class EffectiveConfigState extends InMemoryState<Opamp.EffectiveConfig> {
 
   static EffectiveConfigState create() {
     return new EffectiveConfigState(Opamp.EffectiveConfig.newBuilder().build());
@@ -28,5 +29,10 @@ public final class EffectiveConfigState extends State<Opamp.EffectiveConfig> {
 
   private EffectiveConfigState(Opamp.EffectiveConfig initialState) {
     super(initialState);
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.EFFECTIVE_CONFIG;
   }
 }

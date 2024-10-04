@@ -18,25 +18,28 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.EffectiveConfigState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class EffectiveConfigAppender extends CompressableAgentToServerAppender {
-  private final EffectiveConfigState effectiveConfig;
+public final class EffectiveConfigAppender implements AgentToServerAppender {
+  private final Supplier<Opamp.EffectiveConfig> effectiveConfig;
 
-  public static EffectiveConfigAppender create(EffectiveConfigState effectiveConfig) {
-    EffectiveConfigAppender appender = new EffectiveConfigAppender(effectiveConfig);
-    effectiveConfig.addObserver(appender);
-    return appender;
+  public static EffectiveConfigAppender create(Supplier<Opamp.EffectiveConfig> effectiveConfig) {
+    return new EffectiveConfigAppender(effectiveConfig);
   }
 
-  private EffectiveConfigAppender(EffectiveConfigState effectiveConfig) {
+  private EffectiveConfigAppender(Supplier<Opamp.EffectiveConfig> effectiveConfig) {
     this.effectiveConfig = effectiveConfig;
   }
 
   @Override
-  protected void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
     builder.setEffectiveConfig(effectiveConfig.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.EFFECTIVE_CONFIG;
   }
 }

@@ -18,25 +18,28 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.AgentDescriptionState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
-public final class AgentDescriptionAppender extends CompressableAgentToServerAppender {
-  private final AgentDescriptionState agentDescriptionState;
+public final class AgentDescriptionAppender implements AgentToServerAppender {
+  private final Supplier<Opamp.AgentDescription> data;
 
-  public static AgentDescriptionAppender create(AgentDescriptionState agentDescriptionState) {
-    AgentDescriptionAppender appender = new AgentDescriptionAppender(agentDescriptionState);
-    agentDescriptionState.addObserver(appender);
-    return appender;
+  public static AgentDescriptionAppender create(Supplier<Opamp.AgentDescription> data) {
+    return new AgentDescriptionAppender(data);
   }
 
-  private AgentDescriptionAppender(AgentDescriptionState agentDescriptionState) {
-    this.agentDescriptionState = agentDescriptionState;
+  private AgentDescriptionAppender(Supplier<Opamp.AgentDescription> data) {
+    this.data = data;
   }
 
   @Override
-  public void doVisit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setAgentDescription(agentDescriptionState.get());
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setAgentDescription(data.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.AGENT_DESCRIPTION;
   }
 }

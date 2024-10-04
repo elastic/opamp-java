@@ -18,12 +18,13 @@
  */
 package co.elastic.opamp.client.internal.state;
 
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import com.github.f4b6a3.uuid.UuidCreator;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
-public final class InstanceUidState extends State<byte[]> {
+public final class InstanceUidState extends InMemoryState<byte[]> {
 
   public static InstanceUidState createRandom() {
     UUID uuid = UuidCreator.getTimeOrderedEpoch();
@@ -39,6 +40,11 @@ public final class InstanceUidState extends State<byte[]> {
 
   private InstanceUidState(byte[] initialState) {
     super(initialState);
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.INSTANCE_UID;
   }
 
   @Override

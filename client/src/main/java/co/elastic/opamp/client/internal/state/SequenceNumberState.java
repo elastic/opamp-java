@@ -18,7 +18,9 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-public final class SequenceNumberState extends State<Integer> {
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+
+public final class SequenceNumberState extends InMemoryState<Integer> {
 
   static SequenceNumberState create() {
     return new SequenceNumberState(1);
@@ -26,6 +28,11 @@ public final class SequenceNumberState extends State<Integer> {
 
   private SequenceNumberState(Integer initialState) {
     super(initialState);
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.SEQUENCE_NUM;
   }
 
   public void increment() {

@@ -18,23 +18,28 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.RequestContext;
-import co.elastic.opamp.client.internal.state.CapabilitiesState;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class CapabilitiesAppender implements AgentToServerAppender {
-  private final CapabilitiesState capabilitiesState;
+  private final Supplier<Long> capabilities;
 
-  public static CapabilitiesAppender create(CapabilitiesState capabilitiesState) {
-    return new CapabilitiesAppender(capabilitiesState);
+  public static CapabilitiesAppender create(Supplier<Long> capabilities) {
+    return new CapabilitiesAppender(capabilities);
   }
 
-  private CapabilitiesAppender(CapabilitiesState capabilitiesState) {
-    this.capabilitiesState = capabilitiesState;
+  private CapabilitiesAppender(Supplier<Long> capabilities) {
+    this.capabilities = capabilities;
   }
 
   @Override
-  public void visit(RequestContext requestContext, Opamp.AgentToServer.Builder builder) {
-    builder.setCapabilities(capabilitiesState.get());
+  public void appendTo(Opamp.AgentToServer.Builder builder) {
+    builder.setCapabilities(capabilities.get());
+  }
+
+  @Override
+  public FieldType getFieldType() {
+    return FieldType.CAPABILITIES;
   }
 }
