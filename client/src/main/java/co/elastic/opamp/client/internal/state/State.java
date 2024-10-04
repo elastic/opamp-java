@@ -18,8 +18,7 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-import co.elastic.opamp.client.internal.request.fields.FieldBinding;
 import co.elastic.opamp.client.internal.state.observer.Observable;
 import java.util.function.Supplier;
 
-public abstract class State<T> extends Observable implements Supplier<T>, FieldBinding {}
+public abstract class State<T> extends Observable implements Supplier<T> {}

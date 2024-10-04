@@ -18,8 +18,6 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
-
 public final class SequenceNumberState extends InMemoryState<Integer> {
 
   static SequenceNumberState create() {
@@ -28,11 +26,6 @@ public final class SequenceNumberState extends InMemoryState<Integer> {
 
   private SequenceNumberState(Integer initialState) {
     super(initialState);
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.SEQUENCE_NUM;
   }
 
   public void increment() {

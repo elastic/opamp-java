@@ -18,18 +18,20 @@
  */
 package co.elastic.opamp.client.internal.request.appenders;
 
-import co.elastic.opamp.client.internal.request.fields.FieldBinding;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 /**
  * AgentToServer request builder appender. Each implementation should match one of the AgentToServer
  * fields and ensure the field is added to a request.
  */
-public interface AgentToServerAppender extends FieldBinding {
+public interface AgentToServerAppender {
   /**
    * Appends its data to the builder.
    *
    * @param builder The AgentToServer message builder.
    */
   void appendTo(Opamp.AgentToServer.Builder builder);
+
+  FieldType getFieldType();
 }

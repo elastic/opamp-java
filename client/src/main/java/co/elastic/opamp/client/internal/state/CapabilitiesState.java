@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 public final class CapabilitiesState extends InMemoryState<Long> {
@@ -37,10 +36,5 @@ public final class CapabilitiesState extends InMemoryState<Long> {
 
   private CapabilitiesState(long initialState) {
     super(initialState);
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.CAPABILITIES;
   }
 }

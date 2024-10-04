@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.state;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 public final class RemoteConfigStatusState extends InMemoryState<Opamp.RemoteConfigStatus> {
@@ -32,10 +31,5 @@ public final class RemoteConfigStatusState extends InMemoryState<Opamp.RemoteCon
 
   private RemoteConfigStatusState(Opamp.RemoteConfigStatus initialState) {
     super(initialState);
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.REMOTE_CONFIG_STATUS;
   }
 }
