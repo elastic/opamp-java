@@ -181,12 +181,14 @@ public final class OpampClientImpl
 
   @Override
   public void onStateForFieldChanged(FieldType fieldType) {
+    recipeManager.next().addField(fieldType);
     requestService.sendRequest();
   }
 
   @Override
   public Request get() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
+    // todo only use appenders associated to the recipe.
     appenders.asList().forEach(appender -> appender.appendTo(builder));
     return Request.create(builder.build());
   }
