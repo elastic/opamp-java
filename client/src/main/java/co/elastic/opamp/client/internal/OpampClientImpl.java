@@ -30,15 +30,17 @@ import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.response.Response;
 import com.google.protobuf.ByteString;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
 public final class OpampClientImpl
-    implements OpampClient, FieldStateChangeListener, RequestService.Callback, Supplier<Request>{
+    implements OpampClient, FieldStateChangeListener, RequestService.Callback, Supplier<Request> {
   private final RequestService requestService;
   private final AgentToServerAppenders appenders;
   private final OpampClientState state;
-  private final Object runningLock = new Object();
+  private final Lock runningLock = new ReentrantLock();
   private Callback callback;
   private boolean isRunning;
   private boolean isStopped;
@@ -57,7 +59,8 @@ public final class OpampClientImpl
 
   @Override
   public void start(Callback callback) {
-    synchronized (runningLock) {
+    runningLock.lock();
+    try {
       if (!isRunning) {
         isRunning = true;
         this.callback = callback;
@@ -67,12 +70,15 @@ public final class OpampClientImpl
       } else {
         throw new IllegalStateException("The client has already been started");
       }
+    } finally {
+      runningLock.unlock();
     }
   }
 
   @Override
   public void stop() {
-    synchronized (runningLock) {
+    runningLock.lock();
+    try {
       if (!isRunning) {
         throw new IllegalStateException("The client has not been started");
       }
@@ -83,6 +89,8 @@ public final class OpampClientImpl
       } else {
         throw new IllegalStateException("The client has already been stopped");
       }
+    } finally {
+      runningLock.unlock();
     }
   }
 
