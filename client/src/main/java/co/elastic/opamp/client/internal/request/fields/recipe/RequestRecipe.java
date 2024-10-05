@@ -1,16 +1,16 @@
 package co.elastic.opamp.client.internal.request.fields.recipe;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
-import java.util.List;
+import java.util.Collection;
 
 public final class RequestRecipe {
-  private final List<FieldType> fields;
+  private final Collection<FieldType> fields;
 
-  public RequestRecipe(List<FieldType> fields) {
+  public RequestRecipe(Collection<FieldType> fields) {
     this.fields = fields;
   }
 
-  public List<FieldType> getFields() {
+  public Collection<FieldType> getFields() {
     return fields;
   }
 }

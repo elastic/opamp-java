@@ -4,7 +4,9 @@ import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -54,7 +56,7 @@ public final class RecipeManager {
   }
 
   public final class RecipeBuilder {
-    private final List<FieldType> fields = new ArrayList<>();
+    private final Set<FieldType> fields = new HashSet<>();
 
     public RecipeBuilder addField(FieldType field) {
       fields.add(field);
@@ -69,7 +71,7 @@ public final class RecipeManager {
     public RequestRecipe build() {
       recipeBuilderLock.lock();
       try {
-        RequestRecipe recipe = new RequestRecipe(Collections.unmodifiableList(fields));
+        RequestRecipe recipe = new RequestRecipe(Collections.unmodifiableCollection(fields));
         setPreviousRecipe(recipe);
         clearBuilder();
         return recipe;
