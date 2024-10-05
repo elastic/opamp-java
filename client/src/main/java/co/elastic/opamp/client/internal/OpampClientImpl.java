@@ -19,17 +19,19 @@
 package co.elastic.opamp.client.internal;
 
 import co.elastic.opamp.client.OpampClient;
-import co.elastic.opamp.client.internal.request.fields.FieldType;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
-import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.request.fields.FieldStateChangeListener;
 import co.elastic.opamp.client.internal.request.fields.FieldStateObserver;
-import co.elastic.opamp.client.state.observer.Observable;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.fields.recipe.RecipeManager;
+import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.response.MessageData;
 import co.elastic.opamp.client.response.Response;
+import co.elastic.opamp.client.state.observer.Observable;
 import com.google.protobuf.ByteString;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -40,6 +42,10 @@ public final class OpampClientImpl
   private final RequestService requestService;
   private final AgentToServerAppenders appenders;
   private final OpampClientState state;
+  private final RecipeManager recipeManager;
+  private final List<FieldType> compressableFields =
+      List.of(
+          FieldType.AGENT_DESCRIPTION, FieldType.EFFECTIVE_CONFIG, FieldType.REMOTE_CONFIG_STATUS);
   private final Lock runningLock = new ReentrantLock();
   private Callback callback;
   private boolean isRunning;
@@ -47,14 +53,21 @@ public final class OpampClientImpl
 
   public static OpampClientImpl create(
       RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
-    return new OpampClientImpl(requestService, appenders, state);
+    RecipeManager recipeManager = new RecipeManager();
+    recipeManager.setConstantFields(
+        FieldType.INSTANCE_UID, FieldType.SEQUENCE_NUM, FieldType.CAPABILITIES);
+    return new OpampClientImpl(requestService, appenders, state, recipeManager);
   }
 
   private OpampClientImpl(
-      RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
+      RequestService requestService,
+      AgentToServerAppenders appenders,
+      OpampClientState state,
+      RecipeManager recipeManager) {
     this.requestService = requestService;
     this.appenders = appenders;
     this.state = state;
+    this.recipeManager = recipeManager;
   }
 
   @Override
@@ -150,11 +163,11 @@ public final class OpampClientImpl
   }
 
   private void disableCompression() {
-    appenders.asList().
+    recipeManager.next().addAllFields(compressableFields);
   }
 
   private void prepareDisconnectRequest() {
-    appenders.agentDisconnectAppender.enable();
+    recipeManager.next().addField(FieldType.AGENT_DISCONNECT);
   }
 
   private void handleAgentIdentification(Opamp.ServerToAgent response) {

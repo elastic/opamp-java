@@ -2,6 +2,7 @@ package co.elastic.opamp.client.internal.request.fields.recipe;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -57,6 +58,11 @@ public final class RecipeManager {
 
     public RecipeBuilder addField(FieldType field) {
       fields.add(field);
+      return this;
+    }
+
+    public RecipeBuilder addAllFields(Collection<FieldType> fields) {
+      this.fields.addAll(fields);
       return this;
     }
 
