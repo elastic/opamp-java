@@ -22,6 +22,12 @@ import co.elastic.opamp.client.internal.state.InMemoryState;
 import co.elastic.opamp.client.state.observer.Observable;
 import java.util.function.Supplier;
 
+/**
+ * Provides a request field value in its {@link #get()} method, and it also notifies the OpAMP
+ * client when a new value is available by calling its own {@link #notifyObservers()} method.
+ *
+ * @param <T> The type of value it provides.
+ */
 public abstract class State<T> extends Observable implements Supplier<T> {
   public static <T> State<T> createInMemory(T initialValue) {
     return new InMemoryState<>(initialValue);

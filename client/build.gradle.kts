@@ -27,7 +27,7 @@ afterEvaluate {
 
 dependencies {
     api(libs.okhttp)
-    implementation(libs.protobuf)
+    api(libs.protobuf)
     implementation(libs.protobuf.util)
     implementation(libs.uuidCreator)
     compileOnly(libs.autoValue.annotations)
