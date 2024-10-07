@@ -18,8 +18,6 @@
  */
 package co.elastic.opamp.client;
 
-import co.elastic.opamp.client.connectivity.websocket.OkHttpWebSocket;
-import co.elastic.opamp.client.connectivity.websocket.WebSocket;
 import co.elastic.opamp.client.internal.OpampClientImpl;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
@@ -30,18 +28,32 @@ import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
-import co.elastic.opamp.client.internal.request.service.WebSocketRequestService;
 import co.elastic.opamp.client.internal.state.OpampClientState;
-import co.elastic.opamp.client.request.delay.PeriodicDelay;
-import java.time.Duration;
+import co.elastic.opamp.client.request.service.HttpRequestService;
+import co.elastic.opamp.client.request.service.RequestService;
+import co.elastic.opamp.client.request.service.WebSocketRequestService;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
-public final class WebSocketOpampClientBuilder {
+public final class OpampClientBuilder {
   private final OpampClientState state = OpampClientState.create();
-  private WebSocket webSocket = OkHttpWebSocket.create("ws://localhost:4320/v1/opamp");
-  private PeriodicDelay retryIntervalDelay = PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
+  private RequestService service;
+
+  OpampClientBuilder() {}
+
+  /**
+   * Sets an implementation of a {@link co.elastic.opamp.client.request.service.RequestService} to
+   * handle request's sending processes. There are 2 possible options, either {@link
+   * HttpRequestService} to use HTTP, or {@link WebSocketRequestService} to use WebSocket.
+   *
+   * @param service The request service implementation.
+   * @return this
+   */
+  public OpampClientBuilder setRequestService(RequestService service) {
+    this.service = service;
+    return this;
+  }
 
   /**
    * Sets the Agent's <a
@@ -51,26 +63,8 @@ public final class WebSocketOpampClientBuilder {
    * @param instanceUid The AgentToServer.instance_uid value.
    * @return this
    */
-  public WebSocketOpampClientBuilder setInstanceUid(byte[] instanceUid) {
+  public OpampClientBuilder setInstanceUid(byte[] instanceUid) {
     state.instanceUidState.set(instanceUid);
-    return this;
-  }
-
-  public WebSocketOpampClientBuilder setWebSocket(WebSocket webSocket) {
-    this.webSocket = webSocket;
-    return this;
-  }
-
-  /**
-   * Sets the {@link PeriodicDelay} implementation for retry operations when connecting to the
-   * Server. Check out the {@link PeriodicDelay} docs for more details. By default, is set to a
-   * fixed duration of 30 seconds each interval.
-   *
-   * @param retryIntervalDelay The retry interval handler implementation.
-   * @return this
-   */
-  public WebSocketOpampClientBuilder setRetryIntervalDelay(PeriodicDelay retryIntervalDelay) {
-    this.retryIntervalDelay = retryIntervalDelay;
     return this;
   }
 
@@ -82,7 +76,7 @@ public final class WebSocketOpampClientBuilder {
    * @param serviceName The service name.
    * @return this
    */
-  public WebSocketOpampClientBuilder setServiceName(String serviceName) {
+  public OpampClientBuilder setServiceName(String serviceName) {
     addIdentifyingAttribute("service.name", serviceName);
     return this;
   }
@@ -95,7 +89,7 @@ public final class WebSocketOpampClientBuilder {
    * @param serviceNamespace The service namespace.
    * @return this
    */
-  public WebSocketOpampClientBuilder setServiceNamespace(String serviceNamespace) {
+  public OpampClientBuilder setServiceNamespace(String serviceNamespace) {
     addIdentifyingAttribute("service.namespace", serviceNamespace);
     return this;
   }
@@ -108,7 +102,7 @@ public final class WebSocketOpampClientBuilder {
    * @param serviceVersion The service version.
    * @return this
    */
-  public WebSocketOpampClientBuilder setServiceVersion(String serviceVersion) {
+  public OpampClientBuilder setServiceVersion(String serviceVersion) {
     addIdentifyingAttribute("service.version", serviceVersion);
     return this;
   }
@@ -120,7 +114,7 @@ public final class WebSocketOpampClientBuilder {
    *
    * @return this
    */
-  public WebSocketOpampClientBuilder enableRemoteConfig() {
+  public OpampClientBuilder enableRemoteConfig() {
     state.capabilitiesState.add(
         Opamp.AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig_VALUE
             | Opamp.AgentCapabilities.AgentCapabilities_ReportsRemoteConfig_VALUE);
@@ -134,13 +128,17 @@ public final class WebSocketOpampClientBuilder {
    *
    * @return this
    */
-  public WebSocketOpampClientBuilder enableEffectiveConfigReporting() {
+  public OpampClientBuilder enableEffectiveConfigReporting() {
     state.capabilitiesState.add(
         Opamp.AgentCapabilities.AgentCapabilities_ReportsEffectiveConfig_VALUE);
     return this;
   }
 
   public OpampClient build() {
+    if (service == null) {
+      throw new NullPointerException(
+          "The request service is not set. You must provide it by calling setRequestService()");
+    }
     AgentToServerAppenders appenders =
         new AgentToServerAppenders(
             AgentDescriptionAppender.create(state.agentDescriptionState),
@@ -151,11 +149,7 @@ public final class WebSocketOpampClientBuilder {
             InstanceUidAppender.create(state.instanceUidState),
             FlagsAppender.create(),
             AgentDisconnectAppender.create());
-
-    return OpampClientImpl.create(
-        WebSocketRequestService.create(webSocket, retryIntervalDelay),
-        appenders,
-        state);
+    return OpampClientImpl.create(service, appenders, state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {

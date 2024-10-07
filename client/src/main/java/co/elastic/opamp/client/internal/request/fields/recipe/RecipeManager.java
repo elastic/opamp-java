@@ -68,6 +68,10 @@ public final class RecipeManager {
       return this;
     }
 
+    public RecipeBuilder merge(RequestRecipe recipe) {
+      return addAllFields(recipe.getFields());
+    }
+
     public RequestRecipe build() {
       recipeBuilderLock.lock();
       try {

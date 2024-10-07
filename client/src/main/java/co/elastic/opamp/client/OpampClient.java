@@ -23,12 +23,8 @@ import opamp.proto.Opamp;
 
 public interface OpampClient {
 
-  static HttpOpampClientBuilder httpBuilder() {
-    return new HttpOpampClientBuilder();
-  }
-
-  static WebSocketOpampClientBuilder webSocketBuilder() {
-    return new WebSocketOpampClientBuilder();
+  static OpampClientBuilder builder() {
+    return new OpampClientBuilder();
   }
 
   /**

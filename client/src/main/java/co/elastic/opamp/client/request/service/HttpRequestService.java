@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.service;
+package co.elastic.opamp.client.request.service;
 
 import co.elastic.opamp.client.connectivity.http.HttpErrorException;
 import co.elastic.opamp.client.connectivity.http.HttpSender;
@@ -24,7 +24,6 @@ import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
-import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.response.Response;
 import java.io.IOException;
 import java.io.OutputStream;
