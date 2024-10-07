@@ -45,7 +45,7 @@ public final class HttpRequestService implements RequestService, Runnable {
   private Supplier<Request> requestSupplier;
   private boolean isRunning = false;
   private boolean isStopped = false;
-  private static PeriodicDelay DEFAULT_DELAY_BETWEEN_REQUESTS =
+  public static final PeriodicDelay DEFAULT_DELAY_BETWEEN_REQUESTS =
       PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
 
   /**

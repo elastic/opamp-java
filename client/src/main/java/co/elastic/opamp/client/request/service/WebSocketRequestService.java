@@ -43,7 +43,24 @@ public final class WebSocketRequestService implements RequestService, WebSocketL
   private PeriodicTaskExecutor executor;
   private Callback callback;
   private Supplier<Request> requestSupplier;
+  public static final PeriodicDelay DEFAULT_DELAY_BETWEEN_RETRIES =
+      PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
 
+  /**
+   * Creates an {@link WebSocketRequestService}.
+   *
+   * @param webSocket The WebSocket implementation.
+   */
+  public static WebSocketRequestService create(WebSocket webSocket) {
+    return new WebSocketRequestService(webSocket, DEFAULT_DELAY_BETWEEN_RETRIES);
+  }
+
+  /**
+   * Creates an {@link WebSocketRequestService}.
+   *
+   * @param webSocket The WebSocket implementation.
+   * @param periodicRetryDelay The time to wait between retries.
+   */
   public static WebSocketRequestService create(
       WebSocket webSocket, PeriodicDelay periodicRetryDelay) {
     return new WebSocketRequestService(webSocket, periodicRetryDelay);
