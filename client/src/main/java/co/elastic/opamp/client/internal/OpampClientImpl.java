@@ -24,6 +24,7 @@ import co.elastic.opamp.client.internal.request.fields.FieldStateObserver;
 import co.elastic.opamp.client.internal.request.fields.FieldType;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
 import co.elastic.opamp.client.internal.request.fields.recipe.RecipeManager;
+import co.elastic.opamp.client.internal.request.fields.recipe.RequestRecipe;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.service.RequestService;
@@ -133,6 +134,7 @@ public final class OpampClientImpl
   @Override
   public void onConnectionFailed(Throwable throwable) {
     callback.onConnectFailed(this, throwable);
+    preserveFailedRequestRecipe();
   }
 
   @Override
@@ -144,7 +146,9 @@ public final class OpampClientImpl
   }
 
   @Override
-  public void onRequestFailed(Throwable throwable) {}
+  public void onRequestFailed(Throwable throwable) {
+    preserveFailedRequestRecipe();
+  }
 
   private void handleResponsePayload(Opamp.ServerToAgent response) {
     if (response.hasErrorResponse()) {
@@ -170,6 +174,15 @@ public final class OpampClientImpl
     }
   }
 
+  private void handleAgentIdentification(Opamp.ServerToAgent response) {
+    if (response.hasAgentIdentification()) {
+      ByteString newInstanceUid = response.getAgentIdentification().getNewInstanceUid();
+      if (!newInstanceUid.isEmpty()) {
+        state.instanceUidState.set(newInstanceUid.toByteArray());
+      }
+    }
+  }
+
   private void disableCompression() {
     recipeManager.next().addAllFields(COMPRESSABLE_FIELDS);
   }
@@ -178,12 +191,10 @@ public final class OpampClientImpl
     recipeManager.next().addField(FieldType.AGENT_DISCONNECT);
   }
 
-  private void handleAgentIdentification(Opamp.ServerToAgent response) {
-    if (response.hasAgentIdentification()) {
-      ByteString newInstanceUid = response.getAgentIdentification().getNewInstanceUid();
-      if (!newInstanceUid.isEmpty()) {
-        state.instanceUidState.set(newInstanceUid.toByteArray());
-      }
+  private void preserveFailedRequestRecipe() {
+    final RequestRecipe previous = recipeManager.previous();
+    if (previous != null) {
+      recipeManager.next().merge(previous);
     }
   }
 
