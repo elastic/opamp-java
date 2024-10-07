@@ -197,9 +197,8 @@ public final class OpampClientImpl
   public Request get() {
     Opamp.AgentToServer.Builder builder = Opamp.AgentToServer.newBuilder();
     for (FieldType field : recipeManager.next().build().getFields()) {
-
+      appenders.getForField(field).appendTo(builder);
     }
-    appenders.asList().forEach(appender -> appender.appendTo(builder));
     return Request.create(builder.build());
   }
 
