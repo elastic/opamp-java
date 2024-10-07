@@ -43,12 +43,12 @@ import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
 public final class OpampClientBuilder {
-  public final RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
-  public final SequenceNumberState sequenceNumberState = SequenceNumberState.create();
-  public final AgentDescriptionState agentDescriptionState = AgentDescriptionState.create();
-  public final CapabilitiesState capabilitiesState = CapabilitiesState.create();
-  public final InstanceUidState instanceUidState = InstanceUidState.createRandom();
-  public State<Opamp.EffectiveConfig> effectiveConfigState =
+  private final RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
+  private final SequenceNumberState sequenceNumberState = SequenceNumberState.create();
+  private final AgentDescriptionState agentDescriptionState = AgentDescriptionState.create();
+  private final CapabilitiesState capabilitiesState = CapabilitiesState.create();
+  private final InstanceUidState instanceUidState = InstanceUidState.createRandom();
+  private State<Opamp.EffectiveConfig> effectiveConfigState =
       State.createInMemory(Opamp.EffectiveConfig.newBuilder().build());
   private RequestService service;
 
