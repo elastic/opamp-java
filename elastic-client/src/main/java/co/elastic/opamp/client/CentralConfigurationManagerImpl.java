@@ -20,6 +20,7 @@ package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.connectivity.http.OkHttpSender;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
+import co.elastic.opamp.client.request.service.HttpRequestService;
 import co.elastic.opamp.client.response.MessageData;
 import com.dslplatform.json.DslJson;
 import com.dslplatform.json.JsonReader;
@@ -150,7 +151,9 @@ public final class CentralConfigurationManagerImpl
     }
 
     public CentralConfigurationManagerImpl build() {
-      HttpOpampClientBuilder builder = OpampClient.httpBuilder();
+      OpampClientBuilder builder = OpampClient.builder();
+      OkHttpSender httpSender = OkHttpSender.create("http://localhost:4320/v1/opamp");
+      PeriodicDelay pollingDelay = HttpRequestService.DEFAULT_DELAY_BETWEEN_REQUESTS;
       if (serviceName != null) {
         builder.setServiceName(serviceName);
       }
@@ -161,11 +164,12 @@ public final class CentralConfigurationManagerImpl
         builder.setServiceVersion(serviceVersion);
       }
       if (configurationEndpoint != null) {
-        builder.setRequestSender(OkHttpSender.create(configurationEndpoint));
+        httpSender = OkHttpSender.create(configurationEndpoint);
       }
       if (pollingInterval != null) {
-        builder.setPollingIntervalDelay(PeriodicDelay.ofFixedDuration(pollingInterval));
+        pollingDelay = PeriodicDelay.ofFixedDuration(pollingInterval);
       }
+      builder.setRequestService(HttpRequestService.create(httpSender, pollingDelay, pollingDelay));
       return new CentralConfigurationManagerImpl(builder.build());
     }
   }
