@@ -22,7 +22,7 @@ import opamp.proto.Opamp;
 
 public final class CapabilitiesState extends InMemoryState<Long> {
 
-  static CapabilitiesState create() {
+  public static CapabilitiesState create() {
     return new CapabilitiesState(Opamp.AgentCapabilities.AgentCapabilities_ReportsStatus_VALUE);
   }
 

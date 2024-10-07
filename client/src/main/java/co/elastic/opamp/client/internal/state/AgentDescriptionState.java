@@ -22,7 +22,7 @@ import opamp.proto.Opamp;
 
 public final class AgentDescriptionState extends InMemoryState<Opamp.AgentDescription> {
 
-  static AgentDescriptionState create() {
+  public static AgentDescriptionState create() {
     return new AgentDescriptionState(Opamp.AgentDescription.newBuilder().build());
   }
 

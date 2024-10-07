@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import co.elastic.opamp.client.internal.state.CapabilitiesState;
-import co.elastic.opamp.client.internal.state.EffectiveConfigState;
 import co.elastic.opamp.client.internal.state.InstanceUidState;
 import co.elastic.opamp.client.internal.state.OpampClientState;
 import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;

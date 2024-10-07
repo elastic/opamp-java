@@ -22,7 +22,7 @@ import opamp.proto.Opamp;
 
 public final class RemoteConfigStatusState extends InMemoryState<Opamp.RemoteConfigStatus> {
 
-  static RemoteConfigStatusState create() {
+  public static RemoteConfigStatusState create() {
     return new RemoteConfigStatusState(
         Opamp.RemoteConfigStatus.newBuilder()
             .setStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET)

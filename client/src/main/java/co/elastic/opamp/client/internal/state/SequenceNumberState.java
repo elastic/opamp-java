@@ -20,7 +20,7 @@ package co.elastic.opamp.client.internal.state;
 
 public final class SequenceNumberState extends InMemoryState<Integer> {
 
-  static SequenceNumberState create() {
+  public static SequenceNumberState create() {
     return new SequenceNumberState(1);
   }
 

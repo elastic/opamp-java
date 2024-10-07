@@ -18,31 +18,24 @@
  */
 package co.elastic.opamp.client.internal.state;
 
+import co.elastic.opamp.client.state.State;
+import opamp.proto.Opamp;
+
 public final class OpampClientState {
   public final RemoteConfigStatusState remoteConfigStatusState;
   public final SequenceNumberState sequenceNumberState;
   public final AgentDescriptionState agentDescriptionState;
-  public final EffectiveConfigState effectiveConfigState;
   public final CapabilitiesState capabilitiesState;
   public final InstanceUidState instanceUidState;
-
-  public static OpampClientState create() {
-    return new OpampClientState(
-        RemoteConfigStatusState.create(),
-        SequenceNumberState.create(),
-        AgentDescriptionState.create(),
-        EffectiveConfigState.create(),
-        CapabilitiesState.create(),
-        InstanceUidState.createRandom());
-  }
+  public final State<Opamp.EffectiveConfig> effectiveConfigState;
 
   public OpampClientState(
       RemoteConfigStatusState remoteConfigStatusState,
       SequenceNumberState sequenceNumberState,
       AgentDescriptionState agentDescriptionState,
-      EffectiveConfigState effectiveConfigState,
       CapabilitiesState capabilitiesState,
-      InstanceUidState instanceUidState) {
+      InstanceUidState instanceUidState,
+      State<Opamp.EffectiveConfig> effectiveConfigState) {
     this.remoteConfigStatusState = remoteConfigStatusState;
     this.sequenceNumberState = sequenceNumberState;
     this.agentDescriptionState = agentDescriptionState;

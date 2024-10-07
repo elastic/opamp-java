@@ -28,16 +28,28 @@ import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
+import co.elastic.opamp.client.internal.state.AgentDescriptionState;
+import co.elastic.opamp.client.internal.state.CapabilitiesState;
+import co.elastic.opamp.client.internal.state.InstanceUidState;
 import co.elastic.opamp.client.internal.state.OpampClientState;
+import co.elastic.opamp.client.internal.state.RemoteConfigStatusState;
+import co.elastic.opamp.client.internal.state.SequenceNumberState;
 import co.elastic.opamp.client.request.service.HttpRequestService;
 import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.request.service.WebSocketRequestService;
+import co.elastic.opamp.client.state.State;
 import opamp.proto.Anyvalue;
 import opamp.proto.Opamp;
 
 /** Builds an {@link OpampClient} instance. */
 public final class OpampClientBuilder {
-  private final OpampClientState state = OpampClientState.create();
+  public final RemoteConfigStatusState remoteConfigStatusState = RemoteConfigStatusState.create();
+  public final SequenceNumberState sequenceNumberState = SequenceNumberState.create();
+  public final AgentDescriptionState agentDescriptionState = AgentDescriptionState.create();
+  public final CapabilitiesState capabilitiesState = CapabilitiesState.create();
+  public final InstanceUidState instanceUidState = InstanceUidState.createRandom();
+  public State<Opamp.EffectiveConfig> effectiveConfigState =
+      State.createInMemory(Opamp.EffectiveConfig.newBuilder().build());
   private RequestService service;
 
   OpampClientBuilder() {}
@@ -64,7 +76,7 @@ public final class OpampClientBuilder {
    * @return this
    */
   public OpampClientBuilder setInstanceUid(byte[] instanceUid) {
-    state.instanceUidState.set(instanceUid);
+    instanceUidState.set(instanceUid);
     return this;
   }
 
@@ -115,7 +127,7 @@ public final class OpampClientBuilder {
    * @return this
    */
   public OpampClientBuilder enableRemoteConfig() {
-    state.capabilitiesState.add(
+    capabilitiesState.add(
         Opamp.AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig_VALUE
             | Opamp.AgentCapabilities.AgentCapabilities_ReportsRemoteConfig_VALUE);
     return this;
@@ -129,8 +141,20 @@ public final class OpampClientBuilder {
    * @return this
    */
   public OpampClientBuilder enableEffectiveConfigReporting() {
-    state.capabilitiesState.add(
-        Opamp.AgentCapabilities.AgentCapabilities_ReportsEffectiveConfig_VALUE);
+    capabilitiesState.add(Opamp.AgentCapabilities.AgentCapabilities_ReportsEffectiveConfig_VALUE);
+    return this;
+  }
+
+  /**
+   * Sets the effective config state implementation. It should call {@link State#notifyObservers()}
+   * whenever it has changes that have not been sent to the server.
+   *
+   * @param effectiveConfigState The state implementation.
+   * @return this
+   */
+  public OpampClientBuilder setEffectiveConfigState(
+      State<Opamp.EffectiveConfig> effectiveConfigState) {
+    this.effectiveConfigState = effectiveConfigState;
     return this;
   }
 
@@ -139,6 +163,14 @@ public final class OpampClientBuilder {
       throw new NullPointerException(
           "The request service is not set. You must provide it by calling setRequestService()");
     }
+    OpampClientState state =
+        new OpampClientState(
+            remoteConfigStatusState,
+            sequenceNumberState,
+            agentDescriptionState,
+            capabilitiesState,
+            instanceUidState,
+            effectiveConfigState);
     AgentToServerAppenders appenders =
         new AgentToServerAppenders(
             AgentDescriptionAppender.create(state.agentDescriptionState),
@@ -153,8 +185,8 @@ public final class OpampClientBuilder {
   }
 
   private void addIdentifyingAttribute(String key, String value) {
-    state.agentDescriptionState.set(
-        Opamp.AgentDescription.newBuilder(state.agentDescriptionState.get())
+    agentDescriptionState.set(
+        Opamp.AgentDescription.newBuilder(agentDescriptionState.get())
             .addIdentifyingAttributes(createKeyValue(key, value))
             .build());
   }
