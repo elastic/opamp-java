@@ -43,19 +43,27 @@ public final class OpampClientImpl
   private final AgentToServerAppenders appenders;
   private final OpampClientState state;
   private final RecipeManager recipeManager;
-  private final List<FieldType> compressableFields =
-      List.of(
-          FieldType.AGENT_DESCRIPTION, FieldType.EFFECTIVE_CONFIG, FieldType.REMOTE_CONFIG_STATUS);
   private final Lock runningLock = new ReentrantLock();
   private Callback callback;
   private boolean isRunning;
   private boolean isStopped;
 
+  /** Fields that must always be sent. */
+  private static final List<FieldType> CONSTANT_FIELDS =
+      List.of(FieldType.INSTANCE_UID, FieldType.SEQUENCE_NUM, FieldType.CAPABILITIES);
+
+  /**
+   * Fields that should only be sent in the first message and then omitted in following messages,
+   * unless their value changes or the server requests a full message.
+   */
+  private static final List<FieldType> COMPRESSABLE_FIELDS =
+      List.of(
+          FieldType.AGENT_DESCRIPTION, FieldType.EFFECTIVE_CONFIG, FieldType.REMOTE_CONFIG_STATUS);
+
   public static OpampClientImpl create(
       RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
     RecipeManager recipeManager = new RecipeManager();
-    recipeManager.setConstantFields(
-        FieldType.INSTANCE_UID, FieldType.SEQUENCE_NUM, FieldType.CAPABILITIES);
+    recipeManager.setConstantFields(CONSTANT_FIELDS);
     return new OpampClientImpl(requestService, appenders, state, recipeManager);
   }
 
@@ -163,7 +171,7 @@ public final class OpampClientImpl
   }
 
   private void disableCompression() {
-    recipeManager.next().addAllFields(compressableFields);
+    recipeManager.next().addAllFields(COMPRESSABLE_FIELDS);
   }
 
   private void prepareDisconnectRequest() {

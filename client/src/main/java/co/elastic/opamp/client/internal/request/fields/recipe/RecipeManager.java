@@ -51,8 +51,8 @@ public final class RecipeManager {
     builder = null;
   }
 
-  public void setConstantFields(FieldType... constantFields) {
-    this.constantFields = List.of(constantFields);
+  public void setConstantFields(List<FieldType> constantFields) {
+    this.constantFields = Collections.unmodifiableList(constantFields);
   }
 
   public final class RecipeBuilder {
