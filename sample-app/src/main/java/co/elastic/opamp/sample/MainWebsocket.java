@@ -17,6 +17,8 @@ public class MainWebsocket {
                 WebSocketRequestService.create(
                     OkHttpWebSocket.create("ws://localhost:4320/v1/opamp")))
             .enableRemoteConfig()
+            .enableEffectiveConfigReporting()
+            .setEffectiveConfigState(new MyEffectiveConfigState())
             .build();
 
     client.start(
