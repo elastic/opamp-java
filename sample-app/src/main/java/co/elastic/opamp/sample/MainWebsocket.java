@@ -11,9 +11,13 @@ public class MainWebsocket {
   private static final Logger logger = Logger.getLogger(MainWebsocket.class.getName());
 
   public static void main(String[] args) {
-    OpampClient client = OpampClient.builder()
-            .setRequestService(WebSocketRequestService.create(OkHttpWebSocket.create("")))
-            .enableRemoteConfig().build();
+    OpampClient client =
+        OpampClient.builder()
+            .setRequestService(
+                WebSocketRequestService.create(
+                    OkHttpWebSocket.create("ws://localhost:4320/v1/opamp")))
+            .enableRemoteConfig()
+            .build();
 
     client.start(
         new OpampClient.Callback() {
