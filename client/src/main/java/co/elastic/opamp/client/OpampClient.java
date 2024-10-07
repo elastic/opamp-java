@@ -58,13 +58,6 @@ public interface OpampClient {
    */
   void setRemoteConfigStatus(Opamp.RemoteConfigStatus remoteConfigStatus);
 
-  /**
-   * Sets the current effective config which will be sent in the next agent to server request.
-   *
-   * @param effectiveConfig The new effective config.
-   */
-  void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig);
-
   interface Callback {
     /**
      * Called when the connection is successfully established to the Server. May be called after

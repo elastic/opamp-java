@@ -122,11 +122,6 @@ public final class OpampClientImpl
   }
 
   @Override
-  public void setEffectiveConfig(Opamp.EffectiveConfig effectiveConfig) {
-    state.effectiveConfigState.set(effectiveConfig);
-  }
-
-  @Override
   public void onConnectionSuccess() {
     callback.onConnect(this);
   }
