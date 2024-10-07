@@ -44,7 +44,7 @@ public final class OpampClientBuilder {
 
   /**
    * Sets an implementation of a {@link co.elastic.opamp.client.request.service.RequestService} to
-   * handle request's sending processes. There are 2 possible options, either {@link
+   * handle the request's sending process. There are 2 possible options, either {@link
    * HttpRequestService} to use HTTP, or {@link WebSocketRequestService} to use WebSocket.
    *
    * @param service The request service implementation.

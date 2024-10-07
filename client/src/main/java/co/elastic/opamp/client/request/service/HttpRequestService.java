@@ -45,6 +45,35 @@ public final class HttpRequestService implements RequestService, Runnable {
   private Supplier<Request> requestSupplier;
   private boolean isRunning = false;
   private boolean isStopped = false;
+  private static PeriodicDelay DEFAULT_DELAY_BETWEEN_REQUESTS =
+      PeriodicDelay.ofFixedDuration(Duration.ofSeconds(30));
+
+  /**
+   * Creates an {@link HttpRequestService}.
+   *
+   * @param requestSender The HTTP sender implementation.
+   */
+  public static HttpRequestService create(HttpSender requestSender) {
+    return create(requestSender, DEFAULT_DELAY_BETWEEN_REQUESTS, DEFAULT_DELAY_BETWEEN_REQUESTS);
+  }
+
+  /**
+   * Creates an {@link HttpRequestService}.
+   *
+   * @param requestSender The HTTP sender implementation.
+   * @param periodicRequestDelay The time to wait between requests in general.
+   * @param periodicRetryDelay The time to wait between retries.
+   */
+  public static HttpRequestService create(
+      HttpSender requestSender,
+      PeriodicDelay periodicRequestDelay,
+      PeriodicDelay periodicRetryDelay) {
+    return new HttpRequestService(
+        requestSender,
+        PeriodicTaskExecutor.create(periodicRequestDelay),
+        periodicRequestDelay,
+        periodicRetryDelay);
+  }
 
   HttpRequestService(
       HttpSender requestSender,
@@ -55,17 +84,6 @@ public final class HttpRequestService implements RequestService, Runnable {
     this.executor = executor;
     this.periodicRequestDelay = periodicRequestDelay;
     this.periodicRetryDelay = periodicRetryDelay;
-  }
-
-  public static HttpRequestService create(
-      HttpSender requestSender,
-      PeriodicDelay periodicRequestDelay,
-      PeriodicDelay periodicRetryDelay) {
-    return new HttpRequestService(
-        requestSender,
-        PeriodicTaskExecutor.create(periodicRequestDelay),
-        periodicRequestDelay,
-        periodicRetryDelay);
   }
 
   @Override
