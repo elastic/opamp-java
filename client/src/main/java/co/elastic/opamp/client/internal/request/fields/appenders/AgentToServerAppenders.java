@@ -18,9 +18,10 @@
  */
 package co.elastic.opamp.client.internal.request.fields.appenders;
 
-import java.util.ArrayList;
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class AgentToServerAppenders {
   public final AgentDescriptionAppender agentDescriptionAppender;
@@ -31,7 +32,7 @@ public final class AgentToServerAppenders {
   public final InstanceUidAppender instanceUidAppender;
   public final FlagsAppender flagsAppender;
   public final AgentDisconnectAppender agentDisconnectAppender;
-  private final List<AgentToServerAppender> allAppenders;
+  private final Map<FieldType, AgentToServerAppender> allAppenders;
 
   public AgentToServerAppenders(
       AgentDescriptionAppender agentDescriptionAppender,
@@ -51,19 +52,22 @@ public final class AgentToServerAppenders {
     this.flagsAppender = flagsAppender;
     this.agentDisconnectAppender = agentDisconnectAppender;
 
-    List<AgentToServerAppender> appenders = new ArrayList<>();
-    appenders.add(agentDescriptionAppender);
-    appenders.add(effectiveConfigAppender);
-    appenders.add(remoteConfigStatusAppender);
-    appenders.add(sequenceNumberAppender);
-    appenders.add(capabilitiesAppender);
-    appenders.add(instanceUidAppender);
-    appenders.add(flagsAppender);
-    appenders.add(agentDisconnectAppender);
-    allAppenders = Collections.unmodifiableList(appenders);
+    Map<FieldType, AgentToServerAppender> appenders = new HashMap<>();
+    appenders.put(FieldType.AGENT_DESCRIPTION, agentDescriptionAppender);
+    appenders.put(FieldType.EFFECTIVE_CONFIG, effectiveConfigAppender);
+    appenders.put(FieldType.REMOTE_CONFIG_STATUS, remoteConfigStatusAppender);
+    appenders.put(FieldType.SEQUENCE_NUM, sequenceNumberAppender);
+    appenders.put(FieldType.CAPABILITIES, capabilitiesAppender);
+    appenders.put(FieldType.INSTANCE_UID, instanceUidAppender);
+    appenders.put(FieldType.FLAGS, flagsAppender);
+    appenders.put(FieldType.AGENT_DISCONNECT, agentDisconnectAppender);
+    allAppenders = Collections.unmodifiableMap(appenders);
   }
 
-  public List<AgentToServerAppender> asList() {
-    return allAppenders;
+  public AgentToServerAppender getForField(FieldType fieldType) {
+    if (!allAppenders.containsKey(fieldType)) {
+      throw new IllegalArgumentException("Field type " + fieldType + " is not supported");
+    }
+    return allAppenders.get(fieldType);
   }
 }

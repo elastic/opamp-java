@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.request.fields.appenders;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 public final class AgentDisconnectAppender implements AgentToServerAppender {
@@ -28,11 +27,6 @@ public final class AgentDisconnectAppender implements AgentToServerAppender {
   }
 
   private AgentDisconnectAppender() {}
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.AGENT_DISCONNECT;
-  }
 
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {

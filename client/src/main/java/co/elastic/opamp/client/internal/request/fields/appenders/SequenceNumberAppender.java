@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.request.fields.appenders;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
 
@@ -36,10 +35,5 @@ public final class SequenceNumberAppender implements AgentToServerAppender {
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
     builder.setSequenceNum(sequenceNumber.get());
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.SEQUENCE_NUM;
   }
 }

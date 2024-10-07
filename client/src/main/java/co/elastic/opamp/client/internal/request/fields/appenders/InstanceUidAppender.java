@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.request.fields.appenders;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import com.google.protobuf.ByteString;
 import java.util.function.Supplier;
 import opamp.proto.Opamp;
@@ -37,10 +36,5 @@ public final class InstanceUidAppender implements AgentToServerAppender {
   @Override
   public void appendTo(Opamp.AgentToServer.Builder builder) {
     builder.setInstanceUid(ByteString.copyFrom(instanceUid.get()));
-  }
-
-  @Override
-  public FieldType getFieldType() {
-    return FieldType.INSTANCE_UID;
   }
 }

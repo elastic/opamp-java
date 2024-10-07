@@ -18,7 +18,6 @@
  */
 package co.elastic.opamp.client.internal.request.fields.appenders;
 
-import co.elastic.opamp.client.internal.request.fields.FieldType;
 import opamp.proto.Opamp;
 
 /**
@@ -32,6 +31,4 @@ public interface AgentToServerAppender {
    * @param builder The AgentToServer message builder.
    */
   void appendTo(Opamp.AgentToServer.Builder builder);
-
-  FieldType getFieldType();
 }
