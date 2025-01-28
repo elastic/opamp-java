@@ -5,8 +5,8 @@ import co.elastic.opamp.client.CentralConfigurationProcessor;
 import java.time.Duration;
 import java.util.logging.Logger;
 
-public class Main {
-  private static final Logger logger = Logger.getLogger(Main.class.getName());
+public class ElasticExample {
+  private static final Logger logger = Logger.getLogger(ElasticExample.class.getName());
 
   public static void main(String[] args) {
     String serviceName = "some-service";
