@@ -22,7 +22,15 @@ import co.elastic.opamp.client.OpampClient;
 import co.elastic.opamp.client.internal.request.fields.FieldStateChangeListener;
 import co.elastic.opamp.client.internal.request.fields.FieldStateObserver;
 import co.elastic.opamp.client.internal.request.fields.FieldType;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
+import co.elastic.opamp.client.internal.request.fields.appenders.CapabilitiesAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.EffectiveConfigAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
+import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
 import co.elastic.opamp.client.internal.request.fields.recipe.RecipeManager;
 import co.elastic.opamp.client.internal.request.fields.recipe.RequestRecipe;
 import co.elastic.opamp.client.internal.state.OpampClientState;
@@ -61,8 +69,17 @@ public final class OpampClientImpl
       List.of(
           FieldType.AGENT_DESCRIPTION, FieldType.EFFECTIVE_CONFIG, FieldType.REMOTE_CONFIG_STATUS);
 
-  public static OpampClientImpl create(
-      RequestService requestService, AgentToServerAppenders appenders, OpampClientState state) {
+  public static OpampClientImpl create(RequestService requestService, OpampClientState state) {
+    AgentToServerAppenders appenders =
+        new AgentToServerAppenders(
+            AgentDescriptionAppender.create(state.agentDescriptionState),
+            EffectiveConfigAppender.create(state.effectiveConfigState),
+            RemoteConfigStatusAppender.create(state.remoteConfigStatusState),
+            SequenceNumberAppender.create(state.sequenceNumberState),
+            CapabilitiesAppender.create(state.capabilitiesState),
+            InstanceUidAppender.create(state.instanceUidState),
+            FlagsAppender.create(),
+            AgentDisconnectAppender.create());
     RecipeManager recipeManager = new RecipeManager();
     recipeManager.setConstantFields(CONSTANT_FIELDS);
     return new OpampClientImpl(requestService, appenders, state, recipeManager);

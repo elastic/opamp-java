@@ -19,15 +19,6 @@
 package co.elastic.opamp.client;
 
 import co.elastic.opamp.client.internal.OpampClientImpl;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
-import co.elastic.opamp.client.internal.request.fields.appenders.CapabilitiesAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.EffectiveConfigAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
 import co.elastic.opamp.client.internal.state.AgentDescriptionState;
 import co.elastic.opamp.client.internal.state.CapabilitiesState;
 import co.elastic.opamp.client.internal.state.InstanceUidState;
@@ -171,17 +162,7 @@ public final class OpampClientBuilder {
             capabilitiesState,
             instanceUidState,
             effectiveConfigState);
-    AgentToServerAppenders appenders =
-        new AgentToServerAppenders(
-            AgentDescriptionAppender.create(state.agentDescriptionState),
-            EffectiveConfigAppender.create(state.effectiveConfigState),
-            RemoteConfigStatusAppender.create(state.remoteConfigStatusState),
-            SequenceNumberAppender.create(state.sequenceNumberState),
-            CapabilitiesAppender.create(state.capabilitiesState),
-            InstanceUidAppender.create(state.instanceUidState),
-            FlagsAppender.create(),
-            AgentDisconnectAppender.create());
-    return OpampClientImpl.create(service, appenders, state);
+    return OpampClientImpl.create(service, state);
   }
 
   private void addIdentifyingAttribute(String key, String value) {
