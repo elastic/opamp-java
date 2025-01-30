@@ -20,6 +20,7 @@ package co.elastic.opamp.client.internal.request.appenders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import co.elastic.opamp.client.internal.request.fields.FieldType;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
 import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppender;
@@ -53,9 +54,18 @@ class AgentToServerAppendersTest {
 
   @Test
   void verifyAppenderList() {
-    assertThat(appenders.asList())
-        .extracting("class")
-        .containsExactlyInAnyOrderElementsOf(getAppendersFromParams());
+    verifyMapping(FieldType.AGENT_DESCRIPTION, agentDescriptionAppender);
+    verifyMapping(FieldType.EFFECTIVE_CONFIG, effectiveConfigAppender);
+    verifyMapping(FieldType.REMOTE_CONFIG_STATUS, remoteConfigStatusAppender);
+    verifyMapping(FieldType.SEQUENCE_NUM, sequenceNumberAppender);
+    verifyMapping(FieldType.CAPABILITIES, capabilitiesAppender);
+    verifyMapping(FieldType.INSTANCE_UID, instanceUidAppender);
+    verifyMapping(FieldType.FLAGS, flagsAppender);
+    verifyMapping(FieldType.AGENT_DISCONNECT, agentDisconnectAppender);
+  }
+
+  private void verifyMapping(FieldType type, AgentToServerAppender appender) {
+    assertThat(appenders.getForField(type)).isEqualTo(appender);
   }
 
   @SuppressWarnings("unchecked")
