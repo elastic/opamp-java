@@ -58,7 +58,7 @@ public final class CentralConfigurationManagerImpl
 
   @Override
   public void onMessage(OpampClient client, MessageData messageData) {
-    logger.log(Level.INFO, "onMessage({0}, {1})", new Object[] {client, messageData});
+    logger.log(Level.FINE, "onMessage({0}, {1})", new Object[] {client, messageData});
     Opamp.AgentRemoteConfig remoteConfig = messageData.getRemoteConfig();
     if (remoteConfig != null) {
       processRemoteConfig(client, remoteConfig);
@@ -92,6 +92,11 @@ public final class CentralConfigurationManagerImpl
 
   private Map<String, String> parseCentralConfiguration(ByteString centralConfig) {
     try {
+      byte[] centralConfigBytes = centralConfig.toByteArray();
+      if (centralConfigBytes.length == 0) {
+        logger.log(Level.WARNING, "No central configuration returned - is this connected to an EDOT collector above 18.8?");
+        return null;
+      }
       JsonReader<Object> reader = dslJson.newReader(centralConfig.toByteArray());
       reader.startObject();
       return Collections.unmodifiableMap(MapConverter.deserialize(reader));
