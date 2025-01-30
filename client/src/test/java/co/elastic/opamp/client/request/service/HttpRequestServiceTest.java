@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.http;
+package co.elastic.opamp.client.request.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -38,8 +38,6 @@ import co.elastic.opamp.client.internal.periodictask.PeriodicTaskExecutor;
 import co.elastic.opamp.client.request.Request;
 import co.elastic.opamp.client.request.delay.AcceptsDelaySuggestion;
 import co.elastic.opamp.client.request.delay.PeriodicDelay;
-import co.elastic.opamp.client.request.service.HttpRequestService;
-import co.elastic.opamp.client.request.service.RequestService;
 import co.elastic.opamp.client.response.Response;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;

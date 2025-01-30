@@ -104,6 +104,7 @@ public final class OpampClientImpl
         isRunning = true;
         this.callback = callback;
         observeStateChange();
+        disableCompression();
         requestService.start(this, this);
         requestService.sendRequest();
       } else {

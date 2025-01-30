@@ -50,11 +50,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OpampClientImplTest {
   @Mock private RequestService requestService;
   @Mock private OpampClient.Callback callback;
-  private OpampClientState clientState;
+  private OpampClientState state;
+  private OpampClientImpl client;
 
   @BeforeEach
   void setUp() {
-    clientState =
+    state =
         new OpampClientState(
             RemoteConfigStatusState.create(),
             SequenceNumberState.create(),
@@ -62,12 +63,11 @@ class OpampClientImplTest {
             CapabilitiesState.create(),
             InstanceUidState.createRandom(),
             State.createInMemory(Opamp.EffectiveConfig.newBuilder().build()));
+    client = OpampClientImpl.create(requestService, state);
   }
 
   @Test
   void verifyStart() {
-    OpampClientImpl client = buildClient(clientState);
-
     client.start(callback);
 
     verify(requestService).start(client, client);
@@ -75,8 +75,6 @@ class OpampClientImplTest {
 
   @Test
   void verifyStop() {
-    OpampClientImpl client = buildClient(clientState);
-
     client.start(callback);
     verify(requestService).start(client, client);
 
@@ -86,8 +84,6 @@ class OpampClientImplTest {
 
   @Test
   void verifyStartOnlyOnce() {
-    OpampClientImpl client = buildClient();
-
     client.start(callback);
 
     try {
@@ -100,7 +96,6 @@ class OpampClientImplTest {
 
   @Test
   void verifyStopOnlyOnce() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
 
     client.stop();
@@ -115,8 +110,6 @@ class OpampClientImplTest {
 
   @Test
   void verifyStopOnlyAfterStart() {
-    OpampClientImpl client = buildClient();
-
     try {
       client.stop();
       fail("Should have thrown an exception");
@@ -126,8 +119,34 @@ class OpampClientImplTest {
   }
 
   @Test
+  void checkRequestFields() {
+    client.start(callback);
+
+    Opamp.AgentToServer firstRequest = client.get().getAgentToServer();
+
+    assertThat(firstRequest.getInstanceUid().toByteArray()).isEqualTo(state.instanceUidState.get());
+    assertThat(firstRequest.getSequenceNum()).isEqualTo(1);
+    assertThat(firstRequest.getCapabilities()).isEqualTo(state.capabilitiesState.get());
+    assertThat(firstRequest.hasAgentDescription()).isTrue();
+    assertThat(firstRequest.hasEffectiveConfig()).isTrue();
+    assertThat(firstRequest.hasRemoteConfigStatus()).isTrue();
+
+    client.onRequestSuccess(null);
+
+    // Second request
+    Opamp.AgentToServer secondRequest = client.get().getAgentToServer();
+
+    assertThat(secondRequest.getInstanceUid().toByteArray())
+        .isEqualTo(state.instanceUidState.get());
+    assertThat(secondRequest.getSequenceNum()).isEqualTo(2);
+    assertThat(secondRequest.getCapabilities()).isEqualTo(state.capabilitiesState.get());
+    assertThat(secondRequest.hasAgentDescription()).isFalse();
+    assertThat(secondRequest.hasEffectiveConfig()).isFalse();
+    assertThat(secondRequest.hasRemoteConfigStatus()).isFalse();
+  }
+
+  @Test
   void verifyRequestBuildingAfterStopIsCalled() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
 
     client.stop();
@@ -139,7 +158,6 @@ class OpampClientImplTest {
   @Test
   void onSuccess_withNoChangesToReport_doNotNotifyCallbackOnMessage() {
     Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.getDefaultInstance();
-    OpampClientImpl client = buildClient();
     client.start(callback);
 
     client.onRequestSuccess(Response.create(serverToAgent));
@@ -162,7 +180,6 @@ class OpampClientImplTest {
                 getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
           }
         };
-    OpampClientImpl client = buildClient();
     client.start(testCallback);
     clearInvocations(requestService);
 
@@ -186,7 +203,6 @@ class OpampClientImplTest {
                 getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
           }
         };
-    OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.start(testCallback);
@@ -199,7 +215,6 @@ class OpampClientImplTest {
 
   @Test
   void onConnectionSuccessful_notifyCallback() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
 
     client.onConnectionSuccess();
@@ -210,7 +225,6 @@ class OpampClientImplTest {
 
   @Test
   void onSuccessfulResponse_withServerErrorData_notifyCallback() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
     Opamp.ServerErrorResponse errorResponse = Opamp.ServerErrorResponse.getDefaultInstance();
     Opamp.ServerToAgent serverToAgent =
@@ -224,7 +238,6 @@ class OpampClientImplTest {
 
   @Test
   void onConnectionFailed_notifyCallback() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
     Throwable throwable = mock();
 
@@ -240,7 +253,6 @@ class OpampClientImplTest {
         Opamp.ServerToAgent.newBuilder()
             .setFlags(Opamp.ServerToAgentFlags.ServerToAgentFlags_ReportFullState_VALUE)
             .build();
-    OpampClientImpl client = buildClient();
     client.start(callback);
 
     // First payload contains compressable fields
@@ -266,30 +278,27 @@ class OpampClientImplTest {
 
   @Test
   void verifySequenceNumberIncreasesOnServerResponseReceived() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
-    assertThat(clientState.sequenceNumberState.get()).isEqualTo(1);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
     Opamp.ServerToAgent serverToAgent = Opamp.ServerToAgent.getDefaultInstance();
 
     client.onRequestSuccess(Response.create(serverToAgent));
 
-    assertThat(clientState.sequenceNumberState.get()).isEqualTo(2);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(2);
   }
 
   @Test
   void verifySequenceNumberDoesNotIncreaseOnRequestError() {
-    OpampClientImpl client = buildClient();
     client.start(callback);
-    assertThat(clientState.sequenceNumberState.get()).isEqualTo(1);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
 
     client.onRequestFailed(new Exception());
 
-    assertThat(clientState.sequenceNumberState.get()).isEqualTo(1);
+    assertThat(state.sequenceNumberState.get()).isEqualTo(1);
   }
 
   @Test
   void whenStatusIsUpdated_notifyServerImmediately() {
-    OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_UNSET));
     client.start(callback);
@@ -303,7 +312,6 @@ class OpampClientImplTest {
 
   @Test
   void whenStatusIsNotUpdated_doNotNotifyServerImmediately() {
-    OpampClientImpl client = buildClient();
     client.setRemoteConfigStatus(
         getRemoteConfigStatus(Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLYING));
     client.start(callback);
@@ -317,7 +325,6 @@ class OpampClientImplTest {
 
   @Test
   void whenServerProvidesNewInstanceUid_useIt() {
-    OpampClientImpl client = buildClient(clientState);
     client.start(callback);
     byte[] serverProvidedUid = new byte[] {1, 2, 3};
     Opamp.ServerToAgent response =
@@ -330,7 +337,7 @@ class OpampClientImplTest {
 
     client.onRequestSuccess(Response.create(response));
 
-    assertThat(clientState.instanceUidState.get()).isEqualTo(serverProvidedUid);
+    assertThat(state.instanceUidState.get()).isEqualTo(serverProvidedUid);
   }
 
   private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
@@ -343,14 +350,6 @@ class OpampClientImplTest {
         configFileName,
         Opamp.AgentConfigFile.newBuilder().setBody(ByteString.copyFromUtf8(content)).build());
     return builder.build();
-  }
-
-  private OpampClientImpl buildClient() {
-    return buildClient(clientState);
-  }
-
-  private OpampClientImpl buildClient(OpampClientState state) {
-    return OpampClientImpl.create(requestService, state);
   }
 
   private static class TestCallback implements OpampClient.Callback {

@@ -16,24 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package co.elastic.opamp.client.internal.request.appenders;
+package co.elastic.opamp.client.internal.request.fields.appenders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.elastic.opamp.client.internal.request.fields.FieldType;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentDescriptionAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentDisconnectAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.AgentToServerAppenders;
-import co.elastic.opamp.client.internal.request.fields.appenders.CapabilitiesAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.EffectiveConfigAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.FlagsAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.InstanceUidAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.RemoteConfigStatusAppender;
-import co.elastic.opamp.client.internal.request.fields.appenders.SequenceNumberAppender;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -66,16 +53,5 @@ class AgentToServerAppendersTest {
 
   private void verifyMapping(FieldType type, AgentToServerAppender appender) {
     assertThat(appenders.getForField(type)).isEqualTo(appender);
-  }
-
-  @SuppressWarnings("unchecked")
-  private List<Class<? extends AgentToServerAppender>> getAppendersFromParams() {
-    List<Class<? extends AgentToServerAppender>> appenderTypes = new ArrayList<>();
-    for (Field field : AgentToServerAppenders.class.getFields()) {
-      if (AgentToServerAppender.class.isAssignableFrom(field.getType())) {
-        appenderTypes.add((Class<? extends AgentToServerAppender>) field.getType());
-      }
-    }
-    return appenderTypes;
   }
 }
