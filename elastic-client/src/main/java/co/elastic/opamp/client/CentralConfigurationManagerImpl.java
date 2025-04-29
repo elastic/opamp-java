@@ -82,12 +82,16 @@ public final class CentralConfigurationManagerImpl
         status = Opamp.RemoteConfigStatuses.RemoteConfigStatuses_FAILED;
       }
 
-      client.setRemoteConfigStatus(getRemoteConfigStatus(status));
+      client.setRemoteConfigStatus(getRemoteConfigStatus(status, remoteConfig.getConfigHash()));
     }
   }
 
-  private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status) {
-    return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
+  private static Opamp.RemoteConfigStatus getRemoteConfigStatus(Opamp.RemoteConfigStatuses status, ByteString hash) {
+    if (hash != null && status == Opamp.RemoteConfigStatuses.RemoteConfigStatuses_APPLIED) {
+      return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).setLastRemoteConfigHash(hash).build();
+    } else {
+      return Opamp.RemoteConfigStatus.newBuilder().setStatus(status).build();
+      }
   }
 
   private Map<String, String> parseCentralConfiguration(ByteString centralConfig) {
